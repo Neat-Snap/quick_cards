@@ -6,65 +6,42 @@ import { Separator } from "@/components/ui/separator";
 import { 
   ArrowRight, 
   Sparkles, 
-  Palette, 
   Image, 
-  QrCode, 
-  CheckCircle, 
-  Link, 
-  Video 
+  BadgeCheck, 
+  Briefcase,
+  Code
 } from "lucide-react";
 
-// Premium feature data
+// Premium feature data based on rules.md
 const premiumFeatures = [
   {
     id: 1,
-    title: "Custom Themes",
-    description: "Access to 10+ premium themes with custom color palettes",
-    price: 5,
-    icon: Palette,
-  },
-  {
-    id: 2,
-    title: "Animated Elements",
-    description: "Add subtle animations to make your card stand out",
-    price: 7,
-    icon: Sparkles,
-  },
-  {
-    id: 3,
-    title: "HD Background Images",
-    description: "Choose from our library of professional background images",
-    price: 5,
+    title: "Background Image Upload",
+    description: "Upload your own photo as a custom background for your card",
+    price: 10,
     icon: Image,
   },
   {
-    id: 4,
-    title: "Custom QR Code",
-    description: "Branded QR codes that link directly to your card",
-    price: 10,
-    icon: QrCode,
-  },
-  {
-    id: 5,
-    title: "Verified Badge",
-    description: "Display a verification badge on your business card",
-    price: 15,
-    icon: CheckCircle,
-  },
-  {
-    id: 6,
-    title: "Multiple Links",
-    description: "Add up to 10 custom links to your business card",
+    id: 2,
+    title: "Custom Badge",
+    description: "Create and display a personalized badge next to your name",
     price: 8,
-    icon: Link,
+    icon: BadgeCheck,
   },
   {
-    id: 7,
-    title: "Video Introduction",
-    description: "Add a short video introduction to your card",
-    price: 20,
-    icon: Video,
+    id: 3,
+    title: "Skills Section",
+    description: "Add a dedicated skills section to showcase your expertise",
+    price: 12,
+    icon: Code,
   },
+  {
+    id: 4,
+    title: "Unlimited Projects",
+    description: "Add more than 3 projects to your profile (free users limited to 3)",
+    price: 15,
+    icon: Briefcase,
+  }
 ];
 
 export function PremiumFeatures() {
@@ -76,7 +53,7 @@ export function PremiumFeatures() {
           <h3 className="font-semibold">Telegram Stars Benefits</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Unlock premium features using Telegram Stars to make your business card unique and professional.
+          Unlock premium features using Telegram Stars to enhance your card with advanced customization options.
         </p>
       </div>
 
@@ -90,9 +67,8 @@ export function PremiumFeatures() {
                 <p className="text-sm text-muted-foreground">{feature.description}</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="shrink-0 gap-1">
+            <Button className="shrink-0 gap-1">
               {feature.price} <Sparkles className="h-3.5 w-3.5 text-yellow-500" />
-              <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
           </div>
         ))}
@@ -105,10 +81,10 @@ export function PremiumFeatures() {
           Get all premium features with the All-Access Bundle
         </p>
         <Button className="gap-1">
-          45 <Sparkles className="h-3.5 w-3.5 text-yellow-500" /> Unlock All Features
+          35 <Sparkles className="h-3.5 w-3.5 text-yellow-500" /> Unlock All Features
         </Button>
         <p className="text-xs text-muted-foreground">
-          Save 45% compared to buying each feature individually
+          Save 30% compared to buying each feature individually
         </p>
       </div>
     </div>
