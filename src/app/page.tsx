@@ -1,16 +1,32 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { BusinessCardPreview } from "@/components/business-card-preview";
 import { BusinessCardForm } from "@/components/business-card-form";
 import { PremiumFeatures } from "@/components/premium-features";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { Search, CreditCard, Star } from "lucide-react";
+import { Search, CreditCard, Star, Edit, X } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("card");
+  const [editSection, setEditSection] = useState<string | null>(null);
+  
+  // Function to handle section edit
+  const handleEdit = (section: string) => {
+    setEditSection(section);
+  };
+  
+  // Function to handle save and return to preview
+  const handleSave = () => {
+    // In a real app, this would save the data to backend
+    setEditSection(null);
+  };
+  
+  // Function to cancel editing and return to preview
+  const handleCancel = () => {
+    setEditSection(null);
+  };
   
   return (
     <main className="flex min-h-screen flex-col items-center pb-16">
@@ -18,10 +34,177 @@ export default function Home() {
         {activeTab === "card" && (
           <div className="p-4">
             <h1 className="text-2xl font-bold mb-4">Your Card</h1>
-            <div className="mb-6">
-              <BusinessCardPreview />
-            </div>
-            <BusinessCardForm />
+            
+            {editSection === null ? (
+              <div className="space-y-6">
+                {/* Preview Mode */}
+                <div className="mb-6 relative">
+                  <BusinessCardPreview />
+                  
+                  {/* Edit Buttons for each section */}
+                  <div className="grid grid-cols-2 gap-3 mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center gap-2"
+                      onClick={() => handleEdit("profile")}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Profile
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center gap-2"
+                      onClick={() => handleEdit("background")}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Background
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center gap-2"
+                      onClick={() => handleEdit("contact")}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Contact Info
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center gap-2"
+                      onClick={() => handleEdit("projects")}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Projects
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center justify-center gap-2 col-span-2"
+                      onClick={() => handleEdit("skills")}
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit Skills
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Edit Mode */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">
+                    {editSection === "profile" && "Edit Profile"}
+                    {editSection === "background" && "Edit Background"}
+                    {editSection === "contact" && "Edit Contact Info"}
+                    {editSection === "projects" && "Edit Projects"}
+                    {editSection === "skills" && "Edit Skills"}
+                  </h2>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={handleCancel}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+                
+                {/* Render only the specific section of the form based on editSection */}
+                <Card>
+                  <CardContent className="p-4">
+                    {editSection === "profile" && (
+                      <div className="space-y-6">
+                        {/* Profile section from BusinessCardForm */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-medium">Profile Avatar</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Upload your profile picture
+                            </p>
+                          </div>
+                          {/* Avatar upload component would be here */}
+                        </div>
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-medium">Personal Information</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Enter your personal details
+                            </p>
+                          </div>
+                          {/* Personal info form fields would be here */}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {editSection === "background" && (
+                      <div className="space-y-6">
+                        {/* Background section from BusinessCardForm */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-medium">Background</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Customize your card background
+                            </p>
+                          </div>
+                          {/* Background customization fields would be here */}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {editSection === "contact" && (
+                      <div className="space-y-6">
+                        {/* Contact section from BusinessCardForm */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-medium">Contact Information</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Add your contact details
+                            </p>
+                          </div>
+                          {/* Contact info form fields would be here */}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {editSection === "projects" && (
+                      <div className="space-y-6">
+                        {/* Projects section from BusinessCardForm */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-medium">Projects</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Add your projects
+                            </p>
+                          </div>
+                          {/* Projects form fields would be here */}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {editSection === "skills" && (
+                      <div className="space-y-6">
+                        {/* Skills section from BusinessCardForm */}
+                        <div className="space-y-4">
+                          <div>
+                            <h3 className="text-lg font-medium">Skills</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Add skills to showcase your expertise
+                            </p>
+                          </div>
+                          {/* Skills form fields would be here */}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end gap-2 mt-6">
+                      <Button variant="outline" onClick={handleCancel}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave}>
+                        Save Changes
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
         )}
         
@@ -41,9 +224,9 @@ export default function Home() {
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">Filter by:</p>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="default">Skills</Button>
-                  <Button variant="outline" size="default">Projects</Button>
-                  <Button variant="outline" size="default">Location</Button>
+                  <Button variant="outline">Skills</Button>
+                  <Button variant="outline">Projects</Button>
+                  <Button variant="outline">Location</Button>
                 </div>
               </div>
             </div>
