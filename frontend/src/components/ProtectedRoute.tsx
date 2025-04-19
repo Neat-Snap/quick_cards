@@ -1,16 +1,18 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { isTelegramWebApp } from '@/lib/telegram';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, loading, error } = useAuth();
+  const { user, loading, error, refreshUser } = useAuth();
   const router = useRouter();
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     if (!loading && !user && !error) {
@@ -19,6 +21,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
       console.warn('User not authenticated');
     }
   }, [user, loading, error, router]);
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    refreshUser();
+  };
 
   if (loading) {
     return (
@@ -53,9 +60,21 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
           </svg>
         </div>
         <h2 className="mb-2 text-xl font-medium">Authentication Error</h2>
-        <p className="mb-6 text-center text-sm text-muted-foreground">{error}</p>
+        <p className="mb-2 text-center text-sm text-muted-foreground">{error}</p>
+        
+        {/* Detailed troubleshooting info */}
+        <div className="mb-6 mt-4 max-w-md rounded-md bg-muted p-3 text-xs">
+          <h3 className="mb-1 font-semibold">Troubleshooting:</h3>
+          <ul className="space-y-1 pl-4">
+            <li>• Check if you opened the app from Telegram</li>
+            <li>• The backend server might be offline: {isTelegramWebApp() ? 'Yes' : 'No'}</li>
+            <li>• Try reloading the app in Telegram</li>
+            <li>• Current retry count: {retryCount}</li>
+          </ul>
+        </div>
+        
         <button 
-          onClick={() => window.location.reload()}
+          onClick={handleRetry}
           className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
         >
           Try Again
