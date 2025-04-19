@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 import os
 
 class Settings:
@@ -21,6 +21,10 @@ class Settings:
     
     # Telegram
     TELEGRAM_BOT_TOKEN: str = "YOUR_TELEGRAM_BOT_TOKEN"  # Add your bot token here
+    
+    # Admin users - List of telegram_id values for admin users
+    # These users will receive notifications about new users, security issues, etc.
+    ADMIN_USER_IDS: List[str] = ["ADMIN_TELEGRAM_ID_1", "ADMIN_TELEGRAM_ID_2"]
     
     # Payment Integration (for premium features)
     PAYMENT_API_KEY: str = "YOUR_PAYMENT_API_KEY"  # Change in production
