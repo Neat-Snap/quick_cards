@@ -73,8 +73,17 @@ declare global {
   }
 }
 
+// Improved Telegram WebApp detection
 export const isTelegramWebApp = (): boolean => {
-  return typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp);
+  const hasWebApp = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp);
+  if (hasWebApp) {
+    console.log('Telegram WebApp detected');
+    console.log('InitData available:', Boolean(window.Telegram.WebApp.initData));
+    console.log('User data available:', Boolean(window.Telegram.WebApp.initDataUnsafe?.user));
+  } else {
+    console.log('Telegram WebApp not detected');
+  }
+  return hasWebApp;
 };
 
 export const getTelegramUser = () => {
@@ -82,19 +91,29 @@ export const getTelegramUser = () => {
     return null;
   }
   
-  return window.Telegram.WebApp.initDataUnsafe.user || null;
+  const user = window.Telegram.WebApp.initDataUnsafe.user || null;
+  if (user) {
+    console.log('Telegram user detected:', user.id, user.first_name);
+  } else {
+    console.log('No Telegram user found in initDataUnsafe');
+  }
+  return user;
 };
 
 export const getInitData = (): string => {
   if (!isTelegramWebApp()) {
+    console.log('Cannot get initData - not in Telegram WebApp');
     return '';
   }
   
-  return window.Telegram.WebApp.initData;
+  const initData = window.Telegram.WebApp.initData;
+  console.log('InitData length:', initData?.length || 0);
+  return initData;
 };
 
 export const expandApp = (): void => {
   if (isTelegramWebApp()) {
+    console.log('Expanding Telegram WebApp');
     window.Telegram.WebApp.expand();
   }
 };
@@ -107,6 +126,7 @@ export const closeApp = (): void => {
 
 export const setAppReady = (): void => {
   if (isTelegramWebApp()) {
+    console.log('Setting Telegram WebApp as ready');
     window.Telegram.WebApp.ready();
   }
 };

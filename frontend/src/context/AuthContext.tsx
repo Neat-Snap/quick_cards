@@ -14,6 +14,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Check if we're in development environment
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,8 +27,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
 
     try {
-      // For development purposes, if not in Telegram WebApp, use a mock user
-      if (!isTelegramWebApp()) {
+      // For development purposes, if not in Telegram WebApp and in development mode, use a mock user
+      if (!isTelegramWebApp() && isDevelopment) {
         console.warn('Not running in Telegram WebApp, using mock data');
         // Simulate a delay
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -48,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Only validate with backend if in Telegram WebApp
+      // Try to validate with backend in all other cases
       const response = await validateUser();
 
       if (response.success && response.user) {
