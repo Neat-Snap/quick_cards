@@ -20,11 +20,11 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 day
     
     # Telegram
-    TELEGRAM_BOT_TOKEN: str = "YOUR_TELEGRAM_BOT_TOKEN"  # Add your bot token here
+    TELEGRAM_BOT_TOKEN: str = "7762206500:AAEhEMh69UAS39seEPGScbIjyq7TAMtMhvU"  # Add your bot token here
     
     # Admin users - List of telegram_id values for admin users
     # These users will receive notifications about new users, security issues, etc.
-    ADMIN_USER_IDS: List[str] = ["ADMIN_TELEGRAM_ID_1", "ADMIN_TELEGRAM_ID_2"]
+    ADMIN_USER_IDS: List[str] = [1215863434]
     
     # Payment Integration (for premium features)
     PAYMENT_API_KEY: str = "YOUR_PAYMENT_API_KEY"  # Change in production
