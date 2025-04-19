@@ -1,0 +1,3 @@
+@echo off
+echo Starting Telegram Business Card backend server...
+python start.py 
