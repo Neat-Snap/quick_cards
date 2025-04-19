@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, validateUser } from '@/lib/api';
 import { isTelegramWebApp, setAppReady, expandApp, getTelegramUser } from '@/lib/telegram';
