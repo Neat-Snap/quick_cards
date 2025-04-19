@@ -1,6 +1,34 @@
 "use client";
 
-import { FORCE_API_CALLS, DEBUG_TELEGRAM, MOCK_INIT_DATA, isDevelopment } from './dev-utils';
+// Function to check if the URL includes Telegram WebApp parameters
+const isUrlFromTelegram = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  const url = window.location.search;
+  return url.includes('tgWebAppData') || 
+         url.includes('tgWebAppVersion') || 
+         url.includes('tgWebAppPlatform');
+};
+
+// Function to check if we're in a frame that likely comes from Telegram
+const isInsideTelegramFrame = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    // Check if we're in an iframe
+    const isInIframe = window !== window.parent;
+    // Check if we have a referrer from Telegram domains
+    const referrer = document.referrer || '';
+    const hasTelegramReferrer = referrer.includes('telegram.org') || 
+                               referrer.includes('t.me') ||
+                               referrer.includes('telegram.me');
+    
+    return isInIframe || hasTelegramReferrer;
+  } catch (e) {
+    console.error('Error checking if inside Telegram frame:', e);
+    return false;
+  }
+};
 
 declare global {
   interface Window {
@@ -75,108 +103,131 @@ declare global {
   }
 }
 
-// Improved Telegram WebApp detection
+// Improved Telegram WebApp detection with multiple checks
 export const isTelegramWebApp = (): boolean => {
-  const hasWebApp = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp);
-  if (DEBUG_TELEGRAM) {
-    console.log('Telegram WebApp detection:', hasWebApp);
-    if (hasWebApp) {
-      console.log('InitData available:', Boolean(window.Telegram.WebApp.initData));
-      console.log('User data available:', Boolean(window.Telegram.WebApp.initDataUnsafe?.user));
-    }
-  }
+  // Primary check: WebApp object exists
+  const hasWebAppObject = typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp);
   
-  // In development with FORCE_API_CALLS, always return true
-  if (isDevelopment && FORCE_API_CALLS) {
-    console.log('FORCED Telegram WebApp detection in development mode');
-    return true;
-  }
+  // Secondary checks based on URL and frame
+  const hasWebAppUrl = isUrlFromTelegram();
+  const isInTelegramFrame = isInsideTelegramFrame();
   
-  return hasWebApp;
+  // For detection in production, we use multiple factors
+  const isInTelegram = hasWebAppObject || hasWebAppUrl || isInTelegramFrame;
+  
+  console.log('Telegram detection:', { 
+    hasWebAppObject, 
+    hasWebAppUrl, 
+    isInTelegramFrame,
+    isInTelegram,
+    userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'unavailable',
+    initDataAvailable: hasWebAppObject ? Boolean(window.Telegram.WebApp.initData) : false
+  });
+  
+  return isInTelegram;
 };
 
 export const getTelegramUser = () => {
-  if (!isTelegramWebApp() && !(isDevelopment && FORCE_API_CALLS)) {
+  if (!isTelegramWebApp()) {
     return null;
   }
   
-  // In forced mode for development, return a mock user
-  if (isDevelopment && FORCE_API_CALLS && (!window.Telegram?.WebApp)) {
-    console.log('Returning MOCK user data for development');
-    return {
-      id: 12345678,
-      first_name: "Test",
-      last_name: "User",
-      username: "testuser",
-      language_code: "en"
-    };
-  }
-  
-  const user = window.Telegram?.WebApp?.initDataUnsafe?.user || null;
-  if (DEBUG_TELEGRAM) {
+  try {
+    const user = window.Telegram?.WebApp?.initDataUnsafe?.user || null;
     if (user) {
-      console.log('Telegram user data:', user);
+      console.log('Telegram user detected:', user.id, user.first_name);
     } else {
       console.log('No Telegram user found in initDataUnsafe');
+      // Try to get user info via URL if available
+      const urlParams = new URLSearchParams(window.location.search);
+      const userParam = urlParams.get('user');
+      if (userParam) {
+        try {
+          const parsedUser = JSON.parse(decodeURIComponent(userParam));
+          console.log('Found user info in URL parameters', parsedUser);
+          return parsedUser;
+        } catch (e) {
+          console.error('Failed to parse user from URL parameters:', e);
+        }
+      }
     }
+    return user;
+  } catch (e) {
+    console.error('Error getting Telegram user:', e);
+    return null;
   }
-  return user;
 };
 
 export const getInitData = (): string => {
-  // In forced mode for development, return mock init data
-  if (isDevelopment && FORCE_API_CALLS && (!window.Telegram?.WebApp || !window.Telegram.WebApp.initData)) {
-    console.log('Returning MOCK initData for development');
-    return MOCK_INIT_DATA;
-  }
+  if (typeof window === 'undefined') return '';
   
-  if (!isTelegramWebApp()) {
-    console.log('Cannot get initData - not in Telegram WebApp');
+  try {
+    // Try to get from Telegram WebApp object
+    if (window.Telegram?.WebApp) {
+      const initData = window.Telegram.WebApp.initData;
+      console.log('InitData from WebApp object, length:', initData?.length || 0);
+      if (initData) return initData;
+    }
+    
+    // Fallback: try to get from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tgWebAppData = urlParams.get('tgWebAppData');
+    if (tgWebAppData) {
+      console.log('InitData from URL, length:', tgWebAppData.length);
+      return tgWebAppData;
+    }
+    
+    console.log('No initData found');
+    return '';
+  } catch (e) {
+    console.error('Error getting initData:', e);
     return '';
   }
-  
-  const initData = window.Telegram.WebApp.initData;
-  if (DEBUG_TELEGRAM) {
-    console.log('InitData length:', initData?.length || 0);
-    if (initData) {
-      console.log('InitData:', initData.substring(0, 50) + '...');
-    }
-  }
-  return initData;
 };
 
 export const expandApp = (): void => {
   if (isTelegramWebApp() && window.Telegram?.WebApp?.expand) {
-    if (DEBUG_TELEGRAM) console.log('Expanding Telegram WebApp');
-    window.Telegram.WebApp.expand();
+    console.log('Expanding Telegram WebApp');
+    try {
+      window.Telegram.WebApp.expand();
+    } catch (e) {
+      console.error('Error expanding WebApp:', e);
+    }
   }
 };
 
 export const closeApp = (): void => {
   if (isTelegramWebApp() && window.Telegram?.WebApp?.close) {
-    if (DEBUG_TELEGRAM) console.log('Closing Telegram WebApp');
-    window.Telegram.WebApp.close();
+    try {
+      window.Telegram.WebApp.close();
+    } catch (e) {
+      console.error('Error closing WebApp:', e);
+    }
   }
 };
 
 export const setAppReady = (): void => {
   if (isTelegramWebApp() && window.Telegram?.WebApp?.ready) {
-    if (DEBUG_TELEGRAM) console.log('Setting Telegram WebApp as ready');
-    window.Telegram.WebApp.ready();
+    console.log('Setting Telegram WebApp as ready');
+    try {
+      window.Telegram.WebApp.ready();
+    } catch (e) {
+      console.error('Error setting WebApp ready:', e);
+    }
   }
 };
 
 export const getColorScheme = (): 'light' | 'dark' => {
-  if (!isTelegramWebApp() || !window.Telegram?.WebApp) {
-    // Default to light mode if not in Telegram WebApp
-    return 'light';
+  if (!isTelegramWebApp() || !window.Telegram?.WebApp?.colorScheme) {
+    // Default to dark mode if not in Telegram WebApp
+    return 'dark';
   }
   
   return window.Telegram.WebApp.colorScheme as 'light' | 'dark';
 };
 
 export const getThemeParams = () => {
-  if (!isTelegramWebApp() || !window.Telegram?.WebApp) {
+  if (!isTelegramWebApp() || !window.Telegram?.WebApp?.themeParams) {
     return null;
   }
   
