@@ -2,11 +2,6 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Create Flask app
 app = Flask(__name__)
@@ -23,36 +18,20 @@ jwt = JWTManager(app)
 CORS(app)
 
 # Import and register blueprints
+from app.api.auth import auth_bp
+from app.api.routes import users_bp, premium_bp, register_routes
+
+# Register blueprints
+app.register_blueprint(auth_bp)
+app.register_blueprint(users_bp)
+app.register_blueprint(premium_bp)
+
+# Initialize the telegram auth middleware if available
 try:
-    # Import blueprints from app module
-    from app.api.auth import auth_bp
-    from app.api.routes import users_bp, premium_bp, register_routes
-    
-    # Register blueprints directly
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(users_bp)
-    app.register_blueprint(premium_bp)
-    
-    logger.info("Successfully registered API blueprints")
-except ImportError as e:
-    logger.error(f"Failed to import blueprints: {str(e)}")
-    
-    # Define a fallback auth route directly in this file if imports fail
-    @app.route("/api/v1/auth/init", methods=["POST"])
-    def fallback_auth_init():
-        logger.info("Using fallback auth endpoint")
-        from flask import request
-        data = request.json
-        logger.info(f"Received data: {data}")
-        return jsonify({"message": "Fallback auth endpoint", "success": True})
-    
-    @app.route("/api/v1/auth/validate", methods=["POST"])
-    def fallback_auth_validate():
-        logger.info("Using fallback validate endpoint")
-        from flask import request
-        data = request.json
-        logger.info(f"Received data: {data}")
-        return jsonify({"message": "Fallback validate endpoint", "success": True})
+    from app.middleware.telegram_auth import init_telegram_auth_middleware
+    init_telegram_auth_middleware(app)
+except ImportError:
+    print("Telegram auth middleware not available")
 
 # Health check endpoint
 @app.route("/health")
