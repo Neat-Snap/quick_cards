@@ -1,6 +1,48 @@
 # Telegram Business Card Creator
 
-A Telegram mini-app that allows users to create customizable business cards with both free and premium features.
+This project allows users to create personalized business cards for Telegram.
+
+## Project Structure
+
+```
+telegram-business-card/
+├── frontend/            # Next.js frontend application
+│   ├── src/
+│   │   ├── app/         # Next.js App Router components
+│   │   ├── components/  # React components
+│   │   ├── lib/         # Utility functions and libraries
+│   │   ├── styles/      # CSS styles
+│   │   └── public/      # Static files
+│   ├── next.config.js   # Next.js configuration
+│   ├── package.json     # Frontend dependencies
+│   ├── postcss.config.js # PostCSS configuration
+│   ├── tailwind.config.js # Tailwind CSS configuration
+│   └── tsconfig.json    # TypeScript configuration
+├── backend/             # Backend server code
+└── package.json         # Root package.json for project scripts
+```
+
+## Getting Started
+
+1. Install dependencies:
+   ```
+   npm run install
+   ```
+
+2. Start development server:
+   ```
+   npm run dev
+   ```
+
+3. Build for production:
+   ```
+   npm run build
+   ```
+
+4. Start production server:
+   ```
+   npm run start
+   ```
 
 ## Frontend (React with Shadcn UI)
 
@@ -51,26 +93,6 @@ npm run dev
 - Verified badges
 - Multiple links
 - Video introduction
-
-## Project Structure
-
-```
-telegram-business-card/
-├── public/            # Static assets
-├── src/               # Source files
-│   ├── app/           # Next.js app directory
-│   │   ├── layout.tsx # Main layout
-│   │   ├── page.tsx   # Main page
-│   │   └── globals.css # Global styles
-│   ├── components/    # React components
-│   │   ├── ui/        # UI components (Shadcn)
-│   │   ├── business-card-form.tsx
-│   │   ├── business-card-preview.tsx
-│   │   ├── premium-features.tsx
-│   │   └── theme-provider.tsx
-│   └── lib/           # Utility functions
-└── package.json       # Dependencies
-```
 
 ## Troubleshooting
 
