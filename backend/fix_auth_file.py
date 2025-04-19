@@ -1,4 +1,28 @@
+#!/usr/bin/env python3
 """
+Script to fix the auth.py file which is causing SyntaxError due to null bytes.
+This script recreates the file with the essential functionality.
+"""
+
+import os
+import logging
+import sys
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Path to the auth file
+AUTH_FILE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 
+    'app', 'api', 'auth.py'
+)
+
+# Clean content for the auth.py file
+AUTH_FILE_CONTENT = '''"""
 Authentication routes for the Telegram Business Card backend.
 """
 
@@ -72,3 +96,28 @@ def validate_token():
     except Exception as e:
         logger.error(f"Error in auth_validate: {e}")
         return jsonify({"error": str(e)}), 500
+'''
+
+def fix_auth_file():
+    """Create or overwrite the auth.py file with clean content."""
+    try:
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(AUTH_FILE_PATH), exist_ok=True)
+        
+        # Write the clean content
+        with open(AUTH_FILE_PATH, 'w', encoding='utf-8') as f:
+            f.write(AUTH_FILE_CONTENT)
+        
+        logger.info(f"Successfully created/fixed {AUTH_FILE_PATH}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to fix auth file: {e}")
+        return False
+
+if __name__ == "__main__":
+    logger.info("Fixing auth.py file...")
+    if fix_auth_file():
+        logger.info("Auth file fixed successfully. Now try running start.py again.")
+    else:
+        logger.error("Failed to fix auth file.")
+        sys.exit(1) 
