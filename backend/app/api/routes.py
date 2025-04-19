@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, request, current_app, g
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 import logging
@@ -55,14 +55,10 @@ def create_user():
 
 @users_bp.route("/users/me", methods=["GET"])
 def get_current_user():
-    """Get current user by telegram_id"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    """Get current user based on Telegram auth data or telegram_id query param"""
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     return jsonify({
         "id": user.id,
@@ -118,13 +114,9 @@ def get_current_user():
 @users_bp.route("/users/me", methods=["PATCH"])
 def update_user():
     """Update current user"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     data = request.json
     if not data:
@@ -132,7 +124,7 @@ def update_user():
     
     # Update user fields
     for field in ["username", "name", "email", "avatar_url", "background_type", 
-                  "background_value", "description", "badge"]:
+                 "background_value", "description", "badge"]:
         if field in data:
             setattr(user, field, data[field])
     
@@ -244,47 +236,42 @@ def search_users():
 @users_bp.route("/users/me/contacts", methods=["POST"])
 def create_contact():
     """Add a contact method to user profile"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     data = request.json
-    if not data or not data.get("type") or not data.get("value"):
+    if not data or "type" not in data or "value" not in data:
         return jsonify({"error": "Missing required fields"}), 400
     
-    new_contact = Contact(
+    # Check premium for multiple contacts
+    if len(user.contacts) >= 3 and user.premium_tier == 0:
+        return jsonify({"error": "Premium subscription required for more than 3 contacts"}), 403
+    
+    contact = Contact(
         user_id=user.id,
         type=data["type"],
         value=data["value"],
         is_public=data.get("is_public", True)
     )
     
-    db.session.add(new_contact)
+    db.session.add(contact)
     db.session.commit()
     
     return jsonify({
-        "id": new_contact.id,
-        "user_id": new_contact.user_id,
-        "type": new_contact.type,
-        "value": new_contact.value,
-        "is_public": new_contact.is_public
+        "id": contact.id,
+        "type": contact.type,
+        "value": contact.value,
+        "is_public": contact.is_public
     }), 201
 
 
 @users_bp.route("/users/me/contacts/<int:contact_id>", methods=["DELETE"])
 def delete_contact(contact_id):
-    """Delete a contact method from user profile"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    """Remove a contact method from user profile"""
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     contact = Contact.query.filter_by(id=contact_id, user_id=user.id).first()
     if not contact:
@@ -293,32 +280,26 @@ def delete_contact(contact_id):
     db.session.delete(contact)
     db.session.commit()
     
-    return jsonify({"message": "Contact deleted successfully"})
+    return jsonify({"message": "Contact deleted"})
 
 
 # Project endpoints
 @users_bp.route("/users/me/projects", methods=["POST"])
 def create_project():
     """Add a project to user profile"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    # Check if user can add more projects
-    if user.premium_tier < 2 and len(user.projects) >= 3:
-        return jsonify({
-            "error": "Free users can only add up to 3 projects. Upgrade to Premium to add more."
-        }), 403
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     data = request.json
-    if not data or not data.get("name"):
+    if not data or "name" not in data:
         return jsonify({"error": "Missing required fields"}), 400
     
-    new_project = Project(
+    # Check premium for multiple projects
+    if len(user.projects) >= 3 and user.premium_tier == 0:
+        return jsonify({"error": "Premium subscription required for more than 3 projects"}), 403
+    
+    project = Project(
         user_id=user.id,
         name=data["name"],
         description=data.get("description"),
@@ -326,29 +307,24 @@ def create_project():
         role=data.get("role")
     )
     
-    db.session.add(new_project)
+    db.session.add(project)
     db.session.commit()
     
     return jsonify({
-        "id": new_project.id,
-        "user_id": new_project.user_id,
-        "name": new_project.name,
-        "description": new_project.description,
-        "avatar_url": new_project.avatar_url,
-        "role": new_project.role
+        "id": project.id,
+        "name": project.name,
+        "description": project.description,
+        "avatar_url": project.avatar_url,
+        "role": project.role
     }), 201
 
 
 @users_bp.route("/users/me/projects/<int:project_id>", methods=["PATCH"])
 def update_project(project_id):
     """Update a project in user profile"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     project = Project.query.filter_by(id=project_id, user_id=user.id).first()
     if not project:
@@ -367,7 +343,6 @@ def update_project(project_id):
     
     return jsonify({
         "id": project.id,
-        "user_id": project.user_id,
         "name": project.name,
         "description": project.description,
         "avatar_url": project.avatar_url,
@@ -377,14 +352,10 @@ def update_project(project_id):
 
 @users_bp.route("/users/me/projects/<int:project_id>", methods=["DELETE"])
 def delete_project(project_id):
-    """Delete a project from user profile"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    """Remove a project from user profile"""
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     project = Project.query.filter_by(id=project_id, user_id=user.id).first()
     if not project:
@@ -393,7 +364,7 @@ def delete_project(project_id):
     db.session.delete(project)
     db.session.commit()
     
-    return jsonify({"message": "Project deleted successfully"})
+    return jsonify({"message": "Project deleted"})
 
 
 # Skill endpoints
@@ -665,7 +636,41 @@ def get_premium_status():
     })
 
 
+# Helper function to get current user from telegram auth or query param
+def get_authenticated_user():
+    """
+    Helper function to get the authenticated user from either Telegram auth data
+    or telegram_id query parameter
+    
+    Returns:
+        Tuple of (user, error_response)
+        - If user is found, returns (user, None)
+        - If no user is found, returns (None, error_response)
+    """
+    # First try to get user from Telegram auth data
+    if hasattr(g, 'current_user') and g.current_user:
+        return g.current_user, None
+    
+    # Fall back to the telegram_id query param
+    telegram_id = request.args.get("telegram_id")
+    if not telegram_id:
+        return None, (jsonify({
+            "error": "No authentication data provided. Please include Telegram init data or telegram_id parameter"
+        }), 400)
+    
+    user = User.query.filter_by(telegram_id=telegram_id).first()
+    if not user:
+        return None, (jsonify({"error": "User not found"}), 404)
+    
+    return user, None
+
+
 def register_routes(app):
-    """Register all blueprints/routes with the app"""
+    """Register API routes with the Flask app"""
+    from app.api.auth import auth_bp
+    
     app.register_blueprint(users_bp)
-    app.register_blueprint(premium_bp) 
+    app.register_blueprint(premium_bp)
+    app.register_blueprint(auth_bp)
+    
+    return app 

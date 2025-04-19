@@ -19,6 +19,9 @@ class Settings:
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 day
     
+    # Telegram
+    TELEGRAM_BOT_TOKEN: str = "YOUR_TELEGRAM_BOT_TOKEN"  # Add your bot token here
+    
     # Payment Integration (for premium features)
     PAYMENT_API_KEY: str = "YOUR_PAYMENT_API_KEY"  # Change in production
 
