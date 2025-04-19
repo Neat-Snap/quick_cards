@@ -1,11 +1,9 @@
-"use client";
-
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
+import TelegramScript from "@/components/TelegramScript";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -46,18 +44,7 @@ export default function RootLayout({
           </AuthProvider>
         </ThemeProvider>
         
-        {/* Load as a regular script tag for increased compatibility */}
-        <Script
-          id="telegram-webapp-script"
-          src="https://telegram.org/js/telegram-web-app.js"
-          strategy="afterInteractive"
-          onLoad={() => {
-            console.log("Telegram WebApp script loaded successfully");
-          }}
-          onError={() => {
-            console.error("Failed to load Telegram WebApp script");
-          }}
-        />
+        <TelegramScript />
       </body>
     </html>
   );
