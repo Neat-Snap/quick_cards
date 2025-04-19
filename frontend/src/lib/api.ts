@@ -1,8 +1,12 @@
 "use client";
 
 import { getInitData } from './telegram';
+import { DEBUG_TELEGRAM } from './dev-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+
+// Log the configured API URL on load
+console.log('API URL configured as:', API_URL);
 
 interface User {
   id: number;
@@ -36,20 +40,35 @@ export async function validateUser(): Promise<ApiResponse<User>> {
       };
     }
     
-    console.log('[API] Making validation request to:', `${API_URL}/validate`);
+    const validateUrl = `${API_URL}/validate`;
+    console.log('[API] Making validation request to:', validateUrl);
     
-    const response = await fetch(`${API_URL}/validate`, {
+    const response = await fetch(validateUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Origin': window.location.origin,
       },
+      mode: 'cors',
+      credentials: 'include',
       body: JSON.stringify({ initData }),
     });
     
     console.log('[API] Validation response status:', response.status);
     
-    const data = await response.json();
-    console.log('[API] Validation response data:', data.success ? 'Success' : 'Failed', data.error || '');
+    if (DEBUG_TELEGRAM) {
+      // Log a few important headers instead of all headers
+      console.log('[API] Response content-type:', response.headers.get('content-type'));
+      console.log('[API] Response access-control-allow-origin:', response.headers.get('access-control-allow-origin'));
+    }
+    
+    const data = await response.json().catch(e => {
+      console.error('[API] Failed to parse JSON response:', e);
+      return { success: false, error: 'Invalid response format' };
+    });
+    
+    console.log('[API] Validation response data:', data);
     
     if (!response.ok) {
       console.error('[API] Validation failed:', data.error || response.statusText);
@@ -74,16 +93,24 @@ export async function validateUser(): Promise<ApiResponse<User>> {
 export async function updateUserProfile(userId: number, profileData: Partial<User>): Promise<ApiResponse<User>> {
   try {
     console.log('[API] Updating user profile for user ID:', userId);
+    const updateUrl = `${API_URL}/users/${userId}`;
     
-    const response = await fetch(`${API_URL}/users/${userId}`, {
+    const response = await fetch(updateUrl, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Origin': window.location.origin,
       },
+      mode: 'cors',
+      credentials: 'include',
       body: JSON.stringify(profileData),
     });
     
-    const data = await response.json();
+    const data = await response.json().catch(e => {
+      console.error('[API] Failed to parse JSON response:', e);
+      return { success: false, error: 'Invalid response format' };
+    });
     
     if (!response.ok) {
       console.error('[API] Profile update failed:', data.error || response.statusText);
