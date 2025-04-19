@@ -23,23 +23,28 @@ const nextConfig = {
   },
   // Enable CORS for API routes - standardize to use /api prefix
   async rewrites() {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+    
     return [
-      {
-        source: '/validate',
-        destination: 'https://face-cards.ru/api/v1/auth/validate',
-      },
+      // Rewrite for auth validation
       {
         source: '/api/validate',
-        destination: 'https://face-cards.ru/api/v1/auth/validate',
+        destination: `${apiBaseUrl}/v1/auth/validate`,
       },
+      // Rewrite for users endpoints
       {
         source: '/api/users/:path*',
-        destination: 'https://face-cards.ru/api/users/:path*',
+        destination: `${apiBaseUrl}/users/:path*`,
+      },
+      // Rewrite for auth endpoints
+      {
+        source: '/api/v1/auth/:path*',
+        destination: `${apiBaseUrl}/v1/auth/:path*`,
       },
       // Fallback for any other API calls
       {
         source: '/api/:path*',
-        destination: 'https://face-cards.ru/api/:path*',
+        destination: `${apiBaseUrl}/:path*`,
       }
     ];
   },
