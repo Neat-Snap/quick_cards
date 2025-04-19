@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import { Search, CreditCard, Star, Edit, X } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
-import { TelegramDebug } from "@/components/TelegramDebug";
 
 export default function Home() {
   const { user } = useAuth();
@@ -35,8 +34,6 @@ export default function Home() {
   return (
     <ProtectedRoute>
       <main className="flex min-h-screen flex-col items-center pb-16">
-        <TelegramDebug />
-        
         <div className="w-full max-w-md flex-1 overflow-y-auto">
           {activeTab === "card" && (
             <div className="p-4">
