@@ -28,6 +28,8 @@ interface ApiResponse<T> {
 // Helper function to make API requests with proper error handling
 async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
+    // Construct the full URL - ensure we're using the API_URL
+    const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
     console.log(`Making API request to: ${url}`);
     
     // Ensure CORS mode is properly set
@@ -42,7 +44,7 @@ async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<Ap
       }
     };
     
-    const response = await fetch(url, requestOptions);
+    const response = await fetch(fullUrl, requestOptions);
     console.log("Response status:", response.status, response.statusText);
     
     // Check if the response is HTML (error page) instead of JSON
@@ -115,7 +117,7 @@ export async function validateUser(): Promise<ApiResponse<User>> {
   }
   
   // Use direct relative URL to leverage Next.js rewrites
-  return apiRequest<User>('/validate', {
+  return apiRequest<User>('/api/validate', {
     method: 'POST',
     body: JSON.stringify({ initData }),
   });
@@ -126,7 +128,7 @@ export async function updateUserProfile(userId: number, profileData: Partial<Use
   console.log("Updating user profile for user ID:", userId);
   
   // Use direct relative URL to leverage Next.js rewrites
-  return apiRequest<User>(`/users/${userId}`, {
+  return apiRequest<User>(`/api/users/${userId}`, {
     method: 'PATCH',
     body: JSON.stringify(profileData),
   });
