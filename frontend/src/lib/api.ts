@@ -4,7 +4,7 @@ import { getInitData } from './telegram';
 
 // Update API URL to match your actual backend endpoint pattern
 // Remove /api if the base URL already includes it
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
 
 interface User {
   id: number;
