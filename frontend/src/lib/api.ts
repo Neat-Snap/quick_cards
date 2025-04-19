@@ -120,10 +120,16 @@ export async function validateUser(): Promise<ApiResponse<User>> {
     };
   }
   
-  // Use direct relative URL to leverage Next.js rewrites
-  return apiRequest<User>('/validate', {
+  console.log("Making validation request to: /v1/auth/validate");
+  
+  // Use the correct endpoint path for validation
+  return apiRequest<User>('/v1/auth/validate', {
     method: 'POST',
     body: JSON.stringify({ initData }),
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
   });
 }
 
