@@ -20,10 +20,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script
-          src="https://telegram.org/js/telegram-web-app.js"
-          strategy="beforeInteractive"
-          id="telegram-webapp"
+        {/* Preload the Telegram WebApp script */}
+        <link 
+          rel="preload" 
+          href="https://telegram.org/js/telegram-web-app.js" 
+          as="script"
+        />
+        {/* Load the script directly in head for immediate access */}
+        <script 
+          src="https://telegram.org/js/telegram-web-app.js" 
+          crossOrigin="anonymous"
         />
       </head>
       <body className={inter.className}>
@@ -37,6 +43,19 @@ export default function RootLayout({
             {children}
           </AuthProvider>
         </ThemeProvider>
+        
+        {/* Load as a regular script tag for increased compatibility */}
+        <Script
+          id="telegram-webapp-script"
+          src="https://telegram.org/js/telegram-web-app.js"
+          strategy="afterInteractive"
+          onLoad={() => {
+            console.log("Telegram WebApp script loaded successfully");
+          }}
+          onError={() => {
+            console.error("Failed to load Telegram WebApp script");
+          }}
+        />
       </body>
     </html>
   );

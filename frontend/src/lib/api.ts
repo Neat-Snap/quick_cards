@@ -25,33 +25,24 @@ interface ApiResponse<T> {
   user?: T;
 }
 
-export async function validateUser(): Promise<ApiResponse<User>> {
+// Helper function to make API requests with proper error handling
+async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
-    console.log("validateUser called - API URL:", API_URL);
-    const initData = getInitData();
-    console.log("InitData retrieved, length:", initData?.length || 0);
+    console.log(`Making API request to: ${url}`);
     
-    if (!initData) {
-      console.error("No initData available for validation");
-      return { 
-        success: false, 
-        error: 'No Telegram init data available. Are you running outside of Telegram?'
-      };
-    }
-    
-    // Construct the URL to match your server's endpoint format
-    const validateUrl = `${API_URL}/validate`;
-    console.log(`Making validation request to: ${validateUrl}`);
-    console.log("Request payload:", { initData: initData.substring(0, 20) + "..." });
-    
-    const response = await fetch(validateUrl, {
-      method: 'POST',
+    // Ensure CORS mode is properly set
+    const requestOptions: RequestInit = {
+      ...options,
+      credentials: 'include',
+      mode: 'cors',
       headers: {
         'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ initData }),
-    });
+        'Accept': 'application/json',
+        ...(options.headers || {})
+      }
+    };
     
+    const response = await fetch(url, requestOptions);
     console.log("Response status:", response.status, response.statusText);
     
     // Check if the response is HTML (error page) instead of JSON
@@ -64,21 +55,29 @@ export async function validateUser(): Promise<ApiResponse<User>> {
       };
     }
     
-    const data = await response.json();
-    console.log("Response data:", JSON.stringify(data).substring(0, 100) + "...");
-    
+    // For network errors or non-JSON responses
     if (!response.ok) {
-      console.error("Validation failed:", data.error || response.statusText);
-      return {
-        success: false,
-        error: data.error || `Authentication failed with status ${response.status}`,
-      };
+      // Try to parse the error response as JSON
+      try {
+        const errorData = await response.json();
+        return {
+          success: false,
+          error: errorData.error || `Request failed with status ${response.status}`
+        };
+      } catch (e) {
+        // If JSON parsing fails, return a generic error
+        return {
+          success: false,
+          error: `Request failed with status ${response.status}`
+        };
+      }
     }
     
-    console.log("User validated successfully");
+    const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error during validation:", error);
+    console.error("API request error:", error);
+    
     // Special handling for JSON parsing error
     if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
       return {
@@ -86,55 +85,51 @@ export async function validateUser(): Promise<ApiResponse<User>> {
         error: 'Server returned invalid JSON. The API endpoint may be incorrect or returning an error page.'
       };
     }
+    
+    // Handle network errors
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      return {
+        success: false,
+        error: 'Network error. The server may be offline or unreachable.'
+      };
+    }
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred during validation',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
 }
 
-// Add more API functions here as needed
-export async function updateUserProfile(userId: number, profileData: Partial<User>): Promise<ApiResponse<User>> {
-  try {
-    console.log("Updating user profile for user ID:", userId);
-    
-    const response = await fetch(`${API_URL}/users/${userId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(profileData),
-    });
-    
-    // Check for HTML response
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('text/html')) {
-      console.error("Received HTML instead of JSON in profile update");
-      return {
-        success: false,
-        error: 'Server returned HTML instead of JSON. API endpoint may be incorrect.'
-      };
-    }
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error("Profile update failed:", data.error || response.statusText);
-      return {
-        success: false,
-        error: data.error || 'Failed to update profile',
-      };
-    }
-    
-    console.log("Profile updated successfully");
-    return data;
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred during profile update',
+export async function validateUser(): Promise<ApiResponse<User>> {
+  console.log("validateUser called - API URL:", API_URL);
+  const initData = getInitData();
+  console.log("InitData retrieved, length:", initData?.length || 0);
+  
+  if (!initData) {
+    console.error("No initData available for validation");
+    return { 
+      success: false, 
+      error: 'No Telegram init data available. Are you running outside of Telegram?'
     };
   }
+  
+  // Use direct relative URL to leverage Next.js rewrites
+  return apiRequest<User>('/validate', {
+    method: 'POST',
+    body: JSON.stringify({ initData }),
+  });
+}
+
+// Add more API functions here as needed
+export async function updateUserProfile(userId: number, profileData: Partial<User>): Promise<ApiResponse<User>> {
+  console.log("Updating user profile for user ID:", userId);
+  
+  // Use direct relative URL to leverage Next.js rewrites
+  return apiRequest<User>(`/users/${userId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(profileData),
+  });
 }
 
 export type { User }; 

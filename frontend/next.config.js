@@ -10,17 +10,18 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org; connect-src 'self' https://face-cards.ru; img-src 'self' data: blob: https://*; style-src 'self' 'unsafe-inline';"
+            value: "default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; frame-ancestors https://*.telegram.org https://web.telegram.org;"
           },
+          // Remove X-Frame-Options to allow Telegram to embed
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            value: 'ALLOWALL'
           }
         ],
       },
     ];
   },
-  // Enable CORS for API routes
+  // Enable CORS for API routes - update for the correct endpoint format
   async rewrites() {
     return [
       {
@@ -31,12 +32,13 @@ const nextConfig = {
         source: '/users/:path*',
         destination: 'https://face-cards.ru/users/:path*',
       },
+      // Fallback for any other API calls
       {
         source: '/api/:path*',
         destination: 'https://face-cards.ru/:path*',
       }
     ];
   },
-}
+};
 
-module.exports = nextConfig 
+module.exports = nextConfig; 
