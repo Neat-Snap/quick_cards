@@ -2,7 +2,7 @@
 
 import { getInitData } from './telegram';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
 
 interface User {
   id: number;
@@ -26,13 +26,17 @@ interface ApiResponse<T> {
 export async function validateUser(): Promise<ApiResponse<User>> {
   try {
     const initData = getInitData();
+    console.log('[API] Validating user with initData length:', initData?.length || 0);
     
     if (!initData) {
+      console.error('[API] No initData available for validation');
       return { 
         success: false, 
         error: 'No Telegram init data available. Are you running outside of Telegram?'
       };
     }
+    
+    console.log('[API] Making validation request to:', `${API_URL}/validate`);
     
     const response = await fetch(`${API_URL}/validate`, {
       method: 'POST',
@@ -42,21 +46,26 @@ export async function validateUser(): Promise<ApiResponse<User>> {
       body: JSON.stringify({ initData }),
     });
     
+    console.log('[API] Validation response status:', response.status);
+    
     const data = await response.json();
+    console.log('[API] Validation response data:', data.success ? 'Success' : 'Failed', data.error || '');
     
     if (!response.ok) {
+      console.error('[API] Validation failed:', data.error || response.statusText);
       return {
         success: false,
-        error: data.error || 'Authentication failed',
+        error: data.error || `Authentication failed with status ${response.status}`,
       };
     }
     
+    console.log('[API] User validated successfully');
     return data;
   } catch (error) {
-    console.error('Error validating user:', error);
+    console.error('[API] Error during validation:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: error instanceof Error ? error.message : 'Unknown error occurred during validation',
     };
   }
 }
@@ -64,6 +73,8 @@ export async function validateUser(): Promise<ApiResponse<User>> {
 // Add more API functions here as needed
 export async function updateUserProfile(userId: number, profileData: Partial<User>): Promise<ApiResponse<User>> {
   try {
+    console.log('[API] Updating user profile for user ID:', userId);
+    
     const response = await fetch(`${API_URL}/users/${userId}`, {
       method: 'PATCH',
       headers: {
@@ -75,18 +86,20 @@ export async function updateUserProfile(userId: number, profileData: Partial<Use
     const data = await response.json();
     
     if (!response.ok) {
+      console.error('[API] Profile update failed:', data.error || response.statusText);
       return {
         success: false,
         error: data.error || 'Failed to update profile',
       };
     }
     
+    console.log('[API] Profile updated successfully');
     return data;
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    console.error('[API] Error updating profile:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: error instanceof Error ? error.message : 'Unknown error occurred during profile update',
     };
   }
 }
