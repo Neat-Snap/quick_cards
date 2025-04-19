@@ -120,10 +120,10 @@ export async function validateUser(): Promise<ApiResponse<User>> {
     };
   }
   
-  console.log("Making validation request to: /v1/auth/validate");
+  console.log("Making authentication request to: /v1/auth/init");
   
-  // Use the correct endpoint path for validation
-  return apiRequest<User>('/v1/auth/validate', {
+  // Use the correct endpoint path for initialization with Telegram data
+  return apiRequest<User>('/v1/auth/init', {
     method: 'POST',
     body: JSON.stringify({ initData }),
     headers: {

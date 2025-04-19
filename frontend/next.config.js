@@ -26,13 +26,19 @@ const nextConfig = {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
     
     return [
-      // Rewrite for auth validation - both paths for compatibility
+      // Rewrite for auth init endpoint
       {
-        source: '/api/validate',
-        destination: `${apiBaseUrl}/v1/auth/validate`,
+        source: '/api/v1/auth/init',
+        destination: `${apiBaseUrl}/v1/auth/init`,
       },
+      // Rewrite for auth validation endpoint
       {
         source: '/api/v1/auth/validate',
+        destination: `${apiBaseUrl}/v1/auth/validate`,
+      },
+      // Legacy rewrite for backward compatibility
+      {
+        source: '/api/validate',
         destination: `${apiBaseUrl}/v1/auth/validate`,
       },
       // Rewrite for users endpoints
