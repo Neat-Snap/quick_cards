@@ -21,21 +21,21 @@ const nextConfig = {
       },
     ];
   },
-  // Enable CORS for API routes - update for the correct endpoint format
+  // Enable CORS for API routes - standardize to use /api prefix
   async rewrites() {
     return [
       {
-        source: '/validate',
-        destination: 'https://face-cards.ru/validate',
+        source: '/api/validate',
+        destination: 'https://face-cards.ru/api/validate',
       },
       {
-        source: '/users/:path*',
-        destination: 'https://face-cards.ru/users/:path*',
+        source: '/api/users/:path*',
+        destination: 'https://face-cards.ru/api/users/:path*',
       },
       // Fallback for any other API calls
       {
         source: '/api/:path*',
-        destination: 'https://face-cards.ru/:path*',
+        destination: 'https://face-cards.ru/api/:path*',
       }
     ];
   },
