@@ -1,3 +1,5 @@
+"use client";
+
 import { getInitData } from './telegram';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';

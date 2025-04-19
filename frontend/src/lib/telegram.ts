@@ -1,3 +1,5 @@
+"use client";
+
 declare global {
   interface Window {
     Telegram: {
