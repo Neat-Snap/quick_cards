@@ -668,9 +668,17 @@ def get_authenticated_user():
 def register_routes(app):
     """Register API routes with the Flask app"""
     from app.api.auth import auth_bp
+    from app.api.users import users_bp  # Import the converted Flask blueprints
+    from app.api.premium import premium_bp  # Import the converted Flask blueprints
     
+    # Register all blueprints
+    app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(premium_bp)
-    app.register_blueprint(auth_bp)
     
-    return app 
+    # Log registration for debugging
+    logger.info(f"Registered auth_bp: {auth_bp.url_prefix}")
+    logger.info(f"Registered users_bp: {users_bp.url_prefix}")
+    logger.info(f"Registered premium_bp: {premium_bp.url_prefix}")
+    
+    return app
