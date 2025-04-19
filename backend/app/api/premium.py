@@ -1,43 +1,52 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from flask import Blueprint, jsonify, request
 from datetime import datetime, timedelta
+import logging
 
-from app.db.session import get_db
-from app.db import models
-from app.schemas import premium as schemas
+from app.db.session import db
+from app.db.models import User, PremiumFeature
 
-router = APIRouter()
+logger = logging.getLogger(__name__)
 
+# Create blueprint for premium routes
+premium_bp = Blueprint("premium", __name__, url_prefix="/api/v1")
 
-@router.get("/premium/features/", response_model=List[schemas.PremiumFeature])
-def get_premium_features(db: Session = Depends(get_db)):
+@premium_bp.route("/premium/features", methods=["GET"])
+def get_premium_features():
     """Get all premium features"""
-    return db.query(models.PremiumFeature).all()
+    features = PremiumFeature.query.all()
+    
+    return jsonify([
+        {
+            "id": feature.id,
+            "name": feature.name,
+            "description": feature.description,
+            "tier_required": feature.tier_required
+        } for feature in features
+    ])
 
-
-@router.get("/premium/tiers/", response_model=List[schemas.PremiumTier])
-def get_premium_tiers(db: Session = Depends(get_db)):
+@premium_bp.route("/premium/tiers", methods=["GET"])
+def get_premium_tiers():
     """Get all premium tiers with their features"""
     # Define the tiers
     tiers = [
-        schemas.PremiumTier(
-            tier=1,
-            name="Basic",
-            price=4.99,
-            description="Basic premium features for your card",
-            features=[
+        {
+            "tier": 1,
+            "name": "Basic",
+            "price": 4.99,
+            "description": "Basic premium features for your card",
+            "features": [
                 "Custom Background Image",
                 "Custom Badge",
                 "Skills"
             ]
-        ),
-        schemas.PremiumTier(
-            tier=2,
-            name="Premium",
-            price=9.99,
-            description="Enhanced premium features for your card",
-            features=[
+        },
+        {
+            "tier": 2,
+            "name": "Premium",
+            "price": 9.99,
+            "description": "Enhanced premium features for your card",
+            "features": [
                 "Custom Background Image",
                 "Custom Badge",
                 "Skills",
@@ -45,13 +54,13 @@ def get_premium_tiers(db: Session = Depends(get_db)):
                 "Animated Elements",
                 "Custom Links"
             ]
-        ),
-        schemas.PremiumTier(
-            tier=3,
-            name="Ultimate",
-            price=19.99,
-            description="Complete premium package for your card",
-            features=[
+        },
+        {
+            "tier": 3,
+            "name": "Ultimate",
+            "price": 19.99,
+            "description": "Complete premium package for your card",
+            "features": [
                 "Custom Background Image",
                 "Custom Badge",
                 "Skills",
@@ -61,62 +70,68 @@ def get_premium_tiers(db: Session = Depends(get_db)):
                 "Verified Badge",
                 "Video Upload"
             ]
-        )
+        }
     ]
     
-    return tiers
+    return jsonify(tiers)
 
-
-@router.post("/premium/subscribe/", response_model=schemas.SubscriptionResponse)
-def subscribe(
-    subscription: schemas.SubscriptionRequest,
-    telegram_id: str,
-    db: Session = Depends(get_db)
-):
+@premium_bp.route("/premium/subscribe", methods=["POST"])
+def subscribe():
     """Subscribe to a premium tier"""
-    db_user = db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+    telegram_id = request.args.get("telegram_id")
+    if not telegram_id:
+        return jsonify({"error": "Missing telegram_id parameter"}), 400
+    
+    user = User.query.filter_by(telegram_id=telegram_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    data = request.json
+    if not data or "tier" not in data or "payment_method" not in data:
+        return jsonify({"error": "Missing required fields"}), 400
     
     # Check if tier exists
-    tier = subscription.tier
+    tier = data["tier"]
     if tier < 1 or tier > 3:
-        raise HTTPException(status_code=400, detail="Invalid tier")
+        return jsonify({"error": "Invalid tier"}), 400
     
     # Simulate payment integration - in a real app, this would call a payment API
     payment_url = None
-    if subscription.payment_method == "telegram":
-        payment_url = f"https://t.me/YourPaymentBot?start=premium_{tier}_{db_user.id}"
-    elif subscription.payment_method == "card":
-        payment_url = f"https://payment.example.com/premium?tier={tier}&user_id={db_user.id}"
+    if data["payment_method"] == "telegram":
+        payment_url = f"https://t.me/YourPaymentBot?start=premium_{tier}_{user.id}"
+    elif data["payment_method"] == "card":
+        payment_url = f"https://payment.example.com/premium?tier={tier}&user_id={user.id}"
     else:
-        raise HTTPException(status_code=400, detail="Invalid payment method")
+        return jsonify({"error": "Invalid payment method"}), 400
     
     # For demo purposes, we'll just simulate a successful payment and activate the subscription
     # In a real app, this would be handled by a webhook from the payment provider
-    db_user.premium_tier = tier
-    db_user.premium_expires_at = datetime.now() + timedelta(days=30)
-    db.commit()
+    user.premium_tier = tier
+    user.premium_expires_at = datetime.now() + timedelta(days=30)
+    db.session.commit()
     
-    return schemas.SubscriptionResponse(
-        success=True,
-        message=f"Successfully subscribed to {['Basic', 'Premium', 'Ultimate'][tier-1]} tier",
-        payment_url=payment_url
-    )
+    return jsonify({
+        "success": True,
+        "message": f"Successfully subscribed to {['Basic', 'Premium', 'Ultimate'][tier-1]} tier",
+        "payment_url": payment_url
+    })
 
-
-@router.get("/premium/status/", response_model=dict)
-def get_premium_status(telegram_id: str, db: Session = Depends(get_db)):
+@premium_bp.route("/premium/status", methods=["GET"])
+def get_premium_status():
     """Get user's premium status"""
-    db_user = db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+    telegram_id = request.args.get("telegram_id")
+    if not telegram_id:
+        return jsonify({"error": "Missing telegram_id parameter"}), 400
+    
+    user = User.query.filter_by(telegram_id=telegram_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
     
     tier_names = {0: "Free", 1: "Basic", 2: "Premium", 3: "Ultimate"}
     
-    return {
-        "premium_tier": db_user.premium_tier,
-        "tier_name": tier_names.get(db_user.premium_tier, "Unknown"),
-        "expires_at": db_user.premium_expires_at,
-        "is_active": db_user.premium_tier > 0 and (db_user.premium_expires_at is None or db_user.premium_expires_at > datetime.now())
-    } 
+    return jsonify({
+        "premium_tier": user.premium_tier,
+        "tier_name": tier_names.get(user.premium_tier, "Unknown"),
+        "expires_at": user.premium_expires_at.isoformat() if user.premium_expires_at else None,
+        "is_active": user.premium_tier > 0 and (user.premium_expires_at is None or user.premium_expires_at > datetime.now())
+    })
