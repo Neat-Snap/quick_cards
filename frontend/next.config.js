@@ -14,7 +14,7 @@ const nextConfig = {
           },
           {
             key: 'X-Frame-Options',
-            value: 'ALLOW-FROM https://web.telegram.org/'
+            value: 'SAMEORIGIN'
           }
         ],
       },
@@ -24,9 +24,17 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'https://face-cards.ru/api/:path*',
+        source: '/validate',
+        destination: 'https://face-cards.ru/validate',
       },
+      {
+        source: '/users/:path*',
+        destination: 'https://face-cards.ru/users/:path*',
+      },
+      {
+        source: '/api/:path*',
+        destination: 'https://face-cards.ru/:path*',
+      }
     ];
   },
 }

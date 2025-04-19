@@ -2,7 +2,9 @@
 
 import { getInitData } from './telegram';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+// Update API URL to match your actual backend endpoint pattern
+// Remove /api if the base URL already includes it
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru';
 
 interface User {
   id: number;
@@ -37,10 +39,12 @@ export async function validateUser(): Promise<ApiResponse<User>> {
       };
     }
     
-    console.log(`Making validation request to: ${API_URL}/validate`);
+    // Construct the URL to match your server's endpoint format
+    const validateUrl = `${API_URL}/validate`;
+    console.log(`Making validation request to: ${validateUrl}`);
     console.log("Request payload:", { initData: initData.substring(0, 20) + "..." });
     
-    const response = await fetch(`${API_URL}/validate`, {
+    const response = await fetch(validateUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -49,6 +53,16 @@ export async function validateUser(): Promise<ApiResponse<User>> {
     });
     
     console.log("Response status:", response.status, response.statusText);
+    
+    // Check if the response is HTML (error page) instead of JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      console.error("Received HTML instead of JSON. Server likely returned an error page.");
+      return {
+        success: false,
+        error: `Server returned HTML instead of JSON (Status: ${response.status}). Backend endpoint may be incorrect.`
+      };
+    }
     
     const data = await response.json();
     console.log("Response data:", JSON.stringify(data).substring(0, 100) + "...");
@@ -65,6 +79,13 @@ export async function validateUser(): Promise<ApiResponse<User>> {
     return data;
   } catch (error) {
     console.error("Error during validation:", error);
+    // Special handling for JSON parsing error
+    if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
+      return {
+        success: false,
+        error: 'Server returned invalid JSON. The API endpoint may be incorrect or returning an error page.'
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred during validation',
@@ -84,6 +105,16 @@ export async function updateUserProfile(userId: number, profileData: Partial<Use
       },
       body: JSON.stringify(profileData),
     });
+    
+    // Check for HTML response
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('text/html')) {
+      console.error("Received HTML instead of JSON in profile update");
+      return {
+        success: false,
+        error: 'Server returned HTML instead of JSON. API endpoint may be incorrect.'
+      };
+    }
     
     const data = await response.json();
     

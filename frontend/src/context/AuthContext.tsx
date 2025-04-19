@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isWebAppReady, setIsWebAppReady] = useState(false);
+  const [initAttempts, setInitAttempts] = useState(0);
 
   // Initialize Telegram WebApp when the component mounts
   useEffect(() => {
@@ -29,19 +30,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Safety check to ensure we're in a browser environment
       if (typeof window === 'undefined') return;
 
-      // Check if Telegram WebApp is available
-      if (isTelegramWebApp()) {
-        // Expand the WebApp to take the whole screen
-        expandApp();
-        // Mark the WebApp as ready
-        setAppReady();
-        console.log("Telegram WebApp initialized successfully");
-      } else {
-        console.log("Not running in Telegram WebApp environment");
+      try {
+        // Check if Telegram WebApp is available
+        if (isTelegramWebApp()) {
+          // Expand the WebApp to take the whole screen
+          expandApp();
+          // Mark the WebApp as ready
+          setAppReady();
+          console.log("Telegram WebApp initialized successfully");
+        } else {
+          console.log("Not running in Telegram WebApp environment");
+          if (!isDevelopment) {
+            setError("This app must be opened from Telegram");
+          }
+        }
+      } catch (err) {
+        console.error("Error initializing Telegram WebApp:", err);
+        setError("Failed to initialize Telegram WebApp");
+      } finally {
+        // Mark initialization as complete, whether it succeeded or not
+        setIsWebAppReady(true);
       }
-      
-      // Mark initialization as complete, whether it succeeded or not
-      setIsWebAppReady(true);
     };
 
     // Execute initialization
@@ -88,11 +97,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Failed to validate user:", response.error);
         setError(response.error || 'Failed to authenticate with Telegram');
         setUser(null);
+        
+        // Increment validation attempts if there was an error
+        setInitAttempts(prev => prev + 1);
       }
     } catch (err) {
       console.error("Error during user validation:", err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
       setUser(null);
+      setInitAttempts(prev => prev + 1);
     } finally {
       setLoading(false);
     }
@@ -109,12 +122,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isWebAppReady]);
 
+  // Add retry logic for failed initializations
+  useEffect(() => {
+    if (initAttempts > 0 && initAttempts < 3 && error) {
+      console.log(`Retrying authentication (attempt ${initAttempts + 1})...`);
+      const timer = setTimeout(() => {
+        refreshUser();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [initAttempts, error]);
+
   return (
     <AuthContext.Provider
       value={{
         user,
-        loading,
-        error,
+        loading: loading && initAttempts < 3, // Only show loading if we're still within retry attempts
+        error: initAttempts >= 3 ? error : null, // Only show error after all retry attempts
         logout,
         refreshUser,
       }}
