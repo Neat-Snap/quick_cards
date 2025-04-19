@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, validateUser } from '@/lib/api';
-import { isTelegramWebApp, setAppReady, expandApp, getTelegramUser } from '@/lib/telegram';
+import { isTelegramWebApp, setAppReady, expandApp, getTelegramUser, getInitData } from '@/lib/telegram';
 
 interface AuthContextType {
   user: User | null;
@@ -31,6 +31,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (typeof window === 'undefined') return;
 
       try {
+        console.log("Window Telegram object:", typeof window.Telegram);
+        console.log("Window Telegram WebApp:", typeof window.Telegram?.WebApp);
+        
         // Check if Telegram WebApp is available
         if (isTelegramWebApp()) {
           // Expand the WebApp to take the whole screen
@@ -38,6 +41,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Mark the WebApp as ready
           setAppReady();
           console.log("Telegram WebApp initialized successfully");
+          console.log("Init data available:", Boolean(getInitData()));
+          console.log("User data available:", Boolean(getTelegramUser()));
         } else {
           console.log("Not running in Telegram WebApp environment");
           if (!isDevelopment) {
@@ -46,25 +51,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (err) {
         console.error("Error initializing Telegram WebApp:", err);
-        setError("Failed to initialize Telegram WebApp");
+        setError("Failed to initialize Telegram WebApp. Please try again.");
       } finally {
         // Mark initialization as complete, whether it succeeded or not
         setIsWebAppReady(true);
       }
     };
 
-    // Execute initialization
-    initTelegramWebApp();
+    // Short delay to ensure Telegram script is fully loaded
+    const timer = setTimeout(() => {
+      initTelegramWebApp();
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const refreshUser = async () => {
     setLoading(true);
-    setError(null);
 
     try {
       // For development purposes, if not in Telegram WebApp and in development mode, use a mock user
       if (!isTelegramWebApp() && isDevelopment) {
-        console.log('Not running in Telegram WebApp, using mock data');
+        console.log('Using mock data for development');
         // Simulate a delay
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -82,17 +90,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         };
         
         setUser(mockUser);
-        setLoading(false);
+        setError(null);
         return;
       }
 
       // Try to validate with backend in all other cases
       console.log("Attempting to validate user with backend...");
+      
+      // Check again that we have init data
+      if (!getInitData() && !isDevelopment) {
+        console.error("No init data available after Telegram WebApp initialization");
+        setError("Missing Telegram authentication data. Please try opening the app again from Telegram.");
+        return;
+      }
+      
       const response = await validateUser();
 
       if (response.success && response.user) {
-        console.log("User validated successfully:", response.user.first_name);
+        console.log("User validated successfully!");
         setUser(response.user);
+        setError(null);
       } else {
         console.error("Failed to validate user:", response.error);
         setError(response.error || 'Failed to authenticate with Telegram');
@@ -118,6 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Only fetch user data after the WebApp is ready
   useEffect(() => {
     if (isWebAppReady) {
+      console.log("WebApp is ready, attempting to fetch user data...");
       refreshUser();
     }
   }, [isWebAppReady]);
