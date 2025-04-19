@@ -25,8 +25,12 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/validate',
+        destination: 'https://face-cards.ru/api/v1/auth/validate',
+      },
+      {
         source: '/api/validate',
-        destination: 'https://face-cards.ru/api/validate',
+        destination: 'https://face-cards.ru/api/v1/auth/validate',
       },
       {
         source: '/api/users/:path*',
