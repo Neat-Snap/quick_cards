@@ -4,6 +4,8 @@ This script ensures that all routes are properly registered before starting the 
 """
 
 import logging
+import sys
+import os
 from flask import jsonify, request
 
 # Configure logging
@@ -39,66 +41,107 @@ def create_app():
     def health_check():
         return jsonify({"status": "ok"})
     
-    try:
-        # Try to import and register modular blueprints
-        from app.api.auth import auth_bp
-        from app.api.routes import users_bp, premium_bp
-        
-        # Register blueprints
-        app.register_blueprint(auth_bp)
-        app.register_blueprint(users_bp)
-        app.register_blueprint(premium_bp)
-        
-        logger.info("Successfully registered modular blueprints")
-    except ImportError as e:
-        logger.warning(f"Failed to load modular blueprints: {e}")
-        logger.info("Defining direct routes in app...")
+    # Handle the modular approach with better error handling
+    try_modular_approach = True
+    
+    if try_modular_approach:
+        try:
+            logger.info("Attempting to load modular blueprints...")
+            # Import blueprints individually with better error handling
+            auth_bp = None
+            users_bp = None
+            premium_bp = None
+            
+            try:
+                from app.api.auth import auth_bp
+                logger.info("Successfully imported auth_bp")
+            except (ImportError, SyntaxError) as e:
+                logger.error(f"Failed to import auth_bp: {e}")
+            
+            try:
+                from app.api.routes import users_bp, premium_bp
+                logger.info("Successfully imported users_bp and premium_bp")
+            except (ImportError, SyntaxError) as e:
+                logger.error(f"Failed to import users_bp and premium_bp: {e}")
+            
+            # Register available blueprints
+            if auth_bp:
+                app.register_blueprint(auth_bp)
+                logger.info("Registered auth_bp")
+            
+            if users_bp:
+                app.register_blueprint(users_bp)
+                logger.info("Registered users_bp")
+            
+            if premium_bp:
+                app.register_blueprint(premium_bp)
+                logger.info("Registered premium_bp")
+            
+            if not (auth_bp or users_bp or premium_bp):
+                raise ImportError("No blueprints were successfully imported")
+                
+            logger.info("Successfully registered available blueprints")
+        except (ImportError, SyntaxError) as e:
+            logger.warning(f"Failed to load modular blueprints: {e}")
+            try_modular_approach = False
+    
+    # If modular approach failed, use direct route definitions
+    if not try_modular_approach:
+        logger.info("Using direct route definitions...")
         
         # Define auth routes directly
         @app.route("/api/v1/auth/init", methods=["POST"])
         def auth_init():
             """Process Telegram init data and authenticate user"""
             logger.info("Auth init endpoint called")
-            data = request.json
-            init_data = data.get('initData') if data else None
-            
-            if not init_data:
-                return jsonify({"error": "No initData provided"}), 400
-            
-            # For debugging
-            logger.info(f"Received initData of length {len(init_data)}")
-            
-            # Success response (simplified for testing)
-            return jsonify({
-                "token": "test_token",
-                "user": {
-                    "id": 1,
-                    "telegram_id": "12345",
-                    "username": "test_user",
-                    "name": "Test User",
-                    "avatar_url": None,
-                    "premium_tier": 0,
-                    "premium_expires_at": None
-                },
-                "is_new_user": False
-            })
+            try:
+                data = request.json
+                init_data = data.get('initData') if data else None
+                
+                if not init_data:
+                    return jsonify({"error": "No initData provided"}), 400
+                
+                # For debugging
+                logger.info(f"Received initData of length {len(init_data)}")
+                
+                # Success response (simplified for testing)
+                return jsonify({
+                    "token": "test_token",
+                    "user": {
+                        "id": 1,
+                        "telegram_id": "12345",
+                        "username": "test_user",
+                        "name": "Test User",
+                        "avatar_url": None,
+                        "premium_tier": 0,
+                        "premium_expires_at": None
+                    },
+                    "is_new_user": False
+                })
+            except Exception as e:
+                logger.error(f"Error in auth_init: {e}")
+                return jsonify({"error": str(e)}), 500
         
         @app.route("/api/v1/auth/validate", methods=["POST"])
         def auth_validate():
             """Validate a JWT token"""
             logger.info("Auth validate endpoint called")
-            data = request.json
-            token = data.get('token') if data else None
-            
-            if not token:
-                return jsonify({"error": "No token provided"}), 400
-            
-            # Simple validation response for testing
-            return jsonify({
-                "valid": True,
-                "user_id": 1,
-                "telegram_id": "12345"
-            })
+            try:
+                data = request.json
+                token = data.get('token') if data else None
+                
+                if not token:
+                    return jsonify({"error": "No token provided"}), 400
+                
+                # Simple validation response for testing
+                return jsonify({
+                    "valid": True,
+                    "user_id": 1,
+                    "telegram_id": "12345"
+                })
+            except Exception as e:
+                logger.error(f"Error in auth_validate: {e}")
+                return jsonify({"error": str(e)}), 500
     
     # Create tables
     with app.app_context():
@@ -112,6 +155,10 @@ def create_app():
 
 if __name__ == "__main__":
     logger.info("Starting Telegram Business Card backend...")
-    app = create_app()
-    logger.info("Flask app created, starting server...")
-    app.run(host="0.0.0.0", port=8000, debug=True) 
+    try:
+        app = create_app()
+        logger.info("Flask app created, starting server...")
+        app.run(host="0.0.0.0", port=8000, debug=True)
+    except Exception as e:
+        logger.critical(f"Failed to start server: {e}")
+        sys.exit(1) 
