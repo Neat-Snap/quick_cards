@@ -28,9 +28,13 @@ interface ApiResponse<T> {
 // Helper function to make API requests with proper error handling
 async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
-    // Construct the full URL - ensure we're using the API_URL
-    const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
-    console.log(`Making API request to: ${url}`);
+    // Ensure the URL starts with a slash if it doesn't already
+    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    
+    // Construct the full URL using the base API_URL
+    // Remove duplicate '/api' if it's already in the API_URL
+    const fullUrl = `${API_URL}${normalizedUrl.replace(/^\/api/, '')}`;
+    console.log(`Making API request to: ${fullUrl}`);
     
     // Ensure CORS mode is properly set
     const requestOptions: RequestInit = {
@@ -117,7 +121,7 @@ export async function validateUser(): Promise<ApiResponse<User>> {
   }
   
   // Use direct relative URL to leverage Next.js rewrites
-  return apiRequest<User>('/api/validate', {
+  return apiRequest<User>('/validate', {
     method: 'POST',
     body: JSON.stringify({ initData }),
   });
@@ -128,7 +132,7 @@ export async function updateUserProfile(userId: number, profileData: Partial<Use
   console.log("Updating user profile for user ID:", userId);
   
   // Use direct relative URL to leverage Next.js rewrites
-  return apiRequest<User>(`/api/users/${userId}`, {
+  return apiRequest<User>(`/users/${userId}`, {
     method: 'PATCH',
     body: JSON.stringify(profileData),
   });

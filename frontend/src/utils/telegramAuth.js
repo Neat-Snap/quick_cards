@@ -3,6 +3,9 @@
  * Functions to help with Telegram Mini App authentication
  */
 
+// Import the API URL from environment variables
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+
 /**
  * Gets the Telegram WebApp object from the window
  * @returns {Object|null} Telegram WebApp object or null if not available
@@ -80,7 +83,8 @@ export const authenticateWithTelegram = async () => {
   }
   
   try {
-    const response = await fetch('/api/v1/auth/init', {
+    // Construct URL properly with API_URL
+    const response = await fetch(`${API_URL}/v1/auth/init`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
