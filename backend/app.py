@@ -17,22 +17,6 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 CORS(app)
 
-# Import and register blueprints
-from app.api.auth import auth_bp
-from app.api.routes import users_bp, premium_bp, register_routes
-
-# Register blueprints
-app.register_blueprint(auth_bp)
-app.register_blueprint(users_bp)
-app.register_blueprint(premium_bp)
-
-# Initialize the telegram auth middleware if available
-try:
-    from app.middleware.telegram_auth import init_telegram_auth_middleware
-    init_telegram_auth_middleware(app)
-except ImportError:
-    print("Telegram auth middleware not available")
-
 # Health check endpoint
 @app.route("/health")
 def health_check():
