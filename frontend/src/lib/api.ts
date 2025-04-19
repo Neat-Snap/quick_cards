@@ -25,18 +25,20 @@ interface ApiResponse<T> {
 
 export async function validateUser(): Promise<ApiResponse<User>> {
   try {
+    console.log("validateUser called - API URL:", API_URL);
     const initData = getInitData();
-    console.log('[API] Validating user with initData length:', initData?.length || 0);
+    console.log("InitData retrieved, length:", initData?.length || 0);
     
     if (!initData) {
-      console.error('[API] No initData available for validation');
+      console.error("No initData available for validation");
       return { 
         success: false, 
         error: 'No Telegram init data available. Are you running outside of Telegram?'
       };
     }
     
-    console.log('[API] Making validation request to:', `${API_URL}/validate`);
+    console.log(`Making validation request to: ${API_URL}/validate`);
+    console.log("Request payload:", { initData: initData.substring(0, 20) + "..." });
     
     const response = await fetch(`${API_URL}/validate`, {
       method: 'POST',
@@ -46,23 +48,23 @@ export async function validateUser(): Promise<ApiResponse<User>> {
       body: JSON.stringify({ initData }),
     });
     
-    console.log('[API] Validation response status:', response.status);
+    console.log("Response status:", response.status, response.statusText);
     
     const data = await response.json();
-    console.log('[API] Validation response data:', data.success ? 'Success' : 'Failed', data.error || '');
+    console.log("Response data:", JSON.stringify(data).substring(0, 100) + "...");
     
     if (!response.ok) {
-      console.error('[API] Validation failed:', data.error || response.statusText);
+      console.error("Validation failed:", data.error || response.statusText);
       return {
         success: false,
         error: data.error || `Authentication failed with status ${response.status}`,
       };
     }
     
-    console.log('[API] User validated successfully');
+    console.log("User validated successfully");
     return data;
   } catch (error) {
-    console.error('[API] Error during validation:', error);
+    console.error("Error during validation:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred during validation',
@@ -73,7 +75,7 @@ export async function validateUser(): Promise<ApiResponse<User>> {
 // Add more API functions here as needed
 export async function updateUserProfile(userId: number, profileData: Partial<User>): Promise<ApiResponse<User>> {
   try {
-    console.log('[API] Updating user profile for user ID:', userId);
+    console.log("Updating user profile for user ID:", userId);
     
     const response = await fetch(`${API_URL}/users/${userId}`, {
       method: 'PATCH',
@@ -86,17 +88,17 @@ export async function updateUserProfile(userId: number, profileData: Partial<Use
     const data = await response.json();
     
     if (!response.ok) {
-      console.error('[API] Profile update failed:', data.error || response.statusText);
+      console.error("Profile update failed:", data.error || response.statusText);
       return {
         success: false,
         error: data.error || 'Failed to update profile',
       };
     }
     
-    console.log('[API] Profile updated successfully');
+    console.log("Profile updated successfully");
     return data;
   } catch (error) {
-    console.error('[API] Error updating profile:', error);
+    console.error("Error updating profile:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred during profile update',

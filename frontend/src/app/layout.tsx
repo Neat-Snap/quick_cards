@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
-import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,9 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script 
+        <Script
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
+          id="telegram-webapp"
         />
       </head>
       <body className={inter.className}>

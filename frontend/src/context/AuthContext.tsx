@@ -21,26 +21,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [initializationAttempted, setInitializationAttempted] = useState(false);
+  const [isWebAppReady, setIsWebAppReady] = useState(false);
+
+  // Initialize Telegram WebApp when the component mounts
+  useEffect(() => {
+    const initTelegramWebApp = () => {
+      // Safety check to ensure we're in a browser environment
+      if (typeof window === 'undefined') return;
+
+      // Check if Telegram WebApp is available
+      if (isTelegramWebApp()) {
+        // Expand the WebApp to take the whole screen
+        expandApp();
+        // Mark the WebApp as ready
+        setAppReady();
+        console.log("Telegram WebApp initialized successfully");
+      } else {
+        console.log("Not running in Telegram WebApp environment");
+      }
+      
+      // Mark initialization as complete, whether it succeeded or not
+      setIsWebAppReady(true);
+    };
+
+    // Execute initialization
+    initTelegramWebApp();
+  }, []);
 
   const refreshUser = async () => {
-    if (initializationAttempted) {
-      console.log('Skipping duplicate initialization');
-      return;
-    }
-    
-    setInitializationAttempted(true);
     setLoading(true);
     setError(null);
 
     try {
-      console.log('Starting user authentication...');
-      console.log('Is in Telegram WebApp:', isTelegramWebApp());
-      console.log('Is development mode:', isDevelopment);
-      
-      // For development purposes only, if not in Telegram WebApp and in development mode, use a mock user
+      // For development purposes, if not in Telegram WebApp and in development mode, use a mock user
       if (!isTelegramWebApp() && isDevelopment) {
-        console.warn('Using mock data for development');
+        console.log('Not running in Telegram WebApp, using mock data');
+        // Simulate a delay
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const mockUser: User = {
@@ -61,43 +77,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Try to get user data from Telegram WebApp
-      console.log('Attempting to validate user with backend');
+      // Try to validate with backend in all other cases
+      console.log("Attempting to validate user with backend...");
       const response = await validateUser();
 
       if (response.success && response.user) {
-        console.log('User validated successfully');
+        console.log("User validated successfully:", response.user.first_name);
         setUser(response.user);
       } else {
-        console.error('Backend validation failed:', response.error);
+        console.error("Failed to validate user:", response.error);
         setError(response.error || 'Failed to authenticate with Telegram');
-        
-        // If backend validation fails, try to get basic info from Telegram directly
-        const telegramUser = getTelegramUser();
-        if (telegramUser) {
-          console.log('Using basic user info from Telegram WebApp');
-          // Create a minimal user object from the Telegram data
-          const basicUser: User = {
-            id: 0, // We don't know the backend ID yet
-            telegram_id: String(telegramUser.id),
-            username: telegramUser.username || '',
-            first_name: telegramUser.first_name,
-            last_name: telegramUser.last_name || '',
-            avatar: '',
-            background_color: '#1e293b',
-            description: 'Your card description will appear here.',
-            badge: '',
-            is_premium: Boolean(telegramUser.is_premium)
-          };
-          
-          setUser(basicUser);
-          setError(null); // Clear error since we have basic user info
-        } else {
-          setUser(null);
-        }
+        setUser(null);
       }
     } catch (err) {
-      console.error('Authentication error:', err);
+      console.error("Error during user validation:", err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
       setUser(null);
     } finally {
@@ -109,17 +102,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  // Only fetch user data after the WebApp is ready
   useEffect(() => {
-    // Initialize Telegram WebApp
-    if (isTelegramWebApp()) {
-      console.log('Initializing Telegram WebApp');
-      expandApp();
-      setAppReady();
+    if (isWebAppReady) {
+      refreshUser();
     }
-
-    // Start authentication process
-    refreshUser();
-  }, []);
+  }, [isWebAppReady]);
 
   return (
     <AuthContext.Provider
