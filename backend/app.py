@@ -17,6 +17,12 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 CORS(app)
 
+# Import and register blueprints
+from app.api.routes import register_routes
+
+# Register all routes with the Flask app
+register_routes(app)
+
 # Health check endpoint
 @app.route("/health")
 def health_check():
