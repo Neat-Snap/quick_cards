@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 users_bp = Blueprint("users", __name__, url_prefix="/v1")
 
 # Import the helper function
-from app.api.routes import get_authenticated_user
+from app.middleware.auth import get_current_user as get_authenticated_user
 
 @users_bp.route("/users", methods=["POST"])
 def create_user():

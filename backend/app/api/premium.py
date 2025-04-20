@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 premium_bp = Blueprint("premium", __name__, url_prefix="/v1")
 
 # Import the helper function
-from app.api.routes import get_authenticated_user
+from app.middleware.auth import get_current_user as get_authenticated_user
 
 # Premium tier definitions (consolidated in one place)
 PREMIUM_TIERS = [
