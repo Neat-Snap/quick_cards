@@ -94,11 +94,8 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
         data_check_string = '\n'.join([f"{key}={validation_dict[key]}" for key in sorted(validation_dict.keys())])
         
         # Calculate the secret key using bot token
-        secret_key = hmac.new(
-            key=b'WebAppData',
-            msg=settings.TELEGRAM_BOT_TOKEN.encode(),
-            digestmod=hashlib.sha256
-        ).digest()
+        secret_key = hashlib.sha256(settings.TELEGRAM_BOT_TOKEN.encode()).digest()
+
         
         logger.info(f"Secret key: {secret_key}")
         

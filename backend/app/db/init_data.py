@@ -1,7 +1,3 @@
-"""
-Consolidated database initialization module that properly sequences table creation and data loading
-"""
-
 import logging
 from sqlalchemy import inspect
 
