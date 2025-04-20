@@ -1,7 +1,3 @@
-"""
-Database session management module
-"""
-
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.ext.declarative import declarative_base
