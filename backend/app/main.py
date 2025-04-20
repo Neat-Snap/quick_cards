@@ -2,10 +2,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 
-from core.config import settings
-from db.session import db, init_db
-from api.routes import register_routes
-from middleware.telegram_auth import init_telegram_auth_middleware
+from app.core.config import settings
+from app.db.session import db, init_db
+from app.api.routes import register_routes
+from app.middleware.telegram_auth import init_telegram_auth_middleware
 
 # Create the Flask app
 app = Flask(__name__)
