@@ -1,5 +1,6 @@
 import logging
 from sqlalchemy.orm import Session
+from sqlalchemy import inspect
 
 from app.db.session import db, Base, engine
 from app.db.models import PremiumFeature
