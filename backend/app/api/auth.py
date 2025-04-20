@@ -9,6 +9,13 @@ import logging
 # Create blueprint for auth routes
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
+@auth_bp.route("/auth_health", methods=["GET"])
+def auth_health():
+    """
+    Health check endpoint for the auth service
+    """
+    return jsonify({"status": "ok"})
+
 @auth_bp.route("/init", methods=["POST"])
 def initialize_from_telegram():
     """
