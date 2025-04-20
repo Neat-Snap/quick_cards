@@ -1,3 +1,7 @@
+"""
+Run script for the Telegram Business Card backend application
+"""
+
 from app.main import app
 
 if __name__ == "__main__":
