@@ -86,11 +86,11 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
     if has_hash:
         logger.info("Hash is in data dict")
         received_hash = data_dict.pop('hash')
-        logger.debug(f"Received hash: {received_hash}")
+        logger.info(f"Received hash: {received_hash}")
 
         # Собираем строку:
         data_check_string = '\n'.join(f"{k}={v}" for k, v in sorted(data_dict.items()))
-        logger.debug(f"Data check string: {data_check_string}")
+        logger.info(f"Data check string: {data_check_string}")
 
         # Правильный secret_key
         secret_key = hmac.new(
@@ -98,7 +98,7 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
             msg=b'WebAppData',
             digestmod=hashlib.sha256
         ).digest()
-        logger.debug(f"Secret key: {secret_key}")
+        logger.info(f"Secret key: {secret_key}")
 
         # Считаем и сравниваем
         computed_hash = hmac.new(
