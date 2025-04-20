@@ -4,8 +4,7 @@ from flask_jwt_extended import JWTManager
 
 from app.core.config import settings
 from app.db.session import db, init_db
-from app.api.routes import register_routes
-from app.middleware.telegram_auth import init_telegram_auth_middleware
+
 
 # Create the Flask app
 app = Flask(__name__)
@@ -20,6 +19,9 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 
 db.init_app(app)
 jwt = JWTManager(app)
 CORS(app)
+
+from app.api.routes import register_routes
+from app.middleware.telegram_auth import init_telegram_auth_middleware
 
 # Initialize Telegram authentication middleware
 init_telegram_auth_middleware(app)
