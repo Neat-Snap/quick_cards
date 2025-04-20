@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 # Create blueprint for premium routes
 premium_bp = Blueprint("premium", __name__, url_prefix="/api/v1")
 
+# Import the helper function
+from app.api.routes import get_authenticated_user
+
 # Premium tier definitions (consolidated in one place)
 PREMIUM_TIERS = [
     {
