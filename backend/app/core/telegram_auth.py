@@ -28,6 +28,7 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
     
     # Check if this is from URL parameter (tgWebAppData)
     # In that case, it's already URL encoded
+    print(f"Init data: {init_data}")
     if init_data.startswith("user="):
         # It's already in the right format
         pass
@@ -59,6 +60,7 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
     
     # Extract the hash or signature (depending on auth method)
     if 'hash' in data_dict:
+        print("Hash is in data dict")
         received_hash = data_dict.pop('hash')
         
         # Create the data check string
@@ -70,6 +72,8 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
             msg=settings.TELEGRAM_BOT_TOKEN.encode(),
             digestmod=hashlib.sha256
         ).digest()
+
+        print("Secret key: ", secret_key)
         
         # Calculate the expected hash
         computed_hash = hmac.new(
@@ -77,6 +81,8 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
             msg=data_check_string.encode(),
             digestmod=hashlib.sha256
         ).hexdigest()
+
+        print("Computed hash: ", computed_hash)
         
         # Verify the hash
         if received_hash != computed_hash:

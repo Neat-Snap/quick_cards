@@ -101,3 +101,41 @@ def telegram_auth_required(f):
         return f(*args, **kwargs)
     
     return decorated_function 
+
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
+
+def auth_required(f):
+    """
+    Unified decorator for authentication - tries JWT first, then Telegram auth
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # First try JWT auth
+        try:
+            verify_jwt_in_request()
+            user_id = get_jwt_identity()
+            user = User.query.get(user_id)
+            if user:
+                g.current_user = user
+                return f(*args, **kwargs)
+        except Exception:
+            pass  # Fall through to other auth methods
+            
+        # Check if Telegram middleware authenticated the user
+        if hasattr(g, 'current_user') and g.current_user:
+            return f(*args, **kwargs)
+            
+        # As a last resort, try telegram_id param (for development/testing)
+        telegram_id = request.args.get("telegram_id")
+        if telegram_id:
+            user = User.query.filter_by(telegram_id=telegram_id).first()
+            if user:
+                g.current_user = user
+                return f(*args, **kwargs)
+                
+        # All auth methods failed
+        return jsonify({
+            "error": "Authentication required. Please provide valid JWT token or Telegram authentication."
+        }), 401
+        
+    return decorated_function

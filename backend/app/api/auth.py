@@ -56,10 +56,13 @@ def initialize_from_telegram():
                 return jsonify({"error": "Could not extract Telegram user ID"}), 400
         
         # Get or create user
+        logger.info(f"Telegram ID: {telegram_id}")
         is_new_user = False
         user = User.query.filter_by(telegram_id=telegram_id).first()
+
         
         if not user:
+            logger.info(f"User not found, creating new user")
             is_new_user = True
             user = User(
                 telegram_id=telegram_id,
@@ -71,6 +74,7 @@ def initialize_from_telegram():
         
         # Create real JWT token
         token = create_access_token(identity=str(user.id))
+        logger.info(f"Created access token: {token}")
         
         return jsonify({
             "token": token,
