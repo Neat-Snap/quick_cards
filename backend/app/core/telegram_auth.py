@@ -18,7 +18,7 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
     """
     try:
         # parse_qsl сразу ДЕКОДИРУЕТ значения + превращает '+' в пробел
-        pairs = ul.parse_qsl(init_data, strict_parsing=True)
+        pairs = urllib.parse.parse_qsl(init_data, strict_parsing=True)
     except ValueError:
         return False, None, "init_data is not a valid query string"
 
