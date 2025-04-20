@@ -1,5 +1,9 @@
+"""
+Database session management module
+"""
+
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import logging
@@ -17,25 +21,25 @@ engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Initialize the database
+# Function to initialize the database - this is a simple wrapper
+# that will call the actual implementation in init_db.py
 def init_db():
-    """Initialize the database - creates tables and sets up initial data"""
-    # Import models to register with SQLAlchemy
-    from app.db.models import User, Contact, Project, Skill, CustomLink, PremiumFeature
+    """Initialize database tables and data"""
+    logger.info("Starting database initialization...")
     
     try:
-        # Create all tables
-        logger.info("Creating database tables...")
-        db.create_all()
-        logger.info("Database tables created.")
+        # Import here to avoid circular imports
+        from app.db.init_db import init_db as impl_init_db
         
-        # Initialize premium features
-        from app.db.init_db import setup_initial_data
-        logger.info("Setting up initial data...")
-        setup_initial_data()
-        logger.info("Initial data setup complete.")
+        # Call the implementation
+        result = impl_init_db()
         
-        return True
+        if result:
+            logger.info("Database initialization completed successfully")
+        else:
+            logger.error("Database initialization failed")
+            
+        return result
     except Exception as e:
-        logger.error(f"Database initialization failed: {e}", exc_info=True)
+        logger.error(f"Error in database initialization: {e}", exc_info=True)
         return False
