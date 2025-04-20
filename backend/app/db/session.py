@@ -9,7 +9,7 @@ from app.core.config import settings
 db = SQLAlchemy()
 
 # Create SQLAlchemy engine and base for direct usage
-engine = create_engine(settings.DATABASE_URI)
+engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
