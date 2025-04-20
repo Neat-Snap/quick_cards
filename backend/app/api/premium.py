@@ -9,7 +9,7 @@ from app.db.models import User, PremiumFeature
 logger = logging.getLogger(__name__)
 
 # Create blueprint for premium routes
-premium_bp = Blueprint("premium", __name__, url_prefix="/api/v1")
+premium_bp = Blueprint("premium", __name__, url_prefix="/v1")
 
 # Import the helper function
 from app.api.routes import get_authenticated_user
