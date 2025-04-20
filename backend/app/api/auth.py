@@ -12,7 +12,7 @@ from app.db.models import User
 from app.core.telegram_auth import validate_telegram_data, extract_user_info
 
 # Create blueprint for auth routes
-auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
+auth_bp = Blueprint("auth", __name__, url_prefix="/v1/auth")
 
 @auth_bp.route("/auth_health", methods=["GET"])
 def auth_health():
