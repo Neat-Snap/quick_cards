@@ -1,7 +1,17 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
-# Create SQLAlchemy database instance
+from app.core.config import settings
+
+# Create SQLAlchemy database instance for Flask
 db = SQLAlchemy()
+
+# Create SQLAlchemy engine and base for direct usage
+engine = create_engine(settings.DATABASE_URI)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
 # Import models after db is defined to avoid circular imports
 def init_models():
