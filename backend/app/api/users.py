@@ -9,7 +9,7 @@ from app.db.models import User, Contact, Project, Skill, CustomLink
 logger = logging.getLogger(__name__)
 
 # Create blueprint for user routes
-users_bp = Blueprint("users", __name__, url_prefix="/api/v1")
+users_bp = Blueprint("users", __name__, url_prefix="/v1")
 
 # Import the helper function
 from app.api.routes import get_authenticated_user
