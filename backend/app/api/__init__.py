@@ -4,13 +4,8 @@ API Routes and Endpoints
 This package contains all API routes and endpoint handlers.
 """
 
+# Only import register_routes to avoid circular imports
 from app.api.routes import register_routes
-from app.api.users import *
-from app.api.premium import *
-from app.api.auth import *
 
-# Import any endpoint modules
-try:
-    from app.api.endpoints import *
-except ImportError:
-    pass  # Optional endpoints directory
+# Don't import all modules here to avoid circular dependencies
+# The modules will be imported by register_routes when needed
