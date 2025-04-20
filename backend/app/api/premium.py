@@ -11,6 +11,81 @@ logger = logging.getLogger(__name__)
 # Create blueprint for premium routes
 premium_bp = Blueprint("premium", __name__, url_prefix="/api/v1")
 
+# Premium tier definitions (consolidated in one place)
+PREMIUM_TIERS = [
+    {
+        "tier": 1,
+        "name": "Basic",
+        "price": 4.99,
+        "description": "Basic premium features for your card",
+        "features": [
+            "Custom Background Image",
+            "Custom Badge",
+            "Skills"
+        ]
+    },
+    {
+        "tier": 2,
+        "name": "Premium",
+        "price": 9.99,
+        "description": "Enhanced premium features for your card",
+        "features": [
+            "Custom Background Image",
+            "Custom Badge",
+            "Skills",
+            "Extended Projects",
+            "Animated Elements",
+            "Custom Links"
+        ]
+    },
+    {
+        "tier": 3,
+        "name": "Ultimate",
+        "price": 19.99,
+        "description": "Complete premium package for your card",
+        "features": [
+            "Custom Background Image",
+            "Custom Badge",
+            "Skills",
+            "Extended Projects",
+            "Animated Elements",
+            "Custom Links",
+            "Verified Badge",
+            "Video Upload"
+        ]
+    }
+]
+
+# Helper function to get authenticated user
+def get_authenticated_user():
+    """
+    Helper function to get the authenticated user from either Telegram auth data
+    or telegram_id query parameter
+    
+    Returns:
+        Tuple of (user, error_response)
+        - If user is found, returns (user, None)
+        - If no user is found, returns (None, error_response)
+    """
+    from flask import g
+    
+    # First try to get user from Telegram auth data
+    if hasattr(g, 'current_user') and g.current_user:
+        return g.current_user, None
+    
+    # Fall back to the telegram_id query param
+    telegram_id = request.args.get("telegram_id")
+    if not telegram_id:
+        return None, (jsonify({
+            "error": "No authentication data provided. Please include Telegram init data or telegram_id parameter"
+        }), 400)
+    
+    user = User.query.filter_by(telegram_id=telegram_id).first()
+    if not user:
+        return None, (jsonify({"error": "User not found"}), 404)
+    
+    return user, None
+
 @premium_bp.route("/premium/features", methods=["GET"])
 def get_premium_features():
     """Get all premium features"""
@@ -28,63 +103,14 @@ def get_premium_features():
 @premium_bp.route("/premium/tiers", methods=["GET"])
 def get_premium_tiers():
     """Get all premium tiers with their features"""
-    # Define the tiers
-    tiers = [
-        {
-            "tier": 1,
-            "name": "Basic",
-            "price": 4.99,
-            "description": "Basic premium features for your card",
-            "features": [
-                "Custom Background Image",
-                "Custom Badge",
-                "Skills"
-            ]
-        },
-        {
-            "tier": 2,
-            "name": "Premium",
-            "price": 9.99,
-            "description": "Enhanced premium features for your card",
-            "features": [
-                "Custom Background Image",
-                "Custom Badge",
-                "Skills",
-                "Extended Projects",
-                "Animated Elements",
-                "Custom Links"
-            ]
-        },
-        {
-            "tier": 3,
-            "name": "Ultimate",
-            "price": 19.99,
-            "description": "Complete premium package for your card",
-            "features": [
-                "Custom Background Image",
-                "Custom Badge",
-                "Skills",
-                "Extended Projects",
-                "Animated Elements",
-                "Custom Links",
-                "Verified Badge",
-                "Video Upload"
-            ]
-        }
-    ]
-    
-    return jsonify(tiers)
+    return jsonify(PREMIUM_TIERS)
 
 @premium_bp.route("/premium/subscribe", methods=["POST"])
 def subscribe():
     """Subscribe to a premium tier"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     data = request.json
     if not data or "tier" not in data or "payment_method" not in data:
@@ -119,13 +145,9 @@ def subscribe():
 @premium_bp.route("/premium/status", methods=["GET"])
 def get_premium_status():
     """Get user's premium status"""
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return jsonify({"error": "Missing telegram_id parameter"}), 400
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
+    user, error = get_authenticated_user()
+    if error:
+        return error
     
     tier_names = {0: "Free", 1: "Basic", 2: "Premium", 3: "Ultimate"}
     
