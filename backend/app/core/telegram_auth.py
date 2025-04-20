@@ -86,22 +86,21 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
     if has_hash:
         logger.info("Hash is in data dict")
         received_hash = data_dict.pop('hash')
-        logger.info(f"Received hash: {received_hash}")
-        
-        # Create a new dictionary without signature if present
-        validation_dict = {k: v if k != "user" else urllib.parse.unquote(v) for k, v in data_dict.items() if k != 'signature'}
-        
-        # Create the data check string - key=value pairs sorted alphabetically and joined with \n
-        data_check_string = '\n'.join(f"{key}={validation_dict[key]}" for key in sorted(validation_dict))
-        logger.info(f"Data check string: {data_check_string}")
-        
-        # Calculate the secret key using bot token
-        secret_key = hashlib.sha256(settings.TELEGRAM_BOT_TOKEN.encode()).digest()
+        logger.debug(f"Received hash: {received_hash}")
 
-        
-        logger.info(f"Secret key: {secret_key}")
-        
-        # Calculate the expected hash
+        # Собираем строку:
+        data_check_string = '\n'.join(f"{k}={v}" for k, v in sorted(data_dict.items()))
+        logger.debug(f"Data check string: {data_check_string}")
+
+        # Правильный secret_key
+        secret_key = hmac.new(
+            key=settings.TELEGRAM_BOT_TOKEN.encode(),
+            msg=b'WebAppData',
+            digestmod=hashlib.sha256
+        ).digest()
+        logger.debug(f"Secret key: {secret_key}")
+
+        # Считаем и сравниваем
         computed_hash = hmac.new(
             key=secret_key,
             msg=data_check_string.encode(),
