@@ -6,6 +6,11 @@ from flask import Blueprint, jsonify, request, current_app, g
 from flask_jwt_extended import create_access_token
 import logging
 
+# Add missing imports
+from app.db.session import db
+from app.db.models import User
+from app.core.telegram_auth import validate_telegram_data, extract_user_info
+
 # Create blueprint for auth routes
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
