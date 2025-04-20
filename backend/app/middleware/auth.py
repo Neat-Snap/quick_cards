@@ -1,3 +1,6 @@
+"""
+Unified authentication handling for the application
+"""
 from functools import wraps
 from flask import request, jsonify, g
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
