@@ -56,35 +56,6 @@ PREMIUM_TIERS = [
     }
 ]
 
-# Helper function to get authenticated user
-def get_authenticated_user():
-    """
-    Helper function to get the authenticated user from either Telegram auth data
-    or telegram_id query parameter
-    
-    Returns:
-        Tuple of (user, error_response)
-        - If user is found, returns (user, None)
-        - If no user is found, returns (None, error_response)
-    """
-    from flask import g
-    
-    # First try to get user from Telegram auth data
-    if hasattr(g, 'current_user') and g.current_user:
-        return g.current_user, None
-    
-    # Fall back to the telegram_id query param
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
-        return None, (jsonify({
-            "error": "No authentication data provided. Please include Telegram init data or telegram_id parameter"
-        }), 400)
-    
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
-        return None, (jsonify({"error": "User not found"}), 404)
-    
-    return user, None
 
 @premium_bp.route("/premium/features", methods=["GET"])
 def get_premium_features():
