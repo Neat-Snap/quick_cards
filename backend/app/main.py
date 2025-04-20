@@ -11,7 +11,7 @@ from app.middleware.telegram_auth import init_telegram_auth_middleware
 app = Flask(__name__)
 
 # Configure the app
-app.config["SQLALCHEMY_DATABASE_URL"] = settings.DATABASE_URL
+app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = settings.SECRET_KEY
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
