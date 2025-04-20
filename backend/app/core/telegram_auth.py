@@ -89,10 +89,10 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
         logger.info(f"Received hash: {received_hash}")
         
         # Create a new dictionary without signature if present
-        validation_dict = {k: v for k, v in data_dict.items() if k != 'signature'}
+        validation_dict = {k: v if k != "user" else urllib.parse.unquote(v) for k, v in data_dict.items() if k != 'signature'}
         
         # Create the data check string - key=value pairs sorted alphabetically and joined with \n
-        data_check_string = '\n'.join([f"{key}={validation_dict[key]}" for key in sorted(validation_dict.keys())])
+        data_check_string = '\n'.join(f"{key}={validation_dict[key]}" for key in sorted(validation_dict))
         logger.info(f"Data check string: {data_check_string}")
         
         # Calculate the secret key using bot token
