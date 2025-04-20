@@ -83,6 +83,7 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
         ).hexdigest()
 
         print("Computed hash: ", computed_hash)
+        print("Received hash: ", received_hash)
         
         # Verify the hash
         if received_hash != computed_hash:
