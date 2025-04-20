@@ -48,7 +48,7 @@ def debug_routes():
             "methods": list(rule.methods),
             "path": str(rule)
         })
-    return jsonify(routes)
+    return jsonify(routes), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
