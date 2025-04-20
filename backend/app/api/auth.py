@@ -25,30 +25,60 @@ def initialize_from_telegram():
     logger.info("Auth init endpoint called")
     
     try:
-        # Get initData from request
-        data = request.json
-        init_data = data.get('initData') if data else None
+        # Check if middleware already processed telegram data
+        if hasattr(g, 'telegram_user') and g.telegram_user:
+            telegram_id = g.telegram_user.get('telegram_id')
+            user_info = g.telegram_user
+        else:
+            # Get initData from request if middleware didn't process it
+            data = request.json
+            init_data = data.get('initData') if data else None
+            
+            if not init_data:
+                return jsonify({"error": "No initData provided"}), 400
+                
+            # Validate the data
+            is_valid, data_dict, error_message = validate_telegram_data(init_data)
+            
+            if not is_valid:
+                return jsonify({"error": f"Invalid initData: {error_message}"}), 400
+                
+            # Extract user info
+            user_info = extract_user_info(data_dict)
+            telegram_id = user_info.get('telegram_id')
+            
+            if not telegram_id:
+                return jsonify({"error": "Could not extract Telegram user ID"}), 400
         
-        if not init_data:
-            return jsonify({"error": "No initData provided"}), 400
+        # Get or create user
+        is_new_user = False
+        user = User.query.filter_by(telegram_id=telegram_id).first()
         
-        # For debugging
-        logger.info(f"Received initData of length {len(init_data)}")
+        if not user:
+            is_new_user = True
+            user = User(
+                telegram_id=telegram_id,
+                username=user_info.get('username'),
+                name=user_info.get('name')
+            )
+            db.session.add(user)
+            db.session.commit()
         
-        # In a real implementation, you would validate the initData and extract user info
-        # For now, just return a success response for testing
+        # Create real JWT token
+        token = create_access_token(identity=str(user.id))
+        
         return jsonify({
-            "token": "test_token",
+            "token": token,
             "user": {
-                "id": 1,
-                "telegram_id": "12345",
-                "username": "test_user",
-                "name": "Test User",
-                "avatar_url": None,
-                "premium_tier": 0,
-                "premium_expires_at": None
+                "id": user.id,
+                "telegram_id": user.telegram_id,
+                "username": user.username,
+                "name": user.name,
+                "avatar_url": user.avatar_url,
+                "premium_tier": user.premium_tier,
+                "premium_expires_at": user.premium_expires_at.isoformat() if user.premium_expires_at else None
             },
-            "is_new_user": False
+            "is_new_user": is_new_user
         })
     except Exception as e:
         logger.error(f"Error in auth_init: {e}")
@@ -70,12 +100,25 @@ def validate_token():
         if not token:
             return jsonify({"error": "No token provided"}), 400
         
-        # Simple validation response for testing
-        return jsonify({
-            "valid": True,
-            "user_id": 1,
-            "telegram_id": "12345"
-        })
+        # Use JWT library to validate token
+        from flask_jwt_extended import decode_token
+        try:
+            decoded = decode_token(token)
+            user_id = decoded['sub']  # 'sub' is the JWT subject (user id)
+            
+            # Find the user
+            user = User.query.get(user_id)
+            if not user:
+                return jsonify({"error": "User not found"}), 404
+                
+            return jsonify({
+                "valid": True,
+                "user_id": user.id,
+                "telegram_id": user.telegram_id
+            })
+        except Exception as e:
+            return jsonify({"valid": False, "error": str(e)}), 401
+            
     except Exception as e:
         logger.error(f"Error in auth_validate: {e}")
         return jsonify({"error": str(e)}), 500
