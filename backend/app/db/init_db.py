@@ -73,6 +73,12 @@ def init_db():
         db.session.rollback()
         logger.error(f"Database initialization failed: {e}", exc_info=True)
         return False
+    
+
+def verify_table_exists(table_name):
+    """Check if a table exists in the database"""
+    inspector = inspect(db.engine)
+    return table_name in inspector.get_table_names()
 
 def setup_initial_data():
     """Initialize premium features in the database using SQLAlchemy Core"""
