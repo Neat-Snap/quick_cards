@@ -48,6 +48,7 @@ def validate_telegram_data(init_data: str) -> Tuple[bool, Optional[Dict], str]:
 
     if not hmac.compare_digest(calculated, received_hash):
         return False, None, "hash mismatch"
+    logger.info(f"Hash is valid")
 
     # всё ок
     data["hash"] = received_hash          # вернём обратно, если нужно

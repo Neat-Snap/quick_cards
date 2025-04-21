@@ -3,7 +3,7 @@ Authentication routes for the Telegram Business Card backend.
 """
 
 from flask import Blueprint, jsonify, request, current_app, g
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, decode_token
 import logging
 
 # Add missing imports
@@ -74,11 +74,19 @@ def initialize_from_telegram():
         if not user:
             is_new_user = True
             logger.info(f"Creating new user with telegram_id: {telegram_id}")
+            
+            # Create new user with proper field mapping
             user = User(
                 telegram_id=telegram_id,
-                username=user_info.get('username'),
-                name=user_info.get('name')
+                username=user_info.get('username', ''),
+                name=user_info.get('first_name', '') + (f" {user_info.get('last_name', '')}" if user_info.get('last_name') else ''),
+                avatar_url=user_info.get('photo_url', ''),
+                background_type="color",
+                background_value="#f0f0f0",
+                description="",
+                badge="New User"
             )
+            
             db.session.add(user)
             db.session.commit()
             logger.info(f"New user created with ID: {user.id}")
@@ -86,6 +94,7 @@ def initialize_from_telegram():
         # Create real JWT token
         token = create_access_token(identity=str(user.id))
         
+        # Format user data according to frontend expectations
         return jsonify({
             "success": True,
             "token": token,
@@ -93,10 +102,13 @@ def initialize_from_telegram():
                 "id": user.id,
                 "telegram_id": user.telegram_id,
                 "username": user.username,
-                "name": user.name,
-                "avatar_url": user.avatar_url,
-                "premium_tier": user.premium_tier,
-                "premium_expires_at": user.premium_expires_at.isoformat() if user.premium_expires_at else None
+                "first_name": user_info.get('first_name', ''),
+                "last_name": user_info.get('last_name', ''),
+                "avatar": user.avatar_url,
+                "background_color": user.background_value if user.background_type == "color" else "#f0f0f0",
+                "description": user.description or "",
+                "badge": user.badge or "New User",
+                "is_premium": user.premium_tier > 0
             },
             "is_new_user": is_new_user
         })
@@ -126,7 +138,6 @@ def validate_token():
             }), 400
         
         # Use JWT library to validate token
-        from flask_jwt_extended import decode_token
         try:
             decoded = decode_token(token)
             user_id = decoded['sub']  # 'sub' is the JWT subject (user id)
