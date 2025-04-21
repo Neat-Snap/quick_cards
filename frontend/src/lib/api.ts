@@ -122,15 +122,27 @@ export async function validateUser(): Promise<ApiResponse<User>> {
   
   console.log("Making authentication request to: /v1/auth/init");
   
-  // Use the correct endpoint path for initialization with Telegram data
-  return apiRequest<User>('/v1/auth/init', {
-    method: 'POST',
-    body: JSON.stringify({ initData }),
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    }
-  });
+  try {
+    // Use the correct endpoint path for initialization with Telegram data
+    const response = await apiRequest<User>('/v1/auth/init', {
+      method: 'POST',
+      body: JSON.stringify({ initData }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Telegram-Init-Data': initData, // Add this header for additional security
+      }
+    });
+    
+    console.log("Auth response received:", response);
+    return response;
+  } catch (error) {
+    console.error("Error during validateUser:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error during user validation'
+    };
+  }
 }
 
 // Add more API functions here as needed
