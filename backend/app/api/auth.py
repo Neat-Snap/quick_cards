@@ -1,14 +1,9 @@
-"""
-Authentication routes for the Telegram Business Card backend.
-"""
-
 from flask import Blueprint, jsonify, request, current_app, g
 from flask_jwt_extended import create_access_token, decode_token
 import logging
 
-# Add missing imports
-from app.db.session import db
-from app.db.models import User
+# Import all database functions from app.db package
+from app.db import get_user, create_user, set_user
 from app.core.telegram_auth import validate_telegram_data, extract_user_info
 
 # Set up logging
@@ -69,15 +64,16 @@ def initialize_from_telegram():
         
         # Get or create user
         is_new_user = False
-        user = User.query.filter_by(telegram_id=telegram_id).first()
+        user_id = str(telegram_id)  # Use the telegram_id as the user ID
+        user_data = get_user(user_id)
         
-        if not user:
+        if not user_data:
             is_new_user = True
-            logger.info(f"Creating new user with telegram_id: {telegram_id}")
+            logger.info(f"Creating new user with id: {user_id}")
             
             # Create new user with proper field mapping
-            user = User(
-                telegram_id=telegram_id,
+            success = create_user(
+                user_id=user_id,
                 username=user_info.get('username', ''),
                 name=user_info.get('first_name', '') + (f" {user_info.get('last_name', '')}" if user_info.get('last_name') else ''),
                 avatar_url=user_info.get('photo_url', ''),
@@ -87,28 +83,38 @@ def initialize_from_telegram():
                 badge="New User"
             )
             
-            db.session.add(user)
-            db.session.commit()
-            logger.info(f"New user created with ID: {user.id}")
+            if not success:
+                return jsonify({
+                    "success": False,
+                    "error": "Failed to create user"
+                }), 500
+                
+            user_data = get_user(user_id)
+            if not user_data:
+                return jsonify({
+                    "success": False,
+                    "error": "User created but could not be retrieved"
+                }), 500
+                
+            logger.info(f"New user created with ID: {user_id}")
         
         # Create real JWT token
-        token = create_access_token(identity=str(user.id))
+        token = create_access_token(identity=str(user_id))
         
         # Format user data according to frontend expectations
         return jsonify({
             "success": True,
             "token": token,
             "user": {
-                "id": user.id,
-                "telegram_id": user.telegram_id,
-                "username": user.username,
+                "id": user_id,
+                "username": user_data.get("username", ""),
                 "first_name": user_info.get('first_name', ''),
                 "last_name": user_info.get('last_name', ''),
-                "avatar": user.avatar_url,
-                "background_color": user.background_value if user.background_type == "color" else "#f0f0f0",
-                "description": user.description or "",
-                "badge": user.badge or "New User",
-                "is_premium": user.premium_tier > 0
+                "avatar": user_data.get("avatar_url", ""),
+                "background_color": user_data.get("background_value", "#f0f0f0") if user_data.get("background_type", "") == "color" else "#f0f0f0",
+                "description": user_data.get("description", ""),
+                "badge": user_data.get("badge", "New User"),
+                "is_premium": user_data.get("premium_tier", 0) > 0
             },
             "is_new_user": is_new_user
         })
@@ -143,8 +149,8 @@ def validate_token():
             user_id = decoded['sub']  # 'sub' is the JWT subject (user id)
             
             # Find the user
-            user = User.query.get(user_id)
-            if not user:
+            user_data = get_user(user_id)
+            if not user_data:
                 return jsonify({
                     "success": False,
                     "error": "User not found"
@@ -153,8 +159,7 @@ def validate_token():
             return jsonify({
                 "success": True,
                 "valid": True,
-                "user_id": user.id,
-                "telegram_id": user.telegram_id
+                "user_id": user_id
             })
         except Exception as e:
             return jsonify({

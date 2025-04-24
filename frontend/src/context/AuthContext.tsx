@@ -66,7 +66,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const refreshUser = async () => {
+  // Improved refreshUser function in AuthContext.tsx
+const refreshUser = async () => {
     setLoading(true);
 
     try {
@@ -98,16 +99,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Attempting to validate user with backend...");
       
       // Check again that we have init data
-      if (!getInitData() && !isDevelopment) {
+      const initData = getInitData();
+      console.log("InitData retrieved, length:", initData?.length || 0);
+      
+      if (!initData && !isDevelopment) {
         console.error("No init data available after Telegram WebApp initialization");
         setError("Missing Telegram authentication data. Please try opening the app again from Telegram.");
+        setLoading(false);
         return;
       }
       
+      console.log("Making authentication request to: /v1/auth/init");
+      
       const response = await validateUser();
+      console.log("Auth response:", response);
 
       if (response.success && response.user) {
-        console.log("User validated successfully!");
+        console.log("User validated successfully:", response.user);
         setUser(response.user);
         setError(null);
       } else {

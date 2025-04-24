@@ -3,8 +3,12 @@ from flask import Blueprint, jsonify, request
 from datetime import datetime, timedelta
 import logging
 
-from app.db.session import db
-from app.db.models import User, PremiumFeature
+# Import all database functions from app.db package
+from app.db import (
+    get_user, 
+    set_user,
+    get_premium_features_by_tier
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,16 +67,9 @@ PREMIUM_TIERS = [
 @premium_bp.route("/premium/features", methods=["GET"])
 def get_premium_features():
     """Get all premium features"""
-    features = PremiumFeature.query.all()
-    
-    return jsonify([
-        {
-            "id": feature.id,
-            "name": feature.name,
-            "description": feature.description,
-            "tier_required": feature.tier_required
-        } for feature in features
-    ])
+    # Get all features for the highest tier (3) to include all features
+    features = get_premium_features_by_tier(3)
+    return jsonify(features)
 
 @premium_bp.route("/premium/tiers", methods=["GET"])
 def get_premium_tiers():
@@ -106,9 +103,18 @@ def subscribe():
     
     # For demo purposes, we'll just simulate a successful payment and activate the subscription
     # In a real app, this would be handled by a webhook from the payment provider
-    user.premium_tier = tier
-    user.premium_expires_at = datetime.now() + timedelta(days=30)
-    db.session.commit()
+    
+    # Get current user data
+    user_data = get_user(user.id)
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    
+    # Update premium tier and expiration
+    user_data["premium_tier"] = tier
+    user_data["premium_expires_at"] = datetime.now() + timedelta(days=30)
+    
+    # Save updated user data
+    set_user(user_data)
     
     return jsonify({
         "success": True,
@@ -123,11 +129,18 @@ def get_premium_status():
     if error:
         return error
     
+    # Get user data from db function
+    user_data = get_user(user.id)
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    
     tier_names = {0: "Free", 1: "Basic", 2: "Premium", 3: "Ultimate"}
+    premium_tier = user_data.get("premium_tier", 0)
+    premium_expires_at = user_data.get("premium_expires_at")
     
     return jsonify({
-        "premium_tier": user.premium_tier,
-        "tier_name": tier_names.get(user.premium_tier, "Unknown"),
-        "expires_at": user.premium_expires_at.isoformat() if user.premium_expires_at else None,
-        "is_active": user.premium_tier > 0 and (user.premium_expires_at is None or user.premium_expires_at > datetime.now())
+        "premium_tier": premium_tier,
+        "tier_name": tier_names.get(premium_tier, "Unknown"),
+        "expires_at": premium_expires_at.isoformat() if premium_expires_at else None,
+        "is_active": premium_tier > 0 and (premium_expires_at is None or premium_expires_at > datetime.now())
     })

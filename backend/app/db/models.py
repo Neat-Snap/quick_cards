@@ -13,14 +13,14 @@ user_skill = db.Table(
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True, index=True)
-    telegram_id = db.Column(db.String, unique=True, index=True)
+    id = db.Column(db.String, primary_key=True, index=True)
     username = db.Column(db.String, index=True)
     name = db.Column(db.String)
-    email = db.Column(db.String, nullable=True)
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
-    is_active = db.Column(db.Boolean, default=True)
+
+    reffed_by = db.Column(db.Integer, nullable=True)
+    referrals = db.Column(db.Integer, default=0)
     
     # Premium status
     premium_tier = db.Column(db.Integer, default=0)  # 0=Free, 1=Basic, 2=Premium, 3=Ultimate
@@ -61,6 +61,7 @@ class Project(db.Model):
     description = db.Column(db.Text, nullable=True)
     avatar_url = db.Column(db.String, nullable=True)
     role = db.Column(db.String, nullable=True)
+    url = db.Column(db.String, nullable=True)
     
     user = db.relationship("User", back_populates="projects")
 
