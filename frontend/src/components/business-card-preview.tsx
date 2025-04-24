@@ -7,34 +7,80 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User } from "@/lib/api";
+import { User, Project, Skill, Contact, CustomLink } from "@/lib/api";
+import { ExternalLink, Mail, Phone, MessageCircle } from "lucide-react";
 
 interface BusinessCardPreviewProps {
   user: User | null;
+  contacts?: Contact[];
+  projects?: Project[];
+  skills?: Skill[];
+  customLinks?: CustomLink[];
 }
 
-export function BusinessCardPreview({ user }: BusinessCardPreviewProps) {
+export function BusinessCardPreview({ 
+  user, 
+  contacts = [], 
+  projects = [], 
+  skills = [],
+  customLinks = []
+}: BusinessCardPreviewProps) {
   // Default values for rendering if user is null
   const firstName = user?.first_name || "Your";
   const lastName = user?.last_name || "Name";
   const username = user?.username || "username";
   const description = user?.description || "Your card description will appear here. Edit your profile to add a description about yourself.";
-  const backgroundColor = user?.background_color || "#1e293b"; // default background color
-  const badge = user?.badge;
+  
+  // Set background based on user background_type and background_value
+  const getBackgroundStyle = () => {
+    if (!user) return { backgroundColor: "#1e293b" };
+    
+    if (user.background_type === "color") {
+      return { backgroundColor: user.background_value || "#1e293b" };
+    }
+    
+    if (user.background_type === "gradient" && user.background_value) {
+      return { backgroundImage: user.background_value };
+    }
+    
+    if (user.background_type === "image" && user.background_value) {
+      return { 
+        backgroundImage: `url(${user.background_value})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      };
+    }
+    
+    return { backgroundColor: user.background_color || "#1e293b" };
+  };
+
+  // Helper to render contact icon based on type
+  const getContactIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'email':
+        return <Mail className="h-4 w-4 text-white/70" />;
+      case 'phone':
+        return <Phone className="h-4 w-4 text-white/70" />;
+      case 'telegram':
+        return <MessageCircle className="h-4 w-4 text-white/70" />;
+      default:
+        return <MessageCircle className="h-4 w-4 text-white/70" />;
+    }
+  };
 
   return (
-    <Card className="overflow-hidden" style={{ backgroundColor }}>
+    <Card className="overflow-hidden" style={getBackgroundStyle()}>
       <CardContent className="p-6">
         <div className="flex flex-col items-center">
           <Avatar className="h-24 w-24 mb-4 border-4 border-white">
-            <AvatarImage src={user?.avatar || ""} alt={`${firstName} ${lastName}`} />
+            <AvatarImage src={user?.avatar} alt={`${firstName} ${lastName}`} />
             <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
           </Avatar>
           
           <div className="flex items-center gap-2 mb-2">
             <h2 className="text-2xl font-bold text-white">{firstName} {lastName}</h2>
-            {badge && (
-              <Badge variant="secondary">{badge}</Badge>
+            {user?.badge && (
+              <Badge variant="secondary">{user.badge}</Badge>
             )}
           </div>
           
@@ -44,19 +90,79 @@ export function BusinessCardPreview({ user }: BusinessCardPreviewProps) {
             {description}
           </p>
           
-          <div className="grid grid-cols-2 gap-4 w-full">
+          {/* Contacts Section */}
+          {contacts.length > 0 && (
+            <div className="w-full bg-white/10 rounded-lg p-3 mb-4">
+              <h3 className="text-sm font-medium text-white mb-2">Contact Info</h3>
+              <div className="space-y-2">
+                {contacts.map(contact => (
+                  <div key={contact.id} className="flex items-center gap-2">
+                    {getContactIcon(contact.contact_type)}
+                    <span className="text-xs text-white/90">{contact.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Custom Links Section */}
+          {customLinks.length > 0 && (
+            <div className="w-full bg-white/10 rounded-lg p-3 mb-4">
+              <h3 className="text-sm font-medium text-white mb-2">Links</h3>
+              <div className="space-y-2">
+                {customLinks.map(link => (
+                  <a 
+                    key={link.id} 
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-white/90 hover:text-white"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="text-xs">{link.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Skills and Projects in a grid */}
+          <div className="grid grid-cols-1 gap-4 w-full">
+            {/* Skills Section */}
             <div className="bg-white/10 rounded-lg p-3">
               <h3 className="text-sm font-medium text-white mb-2">Skills</h3>
-              <p className="text-xs text-white/70">No skills added yet</p>
+              {skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {skills.map(skill => (
+                    <Badge key={skill.id} variant="outline" className="text-white border-white/30">
+                      {skill.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-white/70">No skills added yet</p>
+              )}
             </div>
             
+            {/* Projects Section */}
             <div className="bg-white/10 rounded-lg p-3">
               <h3 className="text-sm font-medium text-white mb-2">Projects</h3>
-              <p className="text-xs text-white/70">No projects added yet</p>
+              {projects.length > 0 ? (
+                <div className="space-y-2">
+                  {projects.map(project => (
+                    <div key={project.id} className="text-xs text-white/90">
+                      <div className="font-semibold">{project.name}</div>
+                      {project.role && <div className="text-white/70">{project.role}</div>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-white/70">No projects added yet</p>
+              )}
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-} 
+}
