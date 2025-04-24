@@ -13,7 +13,7 @@ user_skill = db.Table(
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.String, primary_key=True, index=True)
+    id = db.Column(db.Integer, primary_key=True, index=True)
     username = db.Column(db.String, index=True)
     name = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=func.now())
