@@ -22,6 +22,9 @@ def init_db():
         # Step 1: Create all tables using Flask-SQLAlchemy
         logger.info("Creating all database tables...")
         db.create_all()
+
+        Base.metadata.create_all(bind=engine)
+        logger.info("Created database tables")
         
         # Step 2: Verify tables were created
         all_tables = ['users', 'contacts', 'projects', 'skills', 'custom_links', 'premium_features', 'user_skill']
@@ -72,6 +75,7 @@ def init_db():
         
     except Exception as e:
         db.session.rollback()
+        print(f"Database initialization failed: {e}")
         logger.error(f"Database initialization failed: {e}", exc_info=True)
         return False
     

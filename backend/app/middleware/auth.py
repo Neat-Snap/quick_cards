@@ -38,7 +38,7 @@ def auth_required(f):
         # Last resort: try telegram_id parameter (development/testing only)
         telegram_id = request.args.get("telegram_id")
         if telegram_id:
-            user = User.query.filter_by(telegram_id=telegram_id).first()
+            user = User.query.filter_by(id=telegram_id).first()
             if user:
                 g.current_user = user
                 return f(*args, **kwargs)
@@ -70,7 +70,7 @@ def get_current_user():
             "error": "Authentication required. Please provide JWT token or Telegram authentication."
         }), 401)
     
-    user = User.query.filter_by(telegram_id=telegram_id).first()
+    user = User.query.filter_by(id=telegram_id).first()
     if not user:
         return None, (jsonify({"error": "User not found"}), 404)
     

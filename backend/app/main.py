@@ -1,7 +1,3 @@
-"""
-Main application entry point
-"""
-
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -24,6 +20,7 @@ app = Flask(__name__)
 
 # Configure the app
 app.config["SQLALCHEMY_DATABASE_URI"] = settings.DATABASE_URL
+logger.info(f"Database URL: {app.config['SQLALCHEMY_DATABASE_URI']}")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = settings.SECRET_KEY
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
@@ -50,12 +47,12 @@ with app.app_context():
         from app.db.init_db import init_db
         
         # Check database file existence for SQLite
-        if settings.USE_SQLITE:
-            db_path = settings.DATABASE_URL.replace('sqlite:///', '')
-            if not os.path.exists(db_path):
-                logger.info(f"Database file '{db_path}' does not exist, it will be created")
-            else:
-                logger.info(f"Database file '{db_path}' exists, size: {os.path.getsize(db_path)} bytes")
+        # if settings.USE_SQLITE:
+        #     db_path = settings.DATABASE_URL.replace('sqlite:///', '')
+        #     if not os.path.exists(db_path):
+        #         logger.info(f"Database file '{db_path}' does not exist, it will be created")
+        #     else:
+        #         logger.info(f"Database file '{db_path}' exists, size: {os.path.getsize(db_path)} bytes")
         
         # Initialize database
         success = init_db()

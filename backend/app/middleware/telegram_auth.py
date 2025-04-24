@@ -63,7 +63,7 @@ def init_telegram_auth_middleware(app):
         # Try to find user in the database
         telegram_id = user_info.get('telegram_id')
         if telegram_id:
-            user = User.query.filter_by(telegram_id=telegram_id).first()
+            user = User.query.filter_by(id=telegram_id).first()
             if user:
                 g.current_user = user
                 logger.debug(f"User authenticated: {telegram_id}")

@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request, current_app, g
 import logging
 
-from app.db.session import db
-from app.db.models import User
+# Import all database functions from app.db package
+from app.db import get_user
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -26,18 +26,27 @@ def get_authenticated_user():
     if hasattr(g, 'current_user') and g.current_user:
         return g.current_user, None
     
-    # Fall back to the telegram_id query param
-    telegram_id = request.args.get("telegram_id")
-    if not telegram_id:
+    # Fall back to the user ID query param
+    user_id = request.args.get("user_id")
+    if not user_id:
         return None, (jsonify({
-            "error": "No authentication data provided. Please include Telegram init data or telegram_id parameter"
+            "error": "No authentication data provided. Please include Telegram init data or user_id parameter"
         }), 400)
     
-    user = User.query.filter_by(telegram_id=telegram_id).first()
-    if not user:
+    # Get user using the database function
+    user_data = get_user(user_id)
+    if not user_data:
         return None, (jsonify({"error": "User not found"}), 404)
     
-    return user, None
+    # Create a simple object to match the expected user object interface
+    # This allows existing code to continue working without major changes
+    class UserObject:
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+    
+    user_obj = UserObject(**user_data)
+    return user_obj, None
 
 
 def register_routes(app):

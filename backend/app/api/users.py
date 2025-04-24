@@ -2,9 +2,34 @@ from typing import List, Optional
 from flask import Blueprint, jsonify, request, g
 import logging
 from datetime import datetime, timedelta
-
 from app.db.session import db
 from app.db.models import User, Contact, Project, Skill, CustomLink
+
+# Import all database functions from app.db package
+from app.db import (
+    get_user,
+    set_user,
+    create_user as db_create_user,
+    get_contacts,
+    get_contact_by_id,
+    set_contact_data,
+    create_contact as db_create_contact,
+    get_projects,
+    get_project_by_id,
+    set_project,
+    create_project as db_create_project,
+    get_skills,
+    get_skill_by_id,
+    set_skill,
+    create_skill,
+    add_skill_to_user,
+    remove_skill_from_user,
+    create_skill_and_add_to_user,
+    get_custom_links,
+    get_custom_link_by_id,
+    set_custom_link,
+    create_custom_link as db_create_custom_link
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,93 +44,59 @@ def create_user():
     """Create a new user"""
     data = request.json
     
-    if not data or not data.get("telegram_id"):
+    if not data or not data.get("id"):
         return jsonify({"error": "Missing required fields"}), 400
     
     # Check if user exists
-    existing_user = User.query.filter_by(telegram_id=data["telegram_id"]).first()
+    existing_user = get_user(data["id"])
     if existing_user:
         return jsonify({"error": "User already registered"}), 400
     
-    # Create user
-    new_user = User(
-        telegram_id=data["telegram_id"],
-        username=data.get("username"),
-        name=data.get("name"),
-        email=data.get("email")
-    )
-    
-    db.session.add(new_user)
-    db.session.commit()
-    
-    return jsonify({
-        "id": new_user.id,
-        "telegram_id": new_user.telegram_id,
-        "username": new_user.username,
-        "name": new_user.name,
-        "email": new_user.email,
-        "is_active": new_user.is_active,
-        "premium_tier": new_user.premium_tier,
-        "created_at": new_user.created_at.isoformat() if new_user.created_at else None,
-        "updated_at": new_user.updated_at.isoformat() if new_user.updated_at else None
-    }), 201
+    # Create user using the database function
+    try:
+        # Pass all data directly to the create_user function
+        success = db_create_user(data.get("id"), **{k: v for k, v in data.items() if k != "id"})
+        if not success:
+            return jsonify({"error": "Failed to create user"}), 500
+            
+        # Get the newly created user
+        new_user = get_user(data["id"])
+        if not new_user:
+            return jsonify({"error": "User created but could not be retrieved"}), 500
+            
+        return jsonify(new_user), 201
+    except Exception as e:
+        logger.error(f"Error creating user: {str(e)}")
+        return jsonify({"error": f"Failed to create user: {str(e)}"}), 500
 
 @users_bp.route("/users/me", methods=["GET"])
 def get_current_user():
-    """Get current user based on Telegram auth data or telegram_id query param"""
+    """Get current user based on authentication data"""
     user, error = get_authenticated_user()
     if error:
         return error
     
-    return jsonify({
-        "id": user.id,
-        "telegram_id": user.telegram_id,
-        "username": user.username,
-        "name": user.name,
-        "email": user.email,
-        "is_active": user.is_active,
-        "premium_tier": user.premium_tier,
-        "premium_expires_at": user.premium_expires_at.isoformat() if user.premium_expires_at else None,
-        "avatar_url": user.avatar_url,
-        "background_type": user.background_type,
-        "background_value": user.background_value,
-        "description": user.description,
-        "badge": user.badge,
-        "created_at": user.created_at.isoformat() if user.created_at else None,
-        "updated_at": user.updated_at.isoformat() if user.updated_at else None,
-        "contacts": [
-            {
-                "id": contact.id,
-                "type": contact.type,
-                "value": contact.value,
-                "is_public": contact.is_public
-            } for contact in user.contacts
-        ],
-        "projects": [
-            {
-                "id": project.id,
-                "name": project.name,
-                "description": project.description,
-                "avatar_url": project.avatar_url,
-                "role": project.role
-            } for project in user.projects
-        ],
-        "skills": [
-            {
-                "id": skill.id,
-                "name": skill.name,
-                "description": skill.description,
-                "image_url": skill.image_url
-            } for skill in user.skills
-        ],
-        "custom_links": [
-            {
-                "id": link.id,
-                "title": link.title,
-                "url": link.url
-            } for link in user.custom_links
-        ]
-    })
+    # Get user data from database
+    user_data = get_user(user.id)
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    
+    # Get related data
+    user_contacts = get_contacts(user.id)
+    user_projects = get_projects(user.id)
+    user_skills = get_skills(user.id)
+    user_links = get_custom_links(user.id)
+    
+    # Combine all data
+    full_user_data = {
+        **user_data,
+        "contacts": user_contacts,
+        "projects": user_projects,
+        "skills": user_skills,
+        "custom_links": user_links
+    }
+    
+    return jsonify(full_user_data)
 
 @users_bp.route("/users/me", methods=["PATCH"])
 def update_user():
@@ -118,112 +109,107 @@ def update_user():
     if not data:
         return jsonify({"error": "No data provided"}), 400
     
-    # Update user fields
-    for field in ["username", "name", "email", "avatar_url", "background_type", 
-                 "background_value", "description", "badge"]:
-        if field in data:
-            setattr(user, field, data[field])
-    
-    db.session.commit()
-    
-    return jsonify({
-        "id": user.id,
-        "telegram_id": user.telegram_id,
-        "username": user.username,
-        "name": user.name,
-        "email": user.email,
-        "avatar_url": user.avatar_url,
-        "background_type": user.background_type,
-        "background_value": user.background_value,
-        "description": user.description,
-        "badge": user.badge
-    })
-
-@users_bp.route("/users/<int:user_id>", methods=["GET"])
-def get_user(user_id):
-    """Get a user by id (public profile)"""
-    user = User.query.get(user_id)
-    if not user or not user.is_active:
+    # Get current user data
+    user_data = get_user(user.id)
+    if not user_data:
         return jsonify({"error": "User not found"}), 404
     
-    return jsonify({
-        "id": user.id,
-        "username": user.username,
-        "name": user.name,
-        "avatar_url": user.avatar_url,
-        "background_type": user.background_type,
-        "background_value": user.background_value,
-        "description": user.description,
-        "badge": user.badge,
-        "contacts": [
-            {
-                "id": contact.id,
-                "type": contact.type,
-                "value": contact.value,
-                "is_public": contact.is_public
-            } for contact in user.contacts if contact.is_public
-        ],
-        "projects": [
-            {
-                "id": project.id,
-                "name": project.name,
-                "description": project.description,
-                "avatar_url": project.avatar_url,
-                "role": project.role
-            } for project in user.projects
-        ],
-        "skills": [
-            {
-                "id": skill.id,
-                "name": skill.name,
-                "description": skill.description,
-                "image_url": skill.image_url
-            } for skill in user.skills
-        ],
-        "custom_links": [
-            {
-                "id": link.id,
-                "title": link.title,
-                "url": link.url
-            } for link in user.custom_links
-        ]
+    # Update user fields
+    updateable_fields = ["username", "name", "avatar_url", "background_type", 
+                        "background_value", "description", "badge"]
+    for field in updateable_fields:
+        if field in data:
+            user_data[field] = data[field]
+    
+    # Set updated user data
+    set_user(user_data)
+    
+    # Return updated user data (excluding related data)
+    return jsonify({field: user_data.get(field) for field in 
+                   ["id", "username", "name", "avatar_url", "background_type", 
+                    "background_value", "description", "badge"]})
+
+@users_bp.route("/users/<user_id>", methods=["GET"])
+def get_user_endpoint(user_id):
+    """Get a user by id (public profile)"""
+    user_data = get_user(user_id)
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+    
+    # Get related data
+    user_contacts = get_contacts(user_id)
+    # Filter public contacts only
+    public_contacts = [contact for contact in user_contacts if contact.get("is_public", True)]
+    
+    user_projects = get_projects(user_id)
+    user_skills = get_skills(user_id)
+    user_links = get_custom_links(user_id)
+    
+    # Combine all data, excluding sensitive information
+    public_fields = ["id", "username", "name", "avatar_url", "background_type", 
+                    "background_value", "description", "badge"]
+    public_user_data = {field: user_data.get(field) for field in public_fields}
+    
+    public_user_data.update({
+        "contacts": public_contacts,
+        "projects": user_projects,
+        "skills": user_skills,
+        "custom_links": user_links
     })
+    
+    return jsonify(public_user_data)
 
 @users_bp.route("/users", methods=["GET"])
 def search_users():
     """Search for users by name or skill"""
-    q = request.args.get("q")
-    skill = request.args.get("skill")
-    limit = int(request.args.get("limit", 10))
-    offset = int(request.args.get("offset", 0))
-    
-    query = User.query.filter_by(is_active=True)
-    
-    if q:
-        query = query.filter(
-            (User.name.ilike(f"%{q}%")) | 
-            (User.username.ilike(f"%{q}%"))
-        )
-    
-    if skill:
-        query = query.join(User.skills).filter(
-            Skill.name.ilike(f"%{skill}%")
-        )
-    
-    users = query.offset(offset).limit(limit).all()
-    
-    return jsonify([
-        {
-            "id": user.id,
-            "username": user.username,
-            "name": user.name,
-            "avatar_url": user.avatar_url,
-            "background_type": user.background_type,
-            "background_value": user.background_value,
-            "description": user.description,
-            "badge": user.badge
-        } for user in users
-    ])
+    try:
+        # Get query parameters
+        q = request.args.get("q")
+        skill = request.args.get("skill")
+        limit = int(request.args.get("limit", 10))
+        offset = int(request.args.get("offset", 0))
+        
+        # Start query construction
+        query = db.session.query(User).filter(User.is_active == True)
+        
+        # Apply name/username filter if provided
+        if q:
+            query = query.filter(
+                db.or_(
+                    User.name.ilike(f"%{q}%"),
+                    User.username.ilike(f"%{q}%")
+                )
+            )
+        
+        # Apply skill filter if provided
+        if skill:
+            query = query.join(User.skills).filter(
+                Skill.name.ilike(f"%{skill}%")
+            )
+        
+        # Apply pagination
+        users = query.offset(offset).limit(limit).all()
+        
+        # Format results
+        result = []
+        for user in users:
+            # Extract only the public fields for each user
+            user_data = {
+                "id": user.id,
+                "username": user.username,
+                "name": user.name,
+                "avatar_url": user.avatar_url,
+                "background_type": user.background_type,
+                "background_value": user.background_value,
+                "description": user.description,
+                "badge": user.badge
+            }
+            result.append(user_data)
+            
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error searching users: {str(e)}")
+        return jsonify({"error": f"Failed to search users: {str(e)}"}), 500
 
 # Contact endpoints
 @users_bp.route("/users/me/contacts", methods=["POST"])
@@ -237,44 +223,50 @@ def create_contact():
     if not data or "type" not in data or "value" not in data:
         return jsonify({"error": "Missing required fields"}), 400
     
-    # Check premium for multiple contacts
-    if len(user.contacts) >= 3 and user.premium_tier == 0:
+    # Get existing contacts
+    user_contacts = get_contacts(user.id)
+    
+    # Check premium for multiple contacts (assuming premium tier is in user data)
+    user_data = get_user(user.id)
+    if len(user_contacts) >= 3 and user_data.get("premium_tier", 0) == 0:
         return jsonify({"error": "Premium subscription required for more than 3 contacts"}), 403
     
-    contact = Contact(
-        user_id=user.id,
-        type=data["type"],
-        value=data["value"],
-        is_public=data.get("is_public", True)
-    )
-    
-    db.session.add(contact)
-    db.session.commit()
-    
-    return jsonify({
-        "id": contact.id,
-        "type": contact.type,
-        "value": contact.value,
-        "is_public": contact.is_public
-    }), 201
+    # Create contact
+    try:
+        contact_data = db_create_contact(
+            user_id=user.id,
+            contact_type=data["type"],
+            value=data["value"],
+            is_public=data.get("is_public", True)
+        )
+        return jsonify(contact_data), 201
+    except Exception as e:
+        logger.error(f"Error creating contact: {str(e)}")
+        return jsonify({"error": f"Failed to create contact: {str(e)}"}), 500
 
 @users_bp.route("/users/me/contacts/<int:contact_id>", methods=["DELETE"])
 def delete_contact(contact_id):
-    """Remove a contact method from user profile"""
+    """Delete a contact from user profile"""
     user, error = get_authenticated_user()
     if error:
         return error
     
-    contact = Contact.query.filter_by(id=contact_id, user_id=user.id).first()
-    if not contact:
+    # Get contact data
+    contact = get_contact_by_id(contact_id)
+    if not contact or contact.get("user_id") != user.id:
         return jsonify({"error": "Contact not found"}), 404
     
-    db.session.delete(contact)
-    db.session.commit()
     
-    return jsonify({"message": "Contact deleted"})
+    try:
+        contact_obj = db.session.query(Contact).get(contact_id)
+        if contact_obj:
+            db.session.delete(contact_obj)
+            db.session.commit()
+        return "", 204
+    except Exception as e:
+        logger.error(f"Error deleting contact: {str(e)}")
+        return jsonify({"error": f"Failed to delete contact: {str(e)}"}), 500
 
-# Project endpoints
 @users_bp.route("/users/me/projects", methods=["POST"])
 def create_project():
     """Add a project to user profile"""
@@ -286,28 +278,20 @@ def create_project():
     if not data or "name" not in data:
         return jsonify({"error": "Missing required fields"}), 400
     
-    # Check premium for multiple projects
-    if len(user.projects) >= 3 and user.premium_tier == 0:
-        return jsonify({"error": "Premium subscription required for more than 3 projects"}), 403
-    
-    project = Project(
-        user_id=user.id,
-        name=data["name"],
-        description=data.get("description"),
-        avatar_url=data.get("avatar_url"),
-        role=data.get("role")
-    )
-    
-    db.session.add(project)
-    db.session.commit()
-    
-    return jsonify({
-        "id": project.id,
-        "name": project.name,
-        "description": project.description,
-        "avatar_url": project.avatar_url,
-        "role": project.role
-    }), 201
+    # Create project
+    try:
+        project_data = db_create_project(
+            user_id=user.id,
+            name=data["name"],
+            description=data.get("description"),
+            avatar_url=data.get("avatar_url"),
+            role=data.get("role"),
+            url=data.get("url")
+        )
+        return jsonify(project_data), 201
+    except Exception as e:
+        logger.error(f"Error creating project: {str(e)}")
+        return jsonify({"error": f"Failed to create project: {str(e)}"}), 500
 
 @users_bp.route("/users/me/projects/<int:project_id>", methods=["PATCH"])
 def update_project(project_id):
@@ -316,8 +300,9 @@ def update_project(project_id):
     if error:
         return error
     
-    project = Project.query.filter_by(id=project_id, user_id=user.id).first()
-    if not project:
+    # Get project
+    project = get_project_by_id(project_id)
+    if not project or project.get("user_id") != user.id:
         return jsonify({"error": "Project not found"}), 404
     
     data = request.json
@@ -325,136 +310,135 @@ def update_project(project_id):
         return jsonify({"error": "No data provided"}), 400
     
     # Update project fields
-    for field in ["name", "description", "avatar_url", "role"]:
+    update_fields = ["name", "description", "avatar_url", "role", "url"]
+    for field in update_fields:
         if field in data:
-            setattr(project, field, data[field])
+            project[field] = data[field]
     
-    db.session.commit()
+    # Set project id to ensure we update the existing project
+    project["id"] = project_id
     
-    return jsonify({
-        "id": project.id,
-        "name": project.name,
-        "description": project.description,
-        "avatar_url": project.avatar_url,
-        "role": project.role
-    })
+    # Update project
+    updated_project = set_project(project)
+    return jsonify(updated_project)
 
 @users_bp.route("/users/me/projects/<int:project_id>", methods=["DELETE"])
 def delete_project(project_id):
-    """Remove a project from user profile"""
+    """Delete a project from user profile"""
     user, error = get_authenticated_user()
     if error:
         return error
     
-    project = Project.query.filter_by(id=project_id, user_id=user.id).first()
-    if not project:
+    # Get project
+    project = get_project_by_id(project_id)
+    if not project or project.get("user_id") != user.id:
         return jsonify({"error": "Project not found"}), 404
     
-    db.session.delete(project)
-    db.session.commit()
+    # Use db.session directly since there's no delete function yet
     
-    return jsonify({"message": "Project deleted"})
+    
+    try:
+        project_obj = db.session.query(Project).get(project_id)
+        if project_obj:
+            db.session.delete(project_obj)
+            db.session.commit()
+        return "", 204
+    except Exception as e:
+        logger.error(f"Error deleting project: {str(e)}")
+        return jsonify({"error": f"Failed to delete project: {str(e)}"}), 500
 
-# Skill endpoints
 @users_bp.route("/users/me/skills/<int:skill_id>", methods=["POST"])
-def add_skill(skill_id):
+def add_skill_to_user_endpoint(skill_id):
     """Add a skill to user profile"""
     user, error = get_authenticated_user()
     if error:
         return error
     
-    # Check if user can add skills
-    if user.premium_tier < 1:
-        return jsonify({
-            "error": "Adding skills requires at least Basic Premium subscription."
-        }), 403
+    # Check if user has premium for skills
+    user_data = get_user(user.id)
+    if user_data.get("premium_tier", 0) == 0:
+        return jsonify({"error": "Premium subscription required for skills"}), 403
     
-    skill = Skill.query.get(skill_id)
+    # Get skill
+    skill = get_skill_by_id(skill_id)
     if not skill:
         return jsonify({"error": "Skill not found"}), 404
     
-    if skill in user.skills:
-        return jsonify({"error": "Skill already added"}), 400
+    # Add skill to user
+    success = add_skill_to_user(user.id, skill_id)
+    if not success:
+        return jsonify({"error": "Failed to add skill to user"}), 500
     
-    user.skills.append(skill)
-    db.session.commit()
-    
-    return jsonify({"message": "Skill added successfully"})
+    return jsonify({"success": True, "skill": skill})
 
 @users_bp.route("/users/me/skills/<int:skill_id>", methods=["DELETE"])
-def remove_skill(skill_id):
+def remove_skill_from_user_endpoint(skill_id):
     """Remove a skill from user profile"""
     user, error = get_authenticated_user()
     if error:
         return error
     
-    skill = Skill.query.get(skill_id)
-    if not skill:
-        return jsonify({"error": "Skill not found"}), 404
+    # Remove skill from user
+    success = remove_skill_from_user(user.id, skill_id)
+    if not success:
+        return jsonify({"error": "Failed to remove skill from user"}), 500
     
-    if skill not in user.skills:
-        return jsonify({"error": "Skill not in user profile"}), 400
-    
-    user.skills.remove(skill)
-    db.session.commit()
-    
-    return jsonify({"message": "Skill removed successfully"})
+    return "", 204
 
 @users_bp.route("/skills", methods=["GET"])
-def get_skills():
-    """Get all available skills or search by name"""
+def get_skills_endpoint():
+    """Get all available skills or search for skills"""
     q = request.args.get("q")
-    limit = int(request.args.get("limit", 50))
     
-    query = Skill.query
+    # This endpoint would ideally use a search function from functions.py
+    # Since that's not available, we'll use db.session directly
     
-    if q:
-        query = query.filter(Skill.name.ilike(f"%{q}%"))
     
-    skills = query.limit(limit).all()
-    
-    return jsonify([
-        {
-            "id": skill.id,
-            "name": skill.name,
-            "description": skill.description,
-            "image_url": skill.image_url
-        } for skill in skills
-    ])
+    try:
+        if q:
+            skills = db.session.query(Skill).filter(Skill.name.ilike(f"%{q}%")).all()
+        else:
+            skills = db.session.query(Skill).all()
+        
+        return jsonify([
+            {
+                "id": skill.id,
+                "name": skill.name,
+                "description": skill.description,
+                "image_url": skill.image_url
+            } for skill in skills
+        ])
+    except Exception as e:
+        logger.error(f"Error getting skills: {str(e)}")
+        return jsonify({"error": f"Failed to get skills: {str(e)}"}), 500
 
-# Custom links (premium feature)
 @users_bp.route("/users/me/links", methods=["POST"])
 def add_custom_link():
-    """Add a custom link to user profile (premium feature)"""
+    """Add a custom link to user profile"""
     user, error = get_authenticated_user()
     if error:
         return error
     
-    # Check premium tier
-    if user.premium_tier < 2:
-        return jsonify({
-            "error": "Adding custom links requires Premium subscription."
-        }), 403
-    
     data = request.json
-    if not data or not data.get("title") or not data.get("url"):
+    if not data or "title" not in data or "url" not in data:
         return jsonify({"error": "Missing required fields"}), 400
     
-    new_link = CustomLink(
-        user_id=user.id,
-        title=data["title"],
-        url=data["url"]
-    )
+    # Check if user has premium for custom links
+    user_data = get_user(user.id)
+    if user_data.get("premium_tier", 0) < 2:  # Premium tier 2 required for custom links
+        return jsonify({"error": "Premium tier 2 required for custom links"}), 403
     
-    db.session.add(new_link)
-    db.session.commit()
-    
-    return jsonify({
-        "id": new_link.id,
-        "user_id": new_link.user_id,
-        "title": new_link.title,
-        "url": new_link.url
-    }), 201
+    # Create custom link
+    try:
+        link_data = db_create_custom_link(
+            user_id=user.id,
+            title=data["title"],
+            url=data["url"]
+        )
+        return jsonify(link_data), 201
+    except Exception as e:
+        logger.error(f"Error creating custom link: {str(e)}")
+        return jsonify({"error": f"Failed to create custom link: {str(e)}"}), 500
 
 @users_bp.route("/users/me/links/<int:link_id>", methods=["DELETE"])
 def delete_custom_link(link_id):
@@ -463,11 +447,20 @@ def delete_custom_link(link_id):
     if error:
         return error
     
-    link = CustomLink.query.filter_by(id=link_id, user_id=user.id).first()
-    if not link:
-        return jsonify({"error": "Link not found"}), 404
+    # Get link
+    link = get_custom_link_by_id(link_id)
+    if not link or link.get("user_id") != user.id:
+        return jsonify({"error": "Custom link not found"}), 404
     
-    db.session.delete(link)
-    db.session.commit()
+    # Use db.session directly since there's no delete function yet
     
-    return jsonify({"message": "Link deleted successfully"})
+    
+    try:
+        link_obj = db.session.query(CustomLink).get(link_id)
+        if link_obj:
+            db.session.delete(link_obj)
+            db.session.commit()
+        return "", 204
+    except Exception as e:
+        logger.error(f"Error deleting custom link: {str(e)}")
+        return jsonify({"error": f"Failed to delete custom link: {str(e)}"}), 500
