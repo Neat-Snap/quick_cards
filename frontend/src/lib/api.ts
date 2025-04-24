@@ -87,7 +87,6 @@ export interface ApiResponse<T> {
   payment_url?: string;
 }
 
-// Helper function to make API requests with proper error handling
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
     // Ensure the endpoint starts with a slash if it doesn't already
@@ -97,10 +96,11 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     const fullUrl = `${API_URL}${normalizedEndpoint}`;
     console.log(`Making API request to: ${fullUrl}`);
     
-    // Add auth token if available
+    // Get the auth token from localStorage
     const token = localStorage.getItem('authToken');
+    console.log("Using auth token:", token ? "Token exists" : "No token");
     
-    // Ensure headers are properly set
+    // Ensure headers are properly set with authorization if token exists
     const requestOptions: RequestInit = {
       ...options,
       credentials: 'include',
@@ -108,13 +108,26 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        // Add Authorization header if token exists
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...(options.headers || {})
       }
     };
     
+    console.log("Request options:", {
+      method: requestOptions.method,
+      hasAuthHeader: token ? true : false
+    });
+    
     const response = await fetch(fullUrl, requestOptions);
     console.log("Response status:", response.status, response.statusText);
+    
+    // For 401 errors, you might want to clear the token and redirect to login
+    if (response.status === 401) {
+      console.error("Unauthorized request. Token may be invalid or expired.");
+      // Clear the invalid token
+      localStorage.removeItem('authToken');
+    }
     
     // Check if the response is HTML (error page) instead of JSON
     const contentType = response.headers.get('content-type');
@@ -202,10 +215,22 @@ export async function validateUser(): Promise<ApiResponse<User>> {
     
     // Store token if available
     if (response.success && response.token) {
+      console.log("Received token, storing in localStorage");
       localStorage.setItem('authToken', response.token);
+      
+      // Test that the token is properly stored
+      const storedToken = localStorage.getItem('authToken');
+      console.log("Token successfully stored:", !!storedToken);
+    } else {
+      console.warn("No token received in auth response");
     }
     
-    console.log("Auth response received:", response);
+    console.log("Auth response received:", { 
+      success: response.success, 
+      hasToken: !!response.token,
+      user: response.user ? "User data present" : "No user data" 
+    });
+    
     return response;
   } catch (error) {
     console.error("Error during validateUser:", error);
