@@ -8,6 +8,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
+  token: string | null; // Add token to context
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -19,10 +20,21 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null); // State for token
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isWebAppReady, setIsWebAppReady] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
+
+  // Load token from localStorage on mount
+  useEffect(() => {
+    // Try to load token from localStorage
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+    if (storedToken) {
+      console.log("Found stored token on initialization");
+      setToken(storedToken);
+    }
+  }, []);
 
   // Initialize Telegram WebApp when the component mounts
   useEffect(() => {
@@ -66,8 +78,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Improved refreshUser function in AuthContext.tsx
-const refreshUser = async () => {
+  // Improved refreshUser function with token handling
+  const refreshUser = async () => {
     setLoading(true);
 
     try {
@@ -89,6 +101,11 @@ const refreshUser = async () => {
           badge: 'Developer',
           is_premium: false
         };
+        
+        // Set mock token for development
+        const mockToken = "dev_mock_token_123456";
+        localStorage.setItem('authToken', mockToken);
+        setToken(mockToken);
         
         setUser(mockUser);
         setError(null);
@@ -117,6 +134,13 @@ const refreshUser = async () => {
       if (response.success && response.user) {
         console.log("User validated successfully:", response.user);
         setUser(response.user);
+        
+        // Set token in state if present in response
+        if (response.token) {
+          console.log("Setting token in state");
+          setToken(response.token);
+        }
+        
         setError(null);
       } else {
         console.error("Failed to validate user:", response.error);
@@ -138,6 +162,8 @@ const refreshUser = async () => {
 
   const logout = () => {
     setUser(null);
+    setToken(null);
+    localStorage.removeItem('authToken');
   };
 
   // Only fetch user data after the WebApp is ready
@@ -163,6 +189,7 @@ const refreshUser = async () => {
     <AuthContext.Provider
       value={{
         user,
+        token, // Provide token in context
         loading: loading && initAttempts < 3, // Only show loading if we're still within retry attempts
         error: initAttempts >= 3 ? error : null, // Only show error after all retry attempts
         logout,
@@ -180,4 +207,4 @@ export const useAuth = (): AuthContextType => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};
