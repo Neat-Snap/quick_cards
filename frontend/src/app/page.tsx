@@ -2,33 +2,142 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { BusinessCardPreview } from "@/components/business-card-preview";
-import { BusinessCardForm } from "@/components/business-card-form";
+import { ProfileForm } from "@/components/profile-form";
+import { BackgroundForm } from "@/components/background-form";
+import { ContactForm } from "@/components/contact-form";
+import { ProjectsForm } from "@/components/projects-form";
+import { SkillsForm } from "@/components/skills-form";
 import { PremiumFeatures } from "@/components/premium-features";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { Search, CreditCard, Star, Edit, X } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "@/components/ui/use-toast";
+import { 
+  User, 
+  Contact, 
+  Project, 
+  Skill, 
+  CustomLink,
+  getCurrentUser,
+  getUserContacts,
+  getUserProjects,
+  getUserSkills,
+  getUserLinks,
+  searchUsers
+} from "@/lib/api";
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState("card");
   const [editSection, setEditSection] = useState<string | null>(null);
   
-  // Function to handle section edit
-  const handleEdit = (section: string) => {
-    setEditSection(section);
+  // User data states
+  const [userData, setUserData] = useState<User | null>(null);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
+  
+  // Search states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Loading states
+  const [loading, setLoading] = useState(true);
+  
+  // Load user data on mount and when user changes
+  useEffect(() => {
+    if (user) {
+      setUserData(user);
+      loadUserData();
+    }
+  }, [user]);
+  
+  // Function to load user data (contacts, projects, skills, links)
+  const loadUserData = async () => {
+    setLoading(true);
+    
+    try {
+      // Get current user with full data
+      const userResponse = await getCurrentUser();
+      if (userResponse.success && userResponse.user) {
+        setUserData(userResponse.user as User);
+      }
+      
+      // Load contacts
+      const userContacts = await getUserContacts();
+      setContacts(userContacts);
+      
+      // Load projects
+      const userProjects = await getUserProjects();
+      setProjects(userProjects);
+      
+      // Load skills
+      const userSkills = await getUserSkills();
+      setSkills(userSkills);
+      
+      // Load custom links
+      const userLinks = await getUserLinks();
+      setCustomLinks(userLinks);
+    } catch (error) {
+      console.error("Error loading user data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your profile data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
-  // Function to handle save and return to preview
-  const handleSave = () => {
-    // In a real app, this would save the data to backend
-    setEditSection(null);
+  // Handle successful edit
+  const handleEditSuccess = async () => {
+    try {
+      // Reload user data
+      await loadUserData();
+      
+      // Close edit section
+      setEditSection(null);
+    } catch (error) {
+      console.error("Error refreshing data after edit:", error);
+    }
   };
   
-  // Function to cancel editing and return to preview
-  const handleCancel = () => {
-    setEditSection(null);
+  // Handle search
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    
+    try {
+      const results = await searchUsers(searchQuery);
+      setSearchResults(results);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      toast({
+        title: "Search Error",
+        description: "Failed to search users",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  // View user card
+  const viewUserCard = (user: User) => {
+    setSelectedUser(user);
+  };
+  
+  // Back to search results
+  const backToSearch = () => {
+    setSelectedUser(null);
   };
   
   return (
@@ -38,21 +147,27 @@ export default function Home() {
           {activeTab === "card" && (
             <div className="p-4">
               <h1 className="text-2xl font-bold mb-4">
-                {user ? `${user.first_name}'s Card` : 'Your Card'}
+                {userData ? `${userData.first_name}'s Card` : 'Your Card'}
               </h1>
               
               {editSection === null ? (
                 <div className="space-y-6">
                   {/* Preview Mode */}
                   <div className="mb-6 relative">
-                    <BusinessCardPreview user={user} />
+                    <BusinessCardPreview 
+                      user={userData} 
+                      contacts={contacts}
+                      projects={projects}
+                      skills={skills}
+                      customLinks={customLinks}
+                    />
                     
                     {/* Edit Buttons for each section */}
                     <div className="grid grid-cols-2 gap-3 mt-4">
                       <Button 
                         variant="outline" 
                         className="flex items-center justify-center gap-2"
-                        onClick={() => handleEdit("profile")}
+                        onClick={() => setEditSection("profile")}
                       >
                         <Edit className="h-4 w-4" />
                         Edit Profile
@@ -60,7 +175,7 @@ export default function Home() {
                       <Button 
                         variant="outline" 
                         className="flex items-center justify-center gap-2"
-                        onClick={() => handleEdit("background")}
+                        onClick={() => setEditSection("background")}
                       >
                         <Edit className="h-4 w-4" />
                         Edit Background
@@ -68,7 +183,7 @@ export default function Home() {
                       <Button 
                         variant="outline" 
                         className="flex items-center justify-center gap-2"
-                        onClick={() => handleEdit("contact")}
+                        onClick={() => setEditSection("contact")}
                       >
                         <Edit className="h-4 w-4" />
                         Edit Contact Info
@@ -76,7 +191,7 @@ export default function Home() {
                       <Button 
                         variant="outline" 
                         className="flex items-center justify-center gap-2"
-                        onClick={() => handleEdit("projects")}
+                        onClick={() => setEditSection("projects")}
                       >
                         <Edit className="h-4 w-4" />
                         Edit Projects
@@ -84,7 +199,7 @@ export default function Home() {
                       <Button 
                         variant="outline" 
                         className="flex items-center justify-center gap-2 col-span-2"
-                        onClick={() => handleEdit("skills")}
+                        onClick={() => setEditSection("skills")}
                       >
                         <Edit className="h-4 w-4" />
                         Edit Skills
@@ -106,7 +221,7 @@ export default function Home() {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={handleCancel}
+                      onClick={() => setEditSection(null)}
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -114,99 +229,46 @@ export default function Home() {
                   
                   {/* Render only the specific section of the form based on editSection */}
                   <Card>
-                    <CardContent className="p-4">
-                      {editSection === "profile" && (
-                        <div className="space-y-6">
-                          {/* Profile section from BusinessCardForm */}
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-lg font-medium">Profile Avatar</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Upload your profile picture
-                              </p>
-                            </div>
-                            {/* Avatar upload component would be here */}
-                          </div>
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-lg font-medium">Personal Information</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Enter your personal details
-                              </p>
-                            </div>
-                            {/* Personal info form fields would be here */}
-                          </div>
-                        </div>
+                    <CardContent className="p-4 pt-6">
+                      {editSection === "profile" && userData && (
+                        <ProfileForm 
+                          user={userData}
+                          onSuccess={handleEditSuccess}
+                          onCancel={() => setEditSection(null)}
+                        />
                       )}
                       
-                      {editSection === "background" && (
-                        <div className="space-y-6">
-                          {/* Background section from BusinessCardForm */}
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-lg font-medium">Background</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Customize your card background
-                              </p>
-                            </div>
-                            {/* Background customization fields would be here */}
-                          </div>
-                        </div>
+                      {editSection === "background" && userData && (
+                        <BackgroundForm 
+                          user={userData}
+                          onSuccess={handleEditSuccess}
+                          onCancel={() => setEditSection(null)}
+                        />
                       )}
                       
-                      {editSection === "contact" && (
-                        <div className="space-y-6">
-                          {/* Contact section from BusinessCardForm */}
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-lg font-medium">Contact Information</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Add your contact details
-                              </p>
-                            </div>
-                            {/* Contact info form fields would be here */}
-                          </div>
-                        </div>
+                      {editSection === "contact" && userData && (
+                        <ContactForm 
+                          userId={userData.id}
+                          onSuccess={handleEditSuccess}
+                          onCancel={() => setEditSection(null)}
+                        />
                       )}
                       
-                      {editSection === "projects" && (
-                        <div className="space-y-6">
-                          {/* Projects section from BusinessCardForm */}
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-lg font-medium">Projects</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Add your projects
-                              </p>
-                            </div>
-                            {/* Projects form fields would be here */}
-                          </div>
-                        </div>
+                      {editSection === "projects" && userData && (
+                        <ProjectsForm 
+                          userId={userData.id}
+                          onSuccess={handleEditSuccess}
+                          onCancel={() => setEditSection(null)}
+                        />
                       )}
                       
-                      {editSection === "skills" && (
-                        <div className="space-y-6">
-                          {/* Skills section from BusinessCardForm */}
-                          <div className="space-y-4">
-                            <div>
-                              <h3 className="text-lg font-medium">Skills</h3>
-                              <p className="text-sm text-muted-foreground">
-                                Add skills to showcase your expertise
-                              </p>
-                            </div>
-                            {/* Skills form fields would be here */}
-                          </div>
-                        </div>
+                      {editSection === "skills" && userData && (
+                        <SkillsForm 
+                          userId={userData.id}
+                          onSuccess={handleEditSuccess}
+                          onCancel={() => setEditSection(null)}
+                        />
                       )}
-                      
-                      <div className="flex justify-end gap-2 mt-6">
-                        <Button variant="outline" onClick={handleCancel}>
-                          Cancel
-                        </Button>
-                        <Button onClick={handleSave}>
-                          Save Changes
-                        </Button>
-                      </div>
                     </CardContent>
                   </Card>
                 </div>
@@ -217,36 +279,98 @@ export default function Home() {
           {activeTab === "explore" && (
             <div className="p-4">
               <h1 className="text-2xl font-bold mb-4">Explore</h1>
-              <div className="rounded-lg border p-4 mb-4">
-                <div className="flex items-center space-x-2 mb-4">
-                  <input 
-                    type="text" 
-                    placeholder="Search by name, skills..."
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                  <Button>Search</Button>
-                </div>
-                
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">Filter by:</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="outline">Skills</Button>
-                    <Button variant="outline">Projects</Button>
-                    <Button variant="outline">Location</Button>
-                  </div>
-                </div>
-              </div>
               
-              <div className="text-center text-muted-foreground">
-                <p>Search for other users' cards</p>
-              </div>
+              {selectedUser ? (
+                // User Card View
+                <div className="space-y-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={backToSearch}
+                    className="mb-2"
+                  >
+                    Back to Search
+                  </Button>
+                  
+                  <BusinessCardPreview user={selectedUser} />
+                </div>
+              ) : (
+                // Search Interface
+                <>
+                  <div className="rounded-lg border p-4 mb-4">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Input 
+                        type="text" 
+                        placeholder="Search by name, username..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                      />
+                      <Button onClick={handleSearch} disabled={isSearching}>
+                        {isSearching ? "Searching..." : "Search"}
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">Filter by:</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="outline">Skills</Button>
+                        <Button variant="outline">Projects</Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Search Results */}
+                  {searchResults.length > 0 ? (
+                    <div className="space-y-4">
+                      <h2 className="text-lg font-semibold">Results</h2>
+                      {searchResults.map(user => (
+                        <div 
+                          key={user.id} 
+                          className="p-3 border rounded-md flex items-center justify-between hover:bg-muted/30 cursor-pointer"
+                          onClick={() => viewUserCard(user)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                              {user.avatar ? (
+                                <img src={user.avatar} alt={user.username} className="h-full w-full object-cover" />
+                              ) : (
+                                <span>{user.first_name.charAt(0)}{user.last_name?.charAt(0)}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium">{user.first_name} {user.last_name}</p>
+                              <p className="text-sm text-muted-foreground">@{user.username}</p>
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm">View</Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : searchQuery && !isSearching ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <p>No users found matching "{searchQuery}"</p>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-8">
+                      <p>Search for other users' cards</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
           
           {activeTab === "premium" && (
             <div className="p-4">
               <h1 className="text-2xl font-bold mb-4">Premium Features</h1>
-              <PremiumFeatures user={user} />
+              <PremiumFeatures 
+                user={userData} 
+                onSubscribed={() => {
+                  // Refresh user data after subscription
+                  refreshUser();
+                  loadUserData();
+                }}
+              />
             </div>
           )}
         </div>
@@ -286,4 +410,4 @@ export default function Home() {
       </main>
     </ProtectedRoute>
   );
-} 
+}
