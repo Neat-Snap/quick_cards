@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Improved refreshUser function with token handling
   const refreshUser = async () => {
     setLoading(true);
-
+  
     try {
       // For development purposes, if not in Telegram WebApp and in development mode, use a mock user
       if (!isTelegramWebApp() && isDevelopment) {
@@ -102,16 +102,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           is_premium: false
         };
         
-        // Set mock token for development
-        const mockToken = "dev_mock_token_123456";
-        localStorage.setItem('authToken', mockToken);
-        setToken(mockToken);
+        // For development, simulate a token
+        localStorage.setItem('authToken', 'mock-auth-token-for-development');
         
         setUser(mockUser);
         setError(null);
         return;
       }
-
+  
       // Try to validate with backend in all other cases
       console.log("Attempting to validate user with backend...");
       
@@ -130,18 +128,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const response = await validateUser();
       console.log("Auth response:", response);
-
+  
       if (response.success && response.user) {
         console.log("User validated successfully:", response.user);
         setUser(response.user);
-        
-        // Set token in state if present in response
-        if (response.token) {
-          console.log("Setting token in state");
-          setToken(response.token);
-        }
-        
         setError(null);
+        
+        // Token should already be stored in localStorage by the validateUser function
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          console.log("JWT token is available for authenticated requests");
+        } else {
+          console.warn("No JWT token found after successful authentication");
+        }
       } else {
         console.error("Failed to validate user:", response.error);
         setError(response.error || 'Failed to authenticate with Telegram');

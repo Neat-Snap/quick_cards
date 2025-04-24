@@ -87,6 +87,7 @@ export interface ApiResponse<T> {
   payment_url?: string;
 }
 
+// Helper function to make API requests with proper error handling
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
     // Ensure the endpoint starts with a slash if it doesn't already
@@ -96,38 +97,46 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     const fullUrl = `${API_URL}${normalizedEndpoint}`;
     console.log(`Making API request to: ${fullUrl}`);
     
-    // Get the auth token from localStorage
+    // Add auth token if available - special endpoints like /auth/init shouldn't use this
     const token = localStorage.getItem('authToken');
-    console.log("Using auth token:", token ? "Token exists" : "No token");
     
-    // Ensure headers are properly set with authorization if token exists
+    // Create a proper Record for headers to avoid TypeScript issues
+    const headersRecord: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    
+    // Copy any existing headers from options
+    if (options.headers) {
+      const existingHeaders = options.headers as Record<string, string>;
+      Object.keys(existingHeaders).forEach(key => {
+        headersRecord[key] = existingHeaders[key];
+      });
+    }
+    
+    // Add token to headers if available and not already set in options
+    if (token && !endpoint.includes('/auth/init')) {
+      console.log("Adding JWT token to request headers");
+      headersRecord['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // Ensure headers are properly set
     const requestOptions: RequestInit = {
       ...options,
       credentials: 'include',
       mode: 'cors',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        // Add Authorization header if token exists
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        ...(options.headers || {})
-      }
+      headers: headersRecord
     };
     
-    console.log("Request options:", {
-      method: requestOptions.method,
-      hasAuthHeader: token ? true : false
-    });
+    // Log the headers being sent (but mask the token for security)
+    const logHeaders = {...headersRecord};
+    if (logHeaders['Authorization']) {
+      logHeaders['Authorization'] = logHeaders['Authorization'].substring(0, 15) + '...';
+    }
+    console.log("Request headers:", logHeaders);
     
     const response = await fetch(fullUrl, requestOptions);
     console.log("Response status:", response.status, response.statusText);
-    
-    // For 401 errors, you might want to clear the token and redirect to login
-    if (response.status === 401) {
-      console.error("Unauthorized request. Token may be invalid or expired.");
-      // Clear the invalid token
-      localStorage.removeItem('authToken');
-    }
     
     // Check if the response is HTML (error page) instead of JSON
     const contentType = response.headers.get('content-type');
@@ -136,6 +145,22 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       return {
         success: false,
         error: `Server returned HTML instead of JSON (Status: ${response.status}). Backend endpoint may be incorrect.`
+      };
+    }
+    
+    // Handle 401 Unauthorized errors specially
+    if (response.status === 401) {
+      console.error("401 Unauthorized: Authentication token may be invalid or expired");
+      
+      // If we have a token but got 401, it might be expired - try to clear it
+      if (token) {
+        console.log("Clearing potentially expired token");
+        localStorage.removeItem('authToken');
+      }
+      
+      return {
+        success: false,
+        error: "Authentication failed. Please restart the application."
       };
     }
     
@@ -202,36 +227,30 @@ export async function validateUser(): Promise<ApiResponse<User>> {
   console.log("Making authentication request to: /v1/auth/init");
   
   try {
-    // Use the correct endpoint path for initialization with Telegram data
-    const response = await apiRequest<User>('/v1/auth/init', {
+    // Make a direct fetch call to ensure no token is sent for this initial request
+    const response = await fetch(`${API_URL}/v1/auth/init`, {
       method: 'POST',
-      body: JSON.stringify({ initData }),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-Telegram-Init-Data': initData, // Add this header for additional security
-      }
+        'X-Telegram-Init-Data': initData,
+      },
+      body: JSON.stringify({ initData }),
     });
+    
+    // Parse the response
+    const data = await response.json();
+    console.log("Auth response received:", data);
     
     // Store token if available
-    if (response.success && response.token) {
-      console.log("Received token, storing in localStorage");
-      localStorage.setItem('authToken', response.token);
-      
-      // Test that the token is properly stored
-      const storedToken = localStorage.getItem('authToken');
-      console.log("Token successfully stored:", !!storedToken);
+    if (data.success && data.token) {
+      console.log("JWT token received, storing in localStorage");
+      localStorage.setItem('authToken', data.token);
     } else {
-      console.warn("No token received in auth response");
+      console.error("No token received from the server");
     }
     
-    console.log("Auth response received:", { 
-      success: response.success, 
-      hasToken: !!response.token,
-      user: response.user ? "User data present" : "No user data" 
-    });
-    
-    return response;
+    return data;
   } catch (error) {
     console.error("Error during validateUser:", error);
     return {
