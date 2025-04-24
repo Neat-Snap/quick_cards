@@ -8,7 +8,7 @@
     "dev": "cd frontend && npm run dev",
     "frontend:install": "cd frontend && npm install",
     "backend:install": "cd backend && npm install",
-    "postinstall": "npm run frontend:install && npm run backend:install"
+    "install": "npm run frontend:install && npm run backend:install"
   },
   "author": "",
   "license": "ISC"

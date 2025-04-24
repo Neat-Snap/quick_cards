@@ -2,41 +2,105 @@
 
 import { getInitData } from './telegram';
 
-// Update API URL to match your actual backend endpoint pattern
-// Remove /api if the base URL already includes it
+// API URL configuration
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
 
-interface User {
-  id: number;
-  telegram_id: string;
+// User interface
+export interface User {
+  id: number | string;
+  telegram_id?: string;
   username: string;
   first_name: string;
-  last_name: string;
-  avatar: string;
-  background_color: string;
-  description: string;
-  badge: string;
-  is_premium: boolean;
+  last_name?: string;
+  name?: string;
+  avatar?: string;
+  background_color?: string;
+  background_type?: string;
+  background_value?: string;
+  description?: string;
+  badge?: string;
+  is_premium?: boolean;
+  premium_tier?: number;
 }
 
-interface ApiResponse<T> {
+// Contact interface
+export interface Contact {
+  id: number;
+  user_id: number | string;
+  contact_type: string;
+  value: string;
+  is_public: boolean;
+}
+
+// Project interface
+export interface Project {
+  id: number;
+  user_id: number | string;
+  name: string;
+  description: string;
+  avatar_url: string;
+  role: string;
+  url: string;
+}
+
+// Skill interface
+export interface Skill {
+  id: number;
+  name: string;
+  description: string;
+  image_url: string;
+}
+
+// Custom Link interface
+export interface CustomLink {
+  id: number;
+  user_id: number | string;
+  title: string;
+  url: string;
+}
+
+// Premium tier interface
+export interface PremiumTier {
+  tier: number;
+  name: string;
+  price: number;
+  description: string;
+  features: string[];
+}
+
+// Premium status interface
+export interface PremiumStatus {
+  premium_tier: number;
+  tier_name: string;
+  expires_at: string | null;
+  is_active: boolean;
+}
+
+// API Response interface
+export interface ApiResponse<T> {
   success: boolean;
   error?: string;
   user?: T;
+  token?: string;
+  is_new_user?: boolean;
+  valid?: boolean;
+  payment_url?: string;
 }
 
 // Helper function to make API requests with proper error handling
-async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
+async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
-    // Ensure the URL starts with a slash if it doesn't already
-    const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+    // Ensure the endpoint starts with a slash if it doesn't already
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     
     // Construct the full URL using the base API_URL
-    // Remove duplicate '/api' if it's already in the API_URL
-    const fullUrl = `${API_URL}${normalizedUrl.replace(/^\/api/, '')}`;
+    const fullUrl = `${API_URL}${normalizedEndpoint}`;
     console.log(`Making API request to: ${fullUrl}`);
     
-    // Ensure CORS mode is properly set
+    // Add auth token if available
+    const token = localStorage.getItem('authToken');
+    
+    // Ensure headers are properly set
     const requestOptions: RequestInit = {
       ...options,
       credentials: 'include',
@@ -44,6 +108,7 @@ async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<Ap
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...(options.headers || {})
       }
     };
@@ -107,6 +172,7 @@ async function apiRequest<T>(url: string, options: RequestInit = {}): Promise<Ap
   }
 }
 
+// Auth functions
 export async function validateUser(): Promise<ApiResponse<User>> {
   console.log("validateUser called - API URL:", API_URL);
   const initData = getInitData();
@@ -134,6 +200,11 @@ export async function validateUser(): Promise<ApiResponse<User>> {
       }
     });
     
+    // Store token if available
+    if (response.success && response.token) {
+      localStorage.setItem('authToken', response.token);
+    }
+    
     console.log("Auth response received:", response);
     return response;
   } catch (error) {
@@ -145,15 +216,180 @@ export async function validateUser(): Promise<ApiResponse<User>> {
   }
 }
 
-// Add more API functions here as needed
-export async function updateUserProfile(userId: number, profileData: Partial<User>): Promise<ApiResponse<User>> {
-  console.log("Updating user profile for user ID:", userId);
-  
-  // Use direct relative URL to leverage Next.js rewrites
-  return apiRequest<User>(`/users/${userId}`, {
+// User profile functions
+export async function getCurrentUser(): Promise<ApiResponse<User>> {
+  return apiRequest<User>('/v1/users/me');
+}
+
+export async function updateUserProfile(profileData: Partial<User>): Promise<ApiResponse<User>> {
+  return apiRequest<User>('/v1/users/me', {
     method: 'PATCH',
     body: JSON.stringify(profileData),
   });
 }
 
-export type { User }; 
+// Contact functions
+export async function getUserContacts(): Promise<Contact[]> {
+  const response = await apiRequest<any>('/v1/users/me');
+  return response.success && response.user ? response.user.contacts || [] : [];
+}
+
+export async function createContact(contact: Omit<Contact, 'id' | 'user_id'>): Promise<ApiResponse<Contact>> {
+  return apiRequest<Contact>('/v1/users/me/contacts', {
+    method: 'POST',
+    body: JSON.stringify(contact),
+  });
+}
+
+export async function deleteContact(contactId: number): Promise<ApiResponse<any>> {
+  return apiRequest<any>(`/v1/users/me/contacts/${contactId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Project functions
+export async function getUserProjects(): Promise<Project[]> {
+  const response = await apiRequest<any>('/v1/users/me');
+  return response.success && response.user ? response.user.projects || [] : [];
+}
+
+export async function createProject(project: Omit<Project, 'id' | 'user_id'>): Promise<ApiResponse<Project>> {
+  return apiRequest<Project>('/v1/users/me/projects', {
+    method: 'POST',
+    body: JSON.stringify(project),
+  });
+}
+
+export async function updateProject(projectId: number, project: Partial<Project>): Promise<ApiResponse<Project>> {
+  return apiRequest<Project>(`/v1/users/me/projects/${projectId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(project),
+  });
+}
+
+export async function deleteProject(projectId: number): Promise<ApiResponse<any>> {
+  return apiRequest<any>(`/v1/users/me/projects/${projectId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Skills functions
+export async function getUserSkills(): Promise<Skill[]> {
+  const response = await apiRequest<any>('/v1/users/me');
+  return response.success && response.user ? response.user.skills || [] : [];
+}
+
+export async function searchSkills(query: string): Promise<Skill[]> {
+  const response = await apiRequest<any>(`/v1/skills?q=${encodeURIComponent(query)}`);
+  // Fix: Return the array from the response, not the response object itself
+  return response.success && Array.isArray(response) ? response : [];
+}
+
+
+export async function addSkillToUser(skillId: number): Promise<ApiResponse<any>> {
+  return apiRequest<any>(`/v1/users/me/skills/${skillId}`, {
+    method: 'POST',
+  });
+}
+
+export async function removeSkillFromUser(skillId: number): Promise<ApiResponse<any>> {
+  return apiRequest<any>(`/v1/users/me/skills/${skillId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Custom links functions
+export async function getUserLinks(): Promise<CustomLink[]> {
+  const response = await apiRequest<any>('/v1/users/me');
+  return response.success && response.user ? response.user.custom_links || [] : [];
+}
+
+export async function createCustomLink(link: Omit<CustomLink, 'id' | 'user_id'>): Promise<ApiResponse<CustomLink>> {
+  return apiRequest<CustomLink>('/v1/users/me/links', {
+    method: 'POST',
+    body: JSON.stringify(link),
+  });
+}
+
+export async function deleteCustomLink(linkId: number): Promise<ApiResponse<any>> {
+  return apiRequest<any>(`/v1/users/me/links/${linkId}`, {
+    method: 'DELETE',
+  });
+}
+
+// Premium functions
+export async function getPremiumStatus(): Promise<PremiumStatus> {
+  const response = await apiRequest<PremiumStatus>('/v1/premium/status');
+  if (response.success && response.user) {
+    return response.user as PremiumStatus;
+  }
+  // Default value if the request fails or returns no data
+  return { premium_tier: 0, tier_name: 'Free', expires_at: null, is_active: false };
+}
+
+export async function getPremiumTiers(): Promise<PremiumTier[]> {
+  const response = await apiRequest<any>('/v1/premium/tiers');
+  if (response.success) {
+    // First, check if the response contains an array directly
+    if (Array.isArray(response.user)) {
+      return response.user as PremiumTier[];
+    }
+    
+    // Check for nested data in the response
+    const data = response.user as any;
+    if (data) {
+      // If there's a data property that's an array
+      if (data.data && Array.isArray(data.data)) {
+        return data.data as PremiumTier[];
+      }
+      
+      // If there's a tiers property that's an array
+      if (data.tiers && Array.isArray(data.tiers)) {
+        return data.tiers as PremiumTier[];
+      }
+    }
+  }
+  return [];
+}
+
+export async function subscribeToPremium(tier: number, paymentMethod: string): Promise<ApiResponse<any>> {
+  return apiRequest<any>('/v1/premium/subscribe', {
+    method: 'POST',
+    body: JSON.stringify({ tier, payment_method: paymentMethod }),
+  });
+}
+
+// User search functions
+export async function searchUsers(query: string, skillFilter?: string, limit: number = 10, offset: number = 0): Promise<User[]> {
+  let endpoint = `/v1/users?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
+  if (skillFilter) {
+    endpoint += `&skill=${encodeURIComponent(skillFilter)}`;
+  }
+  
+  const response = await apiRequest<any>(endpoint);
+  if (response.success) {
+    // If the response itself is the users array
+    if (Array.isArray(response.user)) {
+      return response.user as User[];
+    }
+    
+    // Check for nested data in the response
+    const data = response.user as any;
+    if (data) {
+      // If there's a data property that's an array
+      if (data.data && Array.isArray(data.data)) {
+        return data.data as User[];
+      }
+      
+      // If there's a users property that's an array
+      if (data.users && Array.isArray(data.users)) {
+        return data.users as User[];
+      }
+    }
+  }
+  return [];
+}
+
+export async function getUserById(userId: string): Promise<ApiResponse<User>> {
+  return apiRequest<User>(`/v1/users/${userId}`);
+}
