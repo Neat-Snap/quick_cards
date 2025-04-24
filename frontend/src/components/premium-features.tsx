@@ -122,13 +122,18 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
       
       // If there's a payment URL, open it in Telegram
       if (response.payment_url) {
-        // Open Telegram payment
-        window.Telegram.WebApp.openTelegramLink(response.payment_url);
-        
-        // Close WebApp after initiating payment
-        setTimeout(() => {
-          closeApp();
-        }, 1000);
+        // Using the correct Telegram WebApp method to open external links
+        if (window.Telegram && window.Telegram.WebApp) {
+          window.Telegram.WebApp.openLink(response.payment_url);
+          
+          // Close WebApp after initiating payment
+          setTimeout(() => {
+            closeApp();
+          }, 1000);
+        } else {
+          // Fallback for development or when Telegram WebApp is not available
+          window.open(response.payment_url, '_blank');
+        }
       }
       
       // Update premium status
@@ -182,18 +187,18 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
   return (
     <div className="space-y-6">
       {/* Premium Status Banner */}
-      {isPremium ? (
+      {isPremium && premiumStatus ? (
         <div className="text-center">
           <div className="mb-6">
             <Badge variant="default" className="bg-yellow-400 text-black px-3 py-1 text-sm">
               Active Premium Subscription
             </Badge>
             <h2 className="text-xl font-bold mt-4 mb-2">
-              {premiumStatus.tier_name} Plan
+              {premiumStatus?.tier_name || "Premium"} Plan
             </h2>
             <p className="text-sm text-muted-foreground flex justify-center items-center gap-1">
               <Calendar className="h-4 w-4" />
-              Expires: {formatExpirationDate(premiumStatus.expires_at)}
+              Expires: {formatExpirationDate(premiumStatus?.expires_at)}
             </p>
           </div>
         </div>
