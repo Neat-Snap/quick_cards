@@ -51,7 +51,8 @@ export function BusinessCardPreview({
       };
     }
     
-    return { backgroundColor: user.background_color || "#1e293b" };
+    // Default to a dark color instead of using background_color which might be undefined
+    return { backgroundColor: "#1e293b" };
   };
 
   // Helper to render contact icon based on type

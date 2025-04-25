@@ -65,6 +65,9 @@ export default function Home() {
     try {
       // Get current user with full data
       const userResponse = await getCurrentUser();
+
+      console.log("User response:", userResponse);
+
       if (userResponse.success && userResponse.user) {
         setUserData(userResponse.user as User);
       }
@@ -225,6 +228,10 @@ export default function Home() {
                     >
                       <X className="h-5 w-5" />
                     </Button>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground mb-2">
+                    {userData ? `User data loaded: ${userData.first_name}` : 'User data not available'}
                   </div>
                   
                   {/* Render only the specific section of the form based on editSection */}
