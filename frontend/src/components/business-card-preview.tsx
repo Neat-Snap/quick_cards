@@ -26,8 +26,9 @@ export function BusinessCardPreview({
   customLinks = []
 }: BusinessCardPreviewProps) {
   // Default values for rendering if user is null
-  const firstName = user?.first_name || "Your";
-  const lastName = user?.last_name || "Name";
+  // In business-card-preview.tsx, update these lines:
+  const firstName = user?.first_name || (user?.name ? user.name.split(' ')[0] : "Your");
+  const lastName = user?.last_name || (user?.name && user.name.split(' ').length > 1 ? user.name.split(' ')[1] : "Name");
   const username = user?.username || "username";
   const description = user?.description || "Your card description will appear here. Edit your profile to add a description about yourself.";
   

@@ -65,28 +65,30 @@ export default function Home() {
     try {
       // Get current user with full data
       const userResponse = await getCurrentUser();
-
       console.log("User response:", userResponse);
-
+      
       if (userResponse.success && userResponse.user) {
-        setUserData(userResponse.user as User);
+        const userData = userResponse.user as User;
+        setUserData(userData);
+        
+        // Also update the auth context user data to ensure consistency
+        if (refreshUser) {
+          await refreshUser();
+        }
+        
+        // Load related data in parallel for efficiency
+        const [contactsData, projectsData, skillsData, linksData] = await Promise.all([
+          getUserContacts(),
+          getUserProjects(),
+          getUserSkills(),
+          getUserLinks()
+        ]);
+        
+        setContacts(contactsData);
+        setProjects(projectsData);
+        setSkills(skillsData);
+        setCustomLinks(linksData);
       }
-      
-      // Load contacts
-      const userContacts = await getUserContacts();
-      setContacts(userContacts);
-      
-      // Load projects
-      const userProjects = await getUserProjects();
-      setProjects(userProjects);
-      
-      // Load skills
-      const userSkills = await getUserSkills();
-      setSkills(userSkills);
-      
-      // Load custom links
-      const userLinks = await getUserLinks();
-      setCustomLinks(userLinks);
     } catch (error) {
       console.error("Error loading user data:", error);
       toast({
@@ -101,6 +103,7 @@ export default function Home() {
   
   // Handle successful edit
   // Handle successful edit
+// Handle successful edit
 const handleEditSuccess = async () => {
   try {
     console.log("Edit success triggered, reloading user data...");
@@ -114,11 +117,7 @@ const handleEditSuccess = async () => {
     console.log("User data reloaded successfully");
   } catch (error) {
     console.error("Error refreshing data after edit:", error);
-    toast({
-      title: "Note",
-      description: "Your changes were saved. Please refresh to see updates.",
-      variant: "default",
-    });
+    setEditSection(null); // Ensure we still close the edit section even if reload fails
   }
 };
   

@@ -265,30 +265,30 @@ export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatar_url
   const formData = new FormData();
   formData.append('file', file);
   
-  // Use fetch directly for multipart/form-data
   try {
     const token = localStorage.getItem('authToken');
-    const headers: Record<string, string> = {};
     
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    
+    // Use fetch directly for multipart/form-data
     const response = await fetch(`${API_URL}/v1/users/me/avatar`, {
       method: 'POST',
       body: formData,
-      headers
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+      credentials: 'include'
     });
     
+    const data = await response.json();
+    console.log("Avatar upload response:", data);
+    
     if (!response.ok) {
-      const errorData = await response.json();
       return {
         success: false,
-        error: errorData.error || `Upload failed with status ${response.status}`
+        error: data.error || `Upload failed with status ${response.status}`
       };
     }
     
-    return await response.json();
+    return data;
   } catch (error) {
     console.error("Avatar upload error:", error);
     return {

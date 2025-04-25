@@ -61,10 +61,27 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
     setIsSubmitting(true);
     
     try {
-      // First, update the user profile
+      let avatarUrl = user.avatar;
+      
+      // First handle avatar upload if a new file was selected
+      if (avatar) {
+        console.log("Uploading avatar file...");
+        const avatarResponse = await uploadAvatar(avatar);
+        
+        if (!avatarResponse.success) {
+          throw new Error(avatarResponse.error || "Failed to upload avatar");
+        }
+        
+        // Get the new avatar URL from the response
+        avatarUrl = avatarResponse.user?.avatar_url;
+        console.log("Avatar uploaded successfully:", avatarUrl);
+      }
+      
+      // Then update the user profile with all changes including the new avatar URL
       const updateData: Partial<User> = {
         name,
         description,
+        avatar: avatarUrl // Include the avatar URL in the update
       };
       
       // Only include badge if premium or badge was already set
@@ -79,26 +96,14 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         throw new Error(response.error || "Failed to update profile");
       }
       
-      // Upload avatar if a new one is selected
-      if (avatar) {
-        console.log("Uploading avatar...");
-        const avatarResponse = await uploadAvatar(avatar);
-        
-        if (!avatarResponse.success) {
-          throw new Error(avatarResponse.error || "Failed to upload avatar");
-        }
-        
-        console.log("Avatar uploaded successfully:", avatarResponse);
-      }
-      
       toast({
         title: "Profile Updated",
         description: "Your profile has been successfully updated.",
         variant: "default",
       });
       
+      // Call onSuccess to close the edit form and refresh data
       if (onSuccess) {
-        console.log("Calling onSuccess callback...");
         onSuccess();
       }
     } catch (error) {
