@@ -59,41 +59,50 @@ export default function Home() {
   }, [user]);
   
   // Function to load user data (contacts, projects, skills, links)
+  // In page.tsx, replace the loadUserData function
   const loadUserData = async () => {
     setLoading(true);
     
     try {
-      // Get current user with full data
+      // Get current user with full data - force refresh from server
+      console.log("Fetching fresh user data from server...");
       const userResponse = await getCurrentUser();
-      console.log("User response:", userResponse);
       
-      if (userResponse.success && userResponse.user) {
-        const userData = userResponse.user as User;
-        setUserData(userData);
-        
-        // Also update the auth context user data to ensure consistency
-        if (refreshUser) {
-          await refreshUser();
-        }
-        
-        // Load related data in parallel for efficiency
-        const [contactsData, projectsData, skillsData, linksData] = await Promise.all([
-          getUserContacts(),
-          getUserProjects(),
-          getUserSkills(),
-          getUserLinks()
-        ]);
-        
-        setContacts(contactsData);
-        setProjects(projectsData);
-        setSkills(skillsData);
-        setCustomLinks(linksData);
+      if (!userResponse.success || !userResponse.user) {
+        throw new Error(userResponse.error || "Failed to load user data");
       }
+      
+      // Update all state with the fresh data
+      const userData = userResponse.user as User;
+      setUserData(userData);
+      
+      // Check if user data contains nested objects
+      if (userData.contacts) setContacts(userData.contacts as Contact[]);
+      if (userData.projects) setProjects(userData.projects as Project[]);
+      if (userData.skills) setSkills(userData.skills as Skill[]);
+      if (userData.custom_links) setCustomLinks(userData.custom_links as CustomLink[]);
+      
+      // Also get separate endpoints data to ensure we have everything
+      console.log("Fetching additional user data...");
+      const [contactsData, projectsData, skillsData, linksData] = await Promise.all([
+        getUserContacts(),
+        getUserProjects(),
+        getUserSkills(),
+        getUserLinks()
+      ]);
+      
+      // Only update state if data exists and wasn't already set from user object
+      if (contactsData.length > 0 && !userData.contacts) setContacts(contactsData);
+      if (projectsData.length > 0 && !userData.projects) setProjects(projectsData);
+      if (skillsData.length > 0 && !userData.skills) setSkills(skillsData);
+      if (linksData.length > 0 && !userData.custom_links) setCustomLinks(linksData);
+      
+      console.log("User data loaded successfully:", userData);
     } catch (error) {
       console.error("Error loading user data:", error);
       toast({
         title: "Error",
-        description: "Failed to load your profile data",
+        description: "Failed to load your profile data. Please refresh the page.",
         variant: "destructive",
       });
     } finally {

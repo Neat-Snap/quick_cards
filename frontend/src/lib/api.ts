@@ -21,6 +21,10 @@ export interface User {
   badge?: string;
   is_premium?: boolean;
   premium_tier?: number;
+  contacts?: Contact[];
+  projects?: Project[];
+  skills?: Skill[];
+  custom_links?: CustomLink[];
 }
 
 // Contact interface
@@ -299,8 +303,11 @@ export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatar_url
 }
 
 // User profile functions
+// In api.ts, update the getCurrentUser function
 export async function getCurrentUser(): Promise<ApiResponse<User>> {
-  return apiRequest<User>('/v1/users/me');
+  // Add a cache-busting query parameter to force a fresh request
+  const cacheBuster = new Date().getTime();
+  return apiRequest<User>(`/v1/users/me?_=${cacheBuster}`);
 }
 
 export async function updateUserProfile(profileData: Partial<User>): Promise<ApiResponse<User>> {

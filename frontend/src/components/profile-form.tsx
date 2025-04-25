@@ -53,6 +53,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
   };
   
   // Handle form submission
+  // In profile-form.tsx, update the handleSubmit function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -61,9 +62,9 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
     setIsSubmitting(true);
     
     try {
-      let avatarUrl = user.avatar;
-      
       // First handle avatar upload if a new file was selected
+      let newAvatarUrl = undefined;
+      
       if (avatar) {
         console.log("Uploading avatar file...");
         const avatarResponse = await uploadAvatar(avatar);
@@ -73,16 +74,22 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         }
         
         // Get the new avatar URL from the response
-        avatarUrl = avatarResponse.user?.avatar_url;
-        console.log("Avatar uploaded successfully:", avatarUrl);
+        if (avatarResponse.user && avatarResponse.user.avatar_url) {
+          newAvatarUrl = avatarResponse.user.avatar_url;
+          console.log("Avatar uploaded successfully:", newAvatarUrl);
+        }
       }
       
-      // Then update the user profile with all changes including the new avatar URL
+      // Then update the user profile with all changes
       const updateData: Partial<User> = {
         name,
-        description,
-        avatar: avatarUrl // Include the avatar URL in the update
+        description
       };
+      
+      // Only include avatar if we uploaded a new one
+      if (newAvatarUrl) {
+        updateData.avatar = newAvatarUrl;
+      }
       
       // Only include badge if premium or badge was already set
       if (isPremium || user.badge) {

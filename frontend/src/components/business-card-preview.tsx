@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { User, Project, Skill, Contact, CustomLink } from "@/lib/api";
 import { ExternalLink, Mail, Phone, MessageCircle } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+
 interface BusinessCardPreviewProps {
   user: User | null;
   contacts?: Contact[];
@@ -17,6 +19,28 @@ interface BusinessCardPreviewProps {
   skills?: Skill[];
   customLinks?: CustomLink[];
 }
+
+const getAvatarUrl = (avatarPath: string | undefined): string => {
+  if (!avatarPath) return '';
+  
+  // If it's a Telegram avatar (contains t.me), use it directly
+  if (avatarPath.includes('t.me')) {
+    return avatarPath;
+  }
+  
+  // If it starts with /files/, it's already a full path
+  if (avatarPath.startsWith('/files/')) {
+    return `${API_URL}/v1${avatarPath}`;
+  }
+  
+  // If it's a relative path (e.g., profile/123.jpg)
+  if (avatarPath.startsWith('profile/')) {
+    return `${API_URL}/v1/files/${avatarPath}`;
+  }
+  
+  // Otherwise, assume it's a complete URL
+  return avatarPath;
+};
 
 export function BusinessCardPreview({ 
   user, 
@@ -75,7 +99,10 @@ export function BusinessCardPreview({
       <CardContent className="p-6">
         <div className="flex flex-col items-center">
           <Avatar className="h-24 w-24 mb-4 border-4 border-white">
-            <AvatarImage src={user?.avatar} alt={`${firstName} ${lastName}`} />
+            <AvatarImage 
+              src={getAvatarUrl(user?.avatar)} 
+              alt={`${firstName} ${lastName}`} 
+            />
             <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
           </Avatar>
           
