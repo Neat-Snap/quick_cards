@@ -55,11 +55,13 @@ def register_routes(app):
     from app.api.auth import auth_bp
     from app.api.users import users_bp
     from app.api.premium import premium_bp
+    from app.api.file_routes import files_bp
     
     # Register all blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(premium_bp)
+    app.register_blueprint(files_bp)
     
     # Log registration for debugging
     logger.info(f"Registered auth_bp: {auth_bp.url_prefix}")
