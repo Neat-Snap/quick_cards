@@ -145,7 +145,14 @@ def validate_token():
         
         # Use JWT library to validate token
         try:
+            # Log the token (be careful with this in production)
+            logger.debug(f"Validating token: {token[:10]}...")
+            
             decoded = decode_token(token)
+            
+            # Log the decoded content for debugging
+            logger.debug(f"Decoded token: {decoded}")
+            
             user_id = decoded['sub']  # 'sub' is the JWT subject (user id)
             
             # Find the user
@@ -153,7 +160,7 @@ def validate_token():
             if not user_data:
                 return jsonify({
                     "success": False,
-                    "error": "User not found"
+                    "error": f"User not found for ID: {user_id}"
                 }), 404
                 
             return jsonify({
@@ -162,12 +169,12 @@ def validate_token():
                 "user_id": user_id
             })
         except Exception as e:
+            logger.error(f"Token validation error: {str(e)}")
             return jsonify({
                 "success": False,
                 "valid": False,
                 "error": str(e)
             }), 401
-            
     except Exception as e:
         logger.error(f"Error in auth_validate: {e}", exc_info=True)
         return jsonify({

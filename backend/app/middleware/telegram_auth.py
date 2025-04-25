@@ -2,6 +2,7 @@ from functools import wraps
 from flask import request, jsonify, g
 import logging
 import urllib.parse
+from flask_jwt_extended import decode_token
 
 from app.core.telegram_auth import validate_telegram_data, extract_user_info, parse_init_data_from_url
 from app.db.models import User
@@ -15,10 +16,26 @@ def init_telegram_auth_middleware(app):
     """
     @app.before_request
     def process_telegram_data():
-        # Check for init data in multiple places with the following priority:
-        # 1. X-Telegram-Init-Data header (for API calls)
-        # 2. tgWebAppData URL parameter (for initial page load)
-        # 3. initData in request body (for auth endpoint)
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            try:
+                token = auth_header.split('Bearer ')[1]
+                logger.debug(f"Found JWT token in Authorization header")
+                
+                # Verify token and extract user_id
+                decoded = decode_token(token)
+                user_id = decoded['sub']  # 'sub' is the JWT subject (user_id)
+                
+                # Get user from database
+                user = User.query.get(user_id)
+                if user:
+                    g.current_user = user
+                    logger.debug(f"Authenticated user via JWT: {user_id}")
+                    return None
+                else:
+                    logger.warning(f"Valid JWT token but user {user_id} not found in database")
+            except Exception as e:
+                logger.debug(f"JWT auth failed in middleware: {str(e)}")
         
         init_data = None
         
