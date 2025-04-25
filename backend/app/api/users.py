@@ -4,6 +4,11 @@ import logging
 from datetime import datetime, timedelta
 from app.db.session import db
 from app.db.models import User, Contact, Project, Skill, CustomLink
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
 
 # Import all database functions from app.db package
 from app.db import (
@@ -210,6 +215,62 @@ def search_users():
     except Exception as e:
         logger.error(f"Error searching users: {str(e)}")
         return jsonify({"error": f"Failed to search users: {str(e)}"}), 500
+
+
+
+@users_bp.route("/users/me/avatar", methods=["POST"])
+def upload_avatar():
+    """Upload a profile avatar"""
+    user, error = get_authenticated_user()
+    if error:
+        return error
+    
+    # Check if file is in the request
+    if 'file' not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+        
+    file = request.files['file']
+    
+    # Check if the file has a name
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+        
+    # Check if the file is allowed
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({"error": "File type not allowed"}), 400
+    
+    # Create the profile directory if it doesn't exist
+    os.makedirs(images_path, exist_ok=True)
+    
+    # Save the file with user_id as filename
+    extension = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"{user.id}.{extension}"
+    file_path = os.path.join(images_path, filename)
+    
+    try:
+        file.save(file_path)
+        
+        # Update the user's avatar_url
+        user_data = get_user(user.id)
+        if not user_data:
+            return jsonify({"error": "User not found"}), 404
+            
+        # Set avatar_url to the path relative to the API
+        avatar_url = f"/files/profile/{filename}"
+        user_data["avatar_url"] = avatar_url
+        
+        # Update user in the database
+        set_user(user_data)
+        
+        return jsonify({
+            "success": True,
+            "avatar_url": avatar_url
+        })
+    except Exception as e:
+        logger.error(f"Error saving avatar: {str(e)}")
+        return jsonify({"error": f"Failed to save avatar: {str(e)}"}), 500
+
 
 # Contact endpoints
 @users_bp.route("/users/me/contacts", methods=["POST"])
