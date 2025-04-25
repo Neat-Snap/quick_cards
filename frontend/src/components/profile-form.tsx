@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, updateUserProfile, getPremiumStatus, uploadAvatar } from "@/lib/api";
+import { getAvatarUrl } from "@/components/business-card-preview";
 
 interface ProfileFormProps {
   user: User | null;
@@ -138,7 +139,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         <Separator />
         <div className="flex flex-col items-center gap-4">
           <Avatar className="h-24 w-24 border">
-            <AvatarImage src={avatarPreview} alt="Profile" />
+            <AvatarImage src={getAvatarUrl(user?.avatar)} alt="Profile" />
             <AvatarFallback>
               {user?.first_name?.charAt(0) || ""}
               {user?.last_name?.charAt(0) || ""}

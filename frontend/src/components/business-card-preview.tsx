@@ -20,7 +20,7 @@ interface BusinessCardPreviewProps {
   customLinks?: CustomLink[];
 }
 
-const getAvatarUrl = (avatarPath: string | undefined): string => {
+export const getAvatarUrl = (avatarPath: string | undefined): string => {
   if (!avatarPath) return '';
   
   // If it's a Telegram avatar (contains t.me), use it directly
