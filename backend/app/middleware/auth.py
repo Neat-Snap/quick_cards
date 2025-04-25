@@ -19,21 +19,29 @@ def auth_required(f):
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # First try JWT authentication
-        try:
-            verify_jwt_in_request()
-            user_id = get_jwt_identity()
-            user = User.query.get(user_id)
-            if user:
-                g.current_user = user
-                return f(*args, **kwargs)
-        except Exception as e:
-            logger.debug(f"JWT auth failed: {str(e)}")
-            # Continue to next auth method
-            
-        # Check if Telegram middleware already authenticated the user
+        # Check if already authenticated by middleware
         if hasattr(g, 'current_user') and g.current_user:
             return f(*args, **kwargs)
+        
+        # Try JWT authentication
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            try:
+                from flask_jwt_extended import decode_token
+                token = auth_header.split('Bearer ')[1]
+                
+                # Verify token and extract user_id
+                decoded = decode_token(token)
+                user_id = decoded['sub']  # 'sub' is the JWT subject (user_id)
+                
+                # Get user from database
+                user = User.query.get(user_id)
+                if user:
+                    g.current_user = user
+                    return f(*args, **kwargs)
+            except Exception as e:
+                logger.debug(f"JWT auth failed in decorator: {str(e)}")
+                # Continue to next auth method
             
         # Last resort: try telegram_id parameter (development/testing only)
         telegram_id = request.args.get("telegram_id")
