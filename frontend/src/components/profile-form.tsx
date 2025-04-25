@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, updateUserProfile, getPremiumStatus } from "@/lib/api";
+import { User, updateUserProfile, getPremiumStatus, uploadAvatar } from "@/lib/api";
 
 interface ProfileFormProps {
   user: User | null;
@@ -72,14 +72,24 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         updateData.badge = badge;
       }
       
+      console.log("Updating profile with data:", updateData);
       const response = await updateUserProfile(updateData);
       
       if (!response.success) {
         throw new Error(response.error || "Failed to update profile");
       }
       
-      // TODO: Handle avatar upload separately if needed
-      // For now, we'll assume avatar is handled separately
+      // Upload avatar if a new one is selected
+      if (avatar) {
+        console.log("Uploading avatar...");
+        const avatarResponse = await uploadAvatar(avatar);
+        
+        if (!avatarResponse.success) {
+          throw new Error(avatarResponse.error || "Failed to upload avatar");
+        }
+        
+        console.log("Avatar uploaded successfully:", avatarResponse);
+      }
       
       toast({
         title: "Profile Updated",
@@ -88,6 +98,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
       });
       
       if (onSuccess) {
+        console.log("Calling onSuccess callback...");
         onSuccess();
       }
     } catch (error) {

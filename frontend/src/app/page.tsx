@@ -100,17 +100,27 @@ export default function Home() {
   };
   
   // Handle successful edit
-  const handleEditSuccess = async () => {
-    try {
-      // Reload user data
-      await loadUserData();
-      
-      // Close edit section
-      setEditSection(null);
-    } catch (error) {
-      console.error("Error refreshing data after edit:", error);
-    }
-  };
+  // Handle successful edit
+const handleEditSuccess = async () => {
+  try {
+    console.log("Edit success triggered, reloading user data...");
+    
+    // First close the edit section to provide immediate feedback
+    setEditSection(null);
+    
+    // Then reload user data in the background
+    await loadUserData();
+    
+    console.log("User data reloaded successfully");
+  } catch (error) {
+    console.error("Error refreshing data after edit:", error);
+    toast({
+      title: "Note",
+      description: "Your changes were saved. Please refresh to see updates.",
+      variant: "default",
+    });
+  }
+};
   
   // Handle search
   const handleSearch = async () => {

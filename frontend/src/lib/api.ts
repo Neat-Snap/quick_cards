@@ -260,16 +260,65 @@ export async function validateUser(): Promise<ApiResponse<User>> {
   }
 }
 
+export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatar_url: string }>> {
+  // Create a FormData object to send the file
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  // Use fetch directly for multipart/form-data
+  try {
+    const token = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {};
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`${API_URL}/v1/users/me/avatar`, {
+      method: 'POST',
+      body: formData,
+      headers
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      return {
+        success: false,
+        error: errorData.error || `Upload failed with status ${response.status}`
+      };
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Avatar upload error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error during upload'
+    };
+  }
+}
+
 // User profile functions
 export async function getCurrentUser(): Promise<ApiResponse<User>> {
   return apiRequest<User>('/v1/users/me');
 }
 
 export async function updateUserProfile(profileData: Partial<User>): Promise<ApiResponse<User>> {
-  return apiRequest<User>('/v1/users/me', {
-    method: 'PATCH',
-    body: JSON.stringify(profileData),
-  });
+  console.log("Updating user profile with data:", profileData);
+  try {
+    const response = await apiRequest<User>('/v1/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(profileData),
+    });
+    console.log("Profile update response:", response);
+    return response;
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error during profile update"
+    };
+  }
 }
 
 // Contact functions
