@@ -57,9 +57,7 @@ export default function Home() {
       loadUserData();
     }
   }, [user]);
-  
-  // Function to load user data (contacts, projects, skills, links)
-  // In page.tsx, replace the loadUserData function
+
   const loadUserData = async () => {
     setLoading(true);
     
@@ -67,6 +65,8 @@ export default function Home() {
       // Get current user with full data - force refresh from server
       console.log("Fetching fresh user data from server...");
       const userResponse = await getCurrentUser();
+
+      console.log("User response:", userResponse);
       
       if (!userResponse.success || !userResponse.user) {
         throw new Error(userResponse.error || "Failed to load user data");
