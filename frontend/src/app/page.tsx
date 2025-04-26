@@ -373,8 +373,8 @@ const handleEditSuccess = async () => {
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                              {user.avatar ? (
-                                <img src={user.avatar} alt={user.username} className="h-full w-full object-cover" />
+                              {user.avatar_url ? (
+                                <img src={user.avatar_url} alt={user.username} className="h-full w-full object-cover" />
                               ) : (
                                 <span>{user.first_name.charAt(0)}{user.last_name?.charAt(0)}</span>
                               )}

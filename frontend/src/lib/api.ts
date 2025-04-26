@@ -13,7 +13,7 @@ export interface User {
   first_name: string;
   last_name?: string;
   name?: string;
-  avatar?: string;
+  avatar_url?: string;
   background_color?: string;
   background_type?: string;
   background_value?: string;
