@@ -337,6 +337,17 @@ export async function updateUserProfile(profileData: Partial<User>): Promise<Api
       body: JSON.stringify(profileData),
     });
     console.log("Profile update response:", response);
+
+    // Поскольку сервер возвращает напрямую объект пользователя,
+    // а не обертку { success: true, user: {...} },
+    // мы должны обернуть ответ вручную в ApiResponse
+    if (response && !('success' in response)) {
+      return {
+        success: true,
+        user: response as unknown as User
+      };
+    }
+
     return response;
   } catch (error) {
     console.error("Profile update error:", error);
@@ -346,6 +357,7 @@ export async function updateUserProfile(profileData: Partial<User>): Promise<Api
     };
   }
 }
+
 
 // Contact functions
 export async function getUserContacts(): Promise<Contact[]> {
