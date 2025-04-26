@@ -101,7 +101,7 @@ export function BusinessCardPreview({
         <div className="flex flex-col items-center">
           <Avatar className="h-24 w-24 mb-4 border-4 border-white">
             <AvatarImage 
-              src={getAvatarUrl(user?.avatar)} 
+              src={getAvatarUrl(user?.avatar_url)} 
               alt={`${fullName}`} 
             />
             <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
