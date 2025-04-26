@@ -58,6 +58,7 @@ export default function Home() {
     }
   }, [user]);
 
+  // Function to load user data (contacts, projects, skills, links)
   const loadUserData = async () => {
     setLoading(true);
     
@@ -65,21 +66,26 @@ export default function Home() {
       // Get current user with full data - force refresh from server
       console.log("Fetching fresh user data from server...");
       const userResponse = await getCurrentUser();
-
+      
       console.log("User response:", userResponse);
       
-      // if (!userResponse.user) {
-      //   throw new Error(userResponse.error || "Failed to load user data");
-      // }
+      if (!userResponse.success) {
+        throw new Error(userResponse.error || "Failed to load user data");
+      }
+      
+      // Access the user data correctly, handling both response formats
+      const userData = userResponse.user;
+      
+      if (!userData) {
+        throw new Error("User data is undefined");
+      }
+      
+      console.log("User data:", userData);
       
       // Update all state with the fresh data
-      const userData = userResponse.user as User;
-
-      console.log("User data:", userData);
-
       setUserData(userData);
       
-      // Check if user data contains nested objects
+      // Check if user data contains nested objects and set them
       if (userData.contacts) setContacts(userData.contacts as Contact[]);
       if (userData.projects) setProjects(userData.projects as Project[]);
       if (userData.skills) setSkills(userData.skills as Skill[]);
@@ -95,10 +101,18 @@ export default function Home() {
       ]);
       
       // Only update state if data exists and wasn't already set from user object
-      if (contactsData.length > 0 && !userData.contacts) setContacts(contactsData);
-      if (projectsData.length > 0 && !userData.projects) setProjects(projectsData);
-      if (skillsData.length > 0 && !userData.skills) setSkills(skillsData);
-      if (linksData.length > 0 && !userData.custom_links) setCustomLinks(linksData);
+      if (contactsData.length > 0 && (!userData.contacts || userData.contacts.length === 0)) {
+        setContacts(contactsData);
+      }
+      if (projectsData.length > 0 && (!userData.projects || userData.projects.length === 0)) {
+        setProjects(projectsData);
+      }
+      if (skillsData.length > 0 && (!userData.skills || userData.skills.length === 0)) {
+        setSkills(skillsData);
+      }
+      if (linksData.length > 0 && (!userData.custom_links || userData.custom_links.length === 0)) {
+        setCustomLinks(linksData);
+      }
       
       console.log("User data loaded successfully:", userData);
     } catch (error) {

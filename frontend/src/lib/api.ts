@@ -303,11 +303,30 @@ export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatar_url
 }
 
 // User profile functions
-// In api.ts, update the getCurrentUser function
 export async function getCurrentUser(): Promise<ApiResponse<User>> {
   // Add a cache-busting query parameter to force a fresh request
   const cacheBuster = new Date().getTime();
-  return apiRequest<User>(`/v1/users/me?_=${cacheBuster}`);
+  try {
+    const response = await apiRequest<any>(`/v1/users/me?_=${cacheBuster}`);
+    
+    // Check if the response contains user data directly (not wrapped in a 'user' property)
+    if (response && !response.user) {
+      // This means the API returned the user object directly at the root level
+      // Convert it to the expected ApiResponse format
+      return {
+        success: true,
+        user: response as unknown as User  // Use unknown as an intermediate step for type safety
+      };
+    }
+    
+    return response;
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error fetching user data"
+    };
+  }
 }
 
 export async function updateUserProfile(profileData: Partial<User>): Promise<ApiResponse<User>> {
