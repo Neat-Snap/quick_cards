@@ -68,9 +68,9 @@ export default function Home() {
 
       console.log("User response:", userResponse);
       
-      if (!userResponse.user) {
-        throw new Error(userResponse.error || "Failed to load user data");
-      }
+      // if (!userResponse.user) {
+      //   throw new Error(userResponse.error || "Failed to load user data");
+      // }
       
       // Update all state with the fresh data
       const userData = userResponse.user as User;
