@@ -29,17 +29,28 @@ const COLORS = [
 ];
 
 export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProps) {
+  // Find closest matching color from predefined colors
+  const findClosestColor = (colorValue: string): string => {
+    if (!colorValue || typeof colorValue !== 'string') return COLORS[0];
+    
+    // If the color is already in our list, return it
+    if (COLORS.includes(colorValue)) return colorValue;
+    
+    // Otherwise return the first color as default
+    return COLORS[0];
+  };
+  
   const [backgroundType, setBackgroundType] = useState<string>(user?.background_type || "color");
   const [selectedColor, setSelectedColor] = useState<string>(
-    (user?.background_type === "color" && user?.background_value && COLORS.includes(user.background_value)) 
-      ? user.background_value
+    (user?.background_type === "color" && user?.background_value) 
+      ? findClosestColor(user.background_value)
       : COLORS[0]
   );
   const [useGradient, setUseGradient] = useState<boolean>(backgroundType === "gradient");
   const [gradientEndColor, setGradientEndColor] = useState<string>(
     backgroundType === "gradient" && user?.background_value 
       ? (user.background_value.includes("linear-gradient") 
-          ? extractEndColor(user.background_value) || COLORS[7]
+          ? findClosestColor(extractEndColor(user.background_value) || COLORS[7])
           : COLORS[7])
       : COLORS[7]
   );
@@ -52,14 +63,14 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   
   // Helper function to extract end color from gradient string
   function extractEndColor(gradientString: string): string | null {
-    // Example format: "linear-gradient(135deg, #color1, #color2)"
-    const match = gradientString.match(/linear-gradient\([^,]+,\s*([^,]+),\s*([^)]+)\)/);
-    if (match && match[2]) {
-      const color = match[2].trim();
-      // If the extracted color is in our predefined list, return it
-      if (COLORS.includes(color)) {
-        return color;
+    try {
+      // Example format: "linear-gradient(135deg, #color1, #color2)"
+      const match = gradientString.match(/linear-gradient\([^,]+,\s*([^,]+),\s*([^)]+)\)/);
+      if (match && match[2]) {
+        return match[2].trim();
       }
+    } catch (e) {
+      console.error("Error extracting gradient end color:", e);
     }
     return null;
   }
@@ -183,14 +194,14 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         
         {/* Color Selection */}
         <div className="space-y-4">
-          <Label>Color</Label>
-          <div className="flex flex-wrap gap-2">
+          <Label>Select Background Color</Label>
+          <div className="flex flex-wrap gap-3">
             {COLORS.map((color) => (
               <Button
                 key={color}
                 type="button"
                 variant="outline"
-                className={`h-8 w-8 p-0 rounded-full ${selectedColor === color ? 'ring-2 ring-primary' : ''}`}
+                className={`h-10 w-10 p-0 rounded-full cursor-pointer ${selectedColor === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                 style={{ backgroundColor: color }}
                 onClick={() => {
                   setSelectedColor(color);
@@ -206,7 +217,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         
         {/* Background Preview */}
         <div 
-          className="h-20 w-full rounded-md overflow-hidden border"
+          className="h-24 w-full rounded-md overflow-hidden border"
           style={
             backgroundType === "image" && customBackgroundPreview
               ? { backgroundImage: `url(${customBackgroundPreview})`, backgroundSize: 'cover', backgroundPosition: 'center' }
@@ -228,13 +239,13 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         {useGradient && (
           <div className="grid grid-cols-1 gap-3">
             <Label htmlFor="gradientEndColor">Gradient End Color</Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {COLORS.map((color) => (
                 <Button
                   key={`end-${color}`}
                   type="button"
                   variant="outline"
-                  className={`h-8 w-8 p-0 rounded-full ${gradientEndColor === color ? 'ring-2 ring-primary' : ''}`}
+                  className={`h-10 w-10 p-0 rounded-full cursor-pointer ${gradientEndColor === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                   style={{ backgroundColor: color }}
                   onClick={() => setGradientEndColor(color)}
                   aria-label={`Select ${color} as gradient end color`}
