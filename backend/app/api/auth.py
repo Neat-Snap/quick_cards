@@ -110,7 +110,7 @@ def initialize_from_telegram():
                 "username": user_data.get("username", ""),
                 "first_name": user_info.get('first_name', ''),
                 "last_name": user_info.get('last_name', ''),
-                "avatar": user_data.get("avatar_url", ""),
+                "avatar_url": user_data.get("avatar_url", ""),
                 "background_color": user_data.get("background_value", "#f0f0f0") if user_data.get("background_type", "") == "color" else "#f0f0f0",
                 "description": user_data.get("description", ""),
                 "badge": user_data.get("badge", "New User"),

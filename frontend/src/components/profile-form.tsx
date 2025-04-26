@@ -23,7 +23,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
   const [description, setDescription] = useState(user?.description || "");
   const [badge, setBadge] = useState(user?.badge || "");
   const [avatar, setAvatar] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || "");
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   
@@ -89,7 +89,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
       
       // Only include avatar if we uploaded a new one
       if (newAvatarUrl) {
-        updateData.avatar = newAvatarUrl;
+        updateData.avatar_url = newAvatarUrl;
       }
       
       // Only include badge if premium or badge was already set
@@ -139,7 +139,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         <Separator />
         <div className="flex flex-col items-center gap-4">
           <Avatar className="h-24 w-24 border">
-            <AvatarImage src={getAvatarUrl(user?.avatar)} alt="Profile" />
+            <AvatarImage src={getAvatarUrl(user?.avatar_url)} alt="Profile" />
             <AvatarFallback>
               {user?.first_name?.charAt(0) || ""}
               {user?.last_name?.charAt(0) || ""}
