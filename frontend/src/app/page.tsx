@@ -185,7 +185,7 @@ const handleEditSuccess = async () => {
           {activeTab === "card" && (
             <div className="p-4">
               <h1 className="text-2xl font-bold mb-4">
-                {userData ? `${userData.first_name}'s Card` : 'Your Card'}
+                {userData ? `${userData.name}'s Card` : 'Your Card'}
               </h1>
               
               {editSection === null ? (
@@ -265,9 +265,9 @@ const handleEditSuccess = async () => {
                     </Button>
                   </div>
 
-                  <div className="text-xs text-muted-foreground mb-2">
+                  {/* <div className="text-xs text-muted-foreground mb-2">
                     {userData ? `User data loaded: ${userData.first_name}` : 'User data not available'}
-                  </div>
+                  </div> */}
                   
                   {/* Render only the specific section of the form based on editSection */}
                   <Card>
