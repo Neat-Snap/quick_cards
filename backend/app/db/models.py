@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Float, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Float, Table, BigInteger
 from sqlalchemy.sql import func
 
 from app.db.session import db
@@ -13,7 +13,7 @@ user_skill = db.Table(
 class User(db.Model):
     __tablename__ = "users"
 
-    id = db.Column(db.Integer, primary_key=True, index=True)
+    id = db.Column(db.BigInteger, primary_key=True, index=True)
     username = db.Column(db.String, index=True)
     name = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=func.now())
@@ -44,7 +44,7 @@ class Contact(db.Model):
     __tablename__ = "contacts"
     
     id = db.Column(db.Integer, primary_key=True, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"))
     type = db.Column(db.String)  # phone, email, etc.
     value = db.Column(db.String)
     is_public = db.Column(db.Boolean, default=True)
@@ -56,7 +56,7 @@ class Project(db.Model):
     __tablename__ = "projects"
     
     id = db.Column(db.Integer, primary_key=True, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"))
     name = db.Column(db.String)
     description = db.Column(db.Text, nullable=True)
     avatar_url = db.Column(db.String, nullable=True)
@@ -81,7 +81,7 @@ class CustomLink(db.Model):
     __tablename__ = "custom_links"
     
     id = db.Column(db.Integer, primary_key=True, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"))
     title = db.Column(db.String)
     url = db.Column(db.String)
     
