@@ -51,6 +51,7 @@ export function BusinessCardPreview({
 }: BusinessCardPreviewProps) {
   // Default values for rendering if user is null
   // In business-card-preview.tsx, update these lines:
+  const fullName = user?.name || "Your Name";
   const firstName = user?.first_name || (user?.name ? user.name.split(' ')[0] : "Your");
   const lastName = user?.last_name || (user?.name && user.name.split(' ').length > 1 ? user.name.split(' ')[1] : "Name");
   const username = user?.username || "username";
@@ -101,13 +102,13 @@ export function BusinessCardPreview({
           <Avatar className="h-24 w-24 mb-4 border-4 border-white">
             <AvatarImage 
               src={getAvatarUrl(user?.avatar)} 
-              alt={`${firstName} ${lastName}`} 
+              alt={`${fullName}`} 
             />
             <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
           </Avatar>
           
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-2xl font-bold text-white">{firstName} {lastName}</h2>
+            <h2 className="text-2xl font-bold text-white">{fullName}</h2>
             {user?.badge && (
               <Badge variant="secondary">{user.badge}</Badge>
             )}

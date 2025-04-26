@@ -249,6 +249,8 @@ def upload_avatar():
     file_path = os.path.join(images_path, filename)
     
     try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
         file.save(file_path)
         
         # Update the user's avatar_url
