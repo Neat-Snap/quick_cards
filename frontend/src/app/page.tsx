@@ -68,12 +68,15 @@ export default function Home() {
 
       console.log("User response:", userResponse);
       
-      if (!userResponse.success || !userResponse.user) {
+      if (!userResponse.user) {
         throw new Error(userResponse.error || "Failed to load user data");
       }
       
       // Update all state with the fresh data
       const userData = userResponse.user as User;
+
+      console.log("User data:", userData);
+
       setUserData(userData);
       
       // Check if user data contains nested objects
