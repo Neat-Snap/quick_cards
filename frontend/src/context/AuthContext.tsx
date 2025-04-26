@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           username: 'mock_user',
           first_name: 'Mock',
           last_name: 'User',
-          avatar: '',
+          avatar_url: '',
           background_color: '#f0f0f0',
           description: 'This is a mock user for development',
           badge: 'Developer',
