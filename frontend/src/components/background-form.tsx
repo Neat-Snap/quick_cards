@@ -3,10 +3,10 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { User, updateUserProfile, getPremiumStatus } from "@/lib/api";
 
@@ -31,18 +31,38 @@ const COLORS = [
 export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProps) {
   const [backgroundType, setBackgroundType] = useState<string>(user?.background_type || "color");
   const [selectedColor, setSelectedColor] = useState<string>(
-    (user?.background_type === "color" && user?.background_value) || 
-    user?.background_color || 
-    "#1e293b"
+    (user?.background_type === "color" && user?.background_value && COLORS.includes(user.background_value)) 
+      ? user.background_value
+      : COLORS[0]
   );
   const [useGradient, setUseGradient] = useState<boolean>(backgroundType === "gradient");
-  const [gradientEndColor, setGradientEndColor] = useState<string>("#334155");
+  const [gradientEndColor, setGradientEndColor] = useState<string>(
+    backgroundType === "gradient" && user?.background_value 
+      ? (user.background_value.includes("linear-gradient") 
+          ? extractEndColor(user.background_value) || COLORS[7]
+          : COLORS[7])
+      : COLORS[7]
+  );
   const [customBackground, setCustomBackground] = useState<File | null>(null);
   const [customBackgroundPreview, setCustomBackgroundPreview] = useState<string | null>(
     backgroundType === "image" ? (user?.background_value || null) : null
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  
+  // Helper function to extract end color from gradient string
+  function extractEndColor(gradientString: string): string | null {
+    // Example format: "linear-gradient(135deg, #color1, #color2)"
+    const match = gradientString.match(/linear-gradient\([^,]+,\s*([^,]+),\s*([^)]+)\)/);
+    if (match && match[2]) {
+      const color = match[2].trim();
+      // If the extracted color is in our predefined list, return it
+      if (COLORS.includes(color)) {
+        return color;
+      }
+    }
+    return null;
+  }
   
   // Check premium status on mount
   useEffect(() => {
@@ -170,7 +190,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
                 key={color}
                 type="button"
                 variant="outline"
-                className="h-8 w-8 p-0 rounded-full"
+                className={`h-8 w-8 p-0 rounded-full ${selectedColor === color ? 'ring-2 ring-primary' : ''}`}
                 style={{ backgroundColor: color }}
                 onClick={() => {
                   setSelectedColor(color);
@@ -181,15 +201,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
                 aria-label={`Select ${color} color`}
               />
             ))}
-            
-            {/* Custom color input */}
-            <Input
-              type="color"
-              value={selectedColor}
-              onChange={(e) => setSelectedColor(e.target.value)}
-              className="h-8 w-16 p-1"
-              aria-label="Custom color"
-            />
           </div>
         </div>
         
@@ -217,18 +228,18 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         {useGradient && (
           <div className="grid grid-cols-1 gap-3">
             <Label htmlFor="gradientEndColor">Gradient End Color</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                id="gradientEndColor"
-                type="color"
-                value={gradientEndColor}
-                onChange={(e) => setGradientEndColor(e.target.value)}
-                className="h-8 w-16 p-1"
-              />
-              <div 
-                className="h-8 w-8 rounded-full"
-                style={{ backgroundColor: gradientEndColor }}
-              />
+            <div className="flex flex-wrap gap-2">
+              {COLORS.map((color) => (
+                <Button
+                  key={`end-${color}`}
+                  type="button"
+                  variant="outline"
+                  className={`h-8 w-8 p-0 rounded-full ${gradientEndColor === color ? 'ring-2 ring-primary' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setGradientEndColor(color)}
+                  aria-label={`Select ${color} as gradient end color`}
+                />
+              ))}
             </div>
           </div>
         )}
