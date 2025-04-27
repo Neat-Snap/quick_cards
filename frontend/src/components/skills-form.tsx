@@ -196,7 +196,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
             variant="outline" 
             onClick={onCancel}
           >
-            Done
+            Back
           </Button>
         </div>
       </div>
@@ -318,7 +318,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
           variant="outline" 
           onClick={onCancel}
         >
-          Done
+          Back
         </Button>
       </div>
     </div>
