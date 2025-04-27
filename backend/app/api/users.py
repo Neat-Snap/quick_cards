@@ -340,6 +340,23 @@ def update_contact(contact_id):
     except Exception as e:
         logger.error(f"Error updating contact: {str(e)}")
         return jsonify({"error": f"Failed to update contact: {str(e)}"}), 500
+    
+
+@users_bp.route("/users/me/contacts", methods=["GET"])
+def get_user_contacts():
+    """Get all contacts for current user"""
+    user, error = get_authenticated_user()
+    if error:
+        return error
+    
+    # Get contacts using the database function
+    try:
+        user_contacts = get_contacts(user.id)
+        logger.info(f"Retrieved {len(user_contacts)} contacts for user {user.id}")
+        return jsonify(user_contacts)
+    except Exception as e:
+        logger.error(f"Error getting contacts: {str(e)}")
+        return jsonify({"error": f"Failed to get contacts: {str(e)}"}), 500
 
 
 @users_bp.route("/users/me/contacts/<int:contact_id>", methods=["DELETE"])

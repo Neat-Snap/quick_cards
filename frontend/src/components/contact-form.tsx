@@ -34,12 +34,16 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Load contacts and premium status on mount
+  // Add this near the top of the useEffect that loads data
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Add more detailed logging
+        console.log("Starting to load contacts for user:", userId);
+        
         // Load contacts
         const userContacts = await getUserContacts();
-        console.log("Loaded contacts in ContactForm:", userContacts);
+        console.log("Contacts loaded in ContactForm:", userContacts, "Count:", userContacts.length);
         setContacts(userContacts);
         
         // Check premium status

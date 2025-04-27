@@ -360,9 +360,48 @@ export async function updateUserProfile(profileData: Partial<User>): Promise<Api
 
 
 // Contact functions
+// Update this function in api.ts
 export async function getUserContacts(): Promise<Contact[]> {
-  const response = await apiRequest<any>('/v1/users/me');
-  return response.success && response.user ? response.user.contacts || [] : [];
+  try {
+    // Try to get contacts directly from the dedicated endpoint
+    const response = await apiRequest<any>('/v1/users/me/contacts');
+    
+    // Log what we received to help with debugging
+    console.log("Contacts response:", response);
+    
+    // Check if response is an array directly (the backend might return just the array)
+    if (Array.isArray(response)) {
+      return response;
+    }
+    
+    // Check if response has contacts property
+    if (response && response.user && response.user.contacts && Array.isArray(response.user.contacts)) {
+      return response.user.contacts;
+    }
+    
+    // Check if user property contains contacts
+    if (response && response.user && response.user.contacts && Array.isArray(response.user.contacts)) {
+      return response.user.contacts;
+    }
+    
+    // If data structure doesn't match any expected format, get from the user endpoint
+    const userResponse = await apiRequest<any>('/v1/users/me');
+    console.log("User response for contacts:", userResponse);
+    
+    if (userResponse && userResponse.user && userResponse.user.contacts && Array.isArray(userResponse.user.contacts)) {
+      return userResponse.user.contacts;
+    }
+    
+    if (userResponse && userResponse.user && userResponse.user.contacts && Array.isArray(userResponse.user.contacts)) {
+      return userResponse.user.contacts;
+    }
+    
+    // If still nothing, return empty array
+    return [];
+  } catch (error) {
+    console.error("Error fetching contacts:", error);
+    return [];
+  }
 }
 
 export async function createContact(contact: Omit<Contact, 'id' | 'user_id'>): Promise<ApiResponse<Contact>> {
