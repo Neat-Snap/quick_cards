@@ -127,7 +127,7 @@ export function BusinessCardPreview({
               <div className="space-y-2">
                 {contacts.map(contact => (
                   <div key={contact.id} className="flex items-center gap-2">
-                    {getContactIcon(contact.contact_type)}
+                    {getContactIcon(contact.type)}
                     <span className="text-xs text-white/90">{contact.value}</span>
                   </div>
                 ))}
