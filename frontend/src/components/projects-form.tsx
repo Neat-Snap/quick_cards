@@ -739,7 +739,7 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
               if (onCancel) onCancel();
             }}
           >
-            Done
+            Back
           </Button>
         </div>
       </div>

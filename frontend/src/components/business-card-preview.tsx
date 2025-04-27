@@ -193,7 +193,7 @@ export function BusinessCardPreview({
             </div>
           </div>
         )}
-        <p className="text-xs font-semibold text-white">{project.name}</p>
+        <p className="text-xs font-semibold font-medium text-white">{project.name}</p>
         {project.role && (
           <p className="text-xs text-white/70 mt-1">{project.role}</p>
         )}
