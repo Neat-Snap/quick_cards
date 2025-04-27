@@ -178,6 +178,21 @@ export function BusinessCardPreview({
       onClick={() => openDetail('project', project)}
     >
       <div className="flex flex-col h-full">
+        {project.avatar_url && (
+          <div className="mb-2 flex justify-center">
+            <div className="w-12 h-12 rounded-md overflow-hidden bg-white/20">
+              <img 
+                src={project.avatar_url} 
+                alt={project.name} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Hide the image container if loading fails
+                  (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                }}
+              />
+            </div>
+          </div>
+        )}
         <p className="text-xs font-semibold text-white">{project.name}</p>
         {project.role && (
           <p className="text-xs text-white/70 mt-1">{project.role}</p>
