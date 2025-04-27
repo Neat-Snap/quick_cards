@@ -42,33 +42,35 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   
   // Load contacts and premium status on mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Add more detailed logging
-        console.log("Starting to load contacts for user:", userId);
-        
-        // Load contacts
-        const userContacts = await getUserContacts();
-        console.log("Contacts loaded in ContactForm:", userContacts, "Count:", userContacts.length);
-        setContacts(userContacts);
-        
-        // Check premium status
+    loadContacts();
+  }, [userId]);
+
+  // Function to load contacts - reused throughout the component
+  const loadContacts = async () => {
+    try {
+      console.log("Loading contacts for user:", userId);
+      
+      // Load contacts
+      const userContacts = await getUserContacts();
+      console.log("Contacts loaded in ContactForm:", userContacts, "Count:", userContacts.length);
+      setContacts(userContacts);
+      
+      // Check premium status if we haven't already
+      if (!isPremium) {
         const premiumStatus = await getPremiumStatus();
         setIsPremium(premiumStatus.is_active);
-      } catch (error) {
-        console.error("Error loading contact data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load your contact information",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
       }
-    };
-    
-    loadData();
-  }, [userId]);
+    } catch (error) {
+      console.error("Error loading contact data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your contact information",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Success animation handler
   useEffect(() => {
@@ -151,45 +153,33 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     
     try {
       if (isEditMode && editingContactId) {
-        // Store the old ID for reference
+        // Store the old ID and type for reference
         const oldContactId = editingContactId;
         
-        // Update existing contact
-        // Since your API doesn't have an updateContact function, we'll simulate by:
-        // 1. Delete the existing contact
+        console.log(`Deleting contact with ID ${oldContactId}`);
+        // Delete the existing contact - no need to check response for 204 No Content
         await deleteContact(oldContactId);
         
-        // 2. Create a new one with updated values
+        console.log("Creating new contact to replace deleted one");
+        // Create a new one with updated values
         const response = await createContact({
           type: contactType,
           value: contactValue.trim(),
           is_public: contactPublic
         });
         
-        if (!response.success) {
-          throw new Error(response.error || "Failed to update contact");
-        }
+        // After operations, reload contacts list
+        await loadContacts();
         
-        // Reload contacts to ensure we have latest data
+        // Find the newly created contact to highlight
         const updatedContacts = await getUserContacts();
-        
-        // Find the newly created contact (it will be the most recent one with matching values)
-        const newContact = updatedContacts.find(c => 
-          c.type === contactType && 
-          c.value === contactValue.trim() &&
-          c.is_public === contactPublic
+        const newContact = updatedContacts.find(contact => 
+          contact.type === contactType && 
+          contact.value === contactValue.trim()
         );
         
         if (newContact) {
-          console.log("Found updated contact:", newContact);
-          // Update the contacts list completely
-          setContacts(updatedContacts);
-          
-          // Show success animation on the new contact
           setSuccessId(newContact.id);
-        } else {
-          console.log("Couldn't find the updated contact, using full reload");
-          setContacts(updatedContacts);
         }
         
         toast({
@@ -199,24 +189,26 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         });
       } else {
         // Create new contact
+        console.log("Creating new contact");
         const response = await createContact({
           type: contactType,
           value: contactValue.trim(),
           is_public: contactPublic
         });
         
-        if (!response.success) {
-          throw new Error(response.error || "Failed to add contact");
-        }
+        console.log("Create contact response:", response);
         
-        // Reload contacts to ensure we have the latest
+        // After operations, reload contacts list
+        await loadContacts();
+        
+        // Find the newly created contact to highlight
         const updatedContacts = await getUserContacts();
-        setContacts(updatedContacts);
+        const newContact = updatedContacts.find(contact => 
+          contact.type === contactType && 
+          contact.value === contactValue.trim()
+        );
         
-        // Find the newly created contact to show success animation
-        // It will likely be the last one in the list
-        if (updatedContacts.length > 0) {
-          const newContact = updatedContacts[updatedContacts.length - 1];
+        if (newContact) {
           setSuccessId(newContact.id);
         }
         
@@ -229,7 +221,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       
       // Reset form
       resetForm();
-      
     } catch (error) {
       console.error("Error handling contact:", error);
       toast({
@@ -248,11 +239,12 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setDeletingId(contactId);
     
     try {
+      console.log(`Deleting contact with ID ${contactId}`);
       await deleteContact(contactId);
       
-      // Wait a bit for the animation to finish
-      setTimeout(() => {
-        // Use the functional update form to ensure we have the latest state
+      // Wait for animation, then remove from state
+      setTimeout(async () => {
+        // Remove from local state first for immediate feedback
         setContacts(prevContacts => prevContacts.filter(contact => contact.id !== contactId));
         
         // If we were editing this contact, reset the form
@@ -262,6 +254,9 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         
         // Clear deleting state
         setDeletingId(null);
+        
+        // Reload contacts to ensure everything is in sync
+        await loadContacts();
         
         toast({
           title: "Contact Deleted",
