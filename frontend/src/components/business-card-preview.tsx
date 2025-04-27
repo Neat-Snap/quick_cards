@@ -174,23 +174,23 @@ export function BusinessCardPreview({
   const renderProjectCard = (project: Project) => (
     <div 
       key={project.id} 
-      className="bg-white/10 rounded-lg p-3 min-w-[160px] cursor-pointer hover:bg-white/20 transition-colors"
+      className="bg-white/10 rounded-lg p-3 min-w-[160px] max-w-[220px] w-[220px] flex-shrink-0 cursor-pointer hover:bg-white/20 transition-colors"
       onClick={() => openDetail('project', project)}
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col h-full">
         <p className="text-xs font-semibold text-white">{project.name}</p>
         {project.role && (
           <p className="text-xs text-white/70 mt-1">{project.role}</p>
         )}
         {project.description && (
-          <p className="text-xs text-white/80 mt-2 line-clamp-2">{project.description}</p>
+          <p className="text-xs text-white/80 mt-2 line-clamp-2 overflow-hidden">{project.description}</p>
         )}
-        <div className="flex justify-end mt-2">
+        <div className="flex justify-end mt-auto pt-2">
           <Info className="h-4 w-4 text-white/50" />
         </div>
       </div>
     </div>
-  );
+  )
 
   console.log("Rendering card with contacts:", contacts);
 
