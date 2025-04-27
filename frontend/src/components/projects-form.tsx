@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { Project, getUserProjects, createProject, updateProject, deleteProject, getPremiumStatus } from "@/lib/api";
-import { Trash2, Edit, X, Save, Plus, Check, Image, Link, User } from "lucide-react";
+import { Project, getUserProjects, createProject, updateProject, deleteProject, getPremiumStatus, getCurrentUser } from "@/lib/api";
+import { Trash2, Edit, X, Save, Plus, Check, Image, Link, User, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 
 interface ProjectsFormProps {
   userId: string | number;
@@ -27,6 +28,12 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   // Animation states
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [successId, setSuccessId] = useState<number | null>(null);
+  
+  // Detail view state
+  const [detailView, setDetailView] = useState<{
+    project: Project;
+    isOpen: boolean;
+  } | null>(null);
   
   // Form mode state (add or edit)
   const [isEditMode, setIsEditMode] = useState(false);
@@ -54,10 +61,21 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     try {
       console.log("Loading projects for user:", userId);
       
-      // Load projects
-      const userProjects = await getUserProjects();
-      console.log("Projects loaded in ProjectsForm:", userProjects, "Count:", userProjects.length);
-      setProjects(userProjects);
+      // Try to load projects directly first
+      let userProjects = await getUserProjects();
+      
+      // If that returns empty, try getting them from the user object
+      if (!userProjects || userProjects.length === 0) {
+        console.log("No projects found via direct API, trying from user object");
+        const userResponse = await getCurrentUser();
+        
+        if (userResponse.success && userResponse.user && userResponse.user.projects) {
+          userProjects = userResponse.user.projects as Project[];
+        }
+      }
+      
+      console.log("Projects loaded in ProjectsForm:", userProjects, "Count:", userProjects?.length || 0);
+      setProjects(userProjects || []);
       
       // Check premium status if we haven't already
       if (!isPremium) {
@@ -124,6 +142,19 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
   
+  // Open detail view for a project
+  const openDetailView = (project: Project) => {
+    setDetailView({
+      project,
+      isOpen: true
+    });
+  };
+  
+  // Close detail view
+  const closeDetailView = () => {
+    setDetailView(null);
+  };
+  
   // Start editing a project
   const startEditing = (project: Project) => {
     setProjectName(project.name);
@@ -133,6 +164,11 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setProjectAvatarUrl(project.avatar_url || "");
     setIsEditMode(true);
     setEditingProjectId(project.id);
+    
+    // Close detail view if open
+    if (detailView) {
+      closeDetailView();
+    }
     
     // Add focus animation
     if (formRef.current) {
@@ -287,6 +323,11 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
           resetForm();
         }
         
+        // Close detail view if this project was being viewed
+        if (detailView && detailView.project.id === projectId) {
+          closeDetailView();
+        }
+        
         // Clear deleting state
         setDeletingId(null);
         
@@ -336,6 +377,97 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   }
 
   const maxProjectsAllowed = getMaxProjects();
+
+  // Render project details view
+  const renderDetailView = () => {
+    if (!detailView || !detailView.isOpen) return null;
+    
+    const { project } = detailView;
+    
+    return (
+      <div className="fixed inset-0 bg-background/90 z-50 flex flex-col p-4 overflow-hidden">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            onClick={closeDetailView}
+            className="gap-1"
+          >
+            <X className="h-4 w-4" /> Close
+          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => startEditing(project)}
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => {
+                closeDetailView();
+                handleDeleteProject(project.id);
+              }}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          <Card className="border-none shadow-none">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-4 mb-2">
+                <Avatar className="h-16 w-16">
+                  {project.avatar_url ? (
+                    <AvatarImage src={project.avatar_url} alt={project.name} />
+                  ) : (
+                    <AvatarFallback>{getProjectInitials(project.name)}</AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <CardTitle className="text-xl">{project.name}</CardTitle>
+                  {project.role && (
+                    <CardDescription>{project.role}</CardDescription>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="pb-3">
+              {project.description && (
+                <div className="mb-4">
+                  <h3 className="text-sm font-medium mb-2">Description</h3>
+                  <div className="max-h-60 overflow-y-auto bg-muted/20 p-3 rounded-md text-sm">
+                    {project.description.split('\n').map((line, i) => (
+                      <p key={i} className="mb-2">{line}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+            
+            {project.url && (
+              <CardFooter>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => window.open(project.url, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Visit Project
+                </Button>
+              </CardFooter>
+            )}
+          </Card>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -387,32 +519,35 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
                 {projects.map((project) => (
                   <div 
                     key={project.id} 
-                    className={`project-item flex items-start gap-3 p-3 border rounded-md mb-2 
+                    className={`project-item flex items-start gap-3 p-3 border rounded-md mb-2 cursor-pointer
                       ${editingProjectId === project.id ? 'border-primary' : ''}
                       ${deletingId === project.id ? 'deleting' : ''}
                       ${successId === project.id ? 'success' : ''}
                     `}
+                    onClick={() => openDetailView(project)}
                   >
-                    <Avatar className="h-10 w-10 mt-1">
+                    <Avatar className="h-10 w-10 mt-1 flex-shrink-0">
                       {project.avatar_url ? (
                         <AvatarImage src={project.avatar_url} alt={project.name} />
                       ) : (
                         <AvatarFallback>{getProjectInitials(project.name)}</AvatarFallback>
                       )}
                     </Avatar>
-                    <div className="flex-1 cursor-pointer" onClick={() => startEditing(project)}>
+                    <div className="flex-1">
                       <p className="font-medium">{project.name}</p>
                       {project.role && (
                         <p className="text-sm text-muted-foreground">{project.role}</p>
                       )}
                       {project.description && (
-                        <p className="text-sm mt-1 line-clamp-2">{project.description}</p>
+                        <p className="text-sm mt-1 line-clamp-2 break-words">
+                          {project.description}
+                        </p>
                       )}
                       {project.url && (
                         <p className="text-xs text-blue-500 mt-1 truncate">{project.url}</p>
                       )}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-shrink-0 ml-2">
                       {successId === project.id ? (
                         <div className="flex h-9 w-9 items-center justify-center text-green-500">
                           <Check className="h-5 w-5" />
@@ -423,7 +558,10 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
                             type="button"
                             variant="ghost"
                             size="icon"
-                            onClick={() => startEditing(project)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditing(project);
+                            }}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -431,7 +569,10 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
                             type="button"
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDeleteProject(project.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProject(project.id);
+                            }}
                             disabled={deletingId === project.id}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -591,6 +732,9 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
           </Button>
         </div>
       </div>
+
+      {/* Render project detail view if active */}
+      {renderDetailView()}
     </>
   );
 }
