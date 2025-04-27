@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { Contact, getUserContacts, createContact, deleteContact, getPremiumStatus } from "@/lib/api";
-import { Trash2, Edit, X, Save, Plus } from "lucide-react";
+import { Trash2, Edit, X, Save, Plus, Check } from "lucide-react";
 
 interface ContactFormProps {
   userId: string | number;
@@ -23,6 +23,10 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   
+  // Animation states
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [successId, setSuccessId] = useState<number | null>(null);
+  
   // Form mode state (add or edit)
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingContactId, setEditingContactId] = useState<number | null>(null);
@@ -33,8 +37,10 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   const [contactPublic, setContactPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Refs for form animation
+  const formRef = useRef<HTMLFormElement>(null);
+  
   // Load contacts and premium status on mount
-  // Add this near the top of the useEffect that loads data
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -62,7 +68,17 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     };
     
     loadData();
-  }, []);
+  }, [userId]);
+  
+  // Success animation handler
+  useEffect(() => {
+    if (successId !== null) {
+      const timer = setTimeout(() => {
+        setSuccessId(null);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [successId]);
   
   // Reset form state
   const resetForm = () => {
@@ -71,6 +87,16 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setContactPublic(true);
     setIsEditMode(false);
     setEditingContactId(null);
+    
+    // Add animation class to form
+    if (formRef.current) {
+      formRef.current.classList.add('form-reset');
+      setTimeout(() => {
+        if (formRef.current) {
+          formRef.current.classList.remove('form-reset');
+        }
+      }, 300);
+    }
   };
   
   // Start editing a contact
@@ -80,6 +106,16 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setContactPublic(contact.is_public);
     setIsEditMode(true);
     setEditingContactId(contact.id);
+    
+    // Add focus animation
+    if (formRef.current) {
+      formRef.current.classList.add('form-focus');
+      setTimeout(() => {
+        if (formRef.current) {
+          formRef.current.classList.remove('form-focus');
+        }
+      }, 300);
+    }
   };
   
   // Cancel editing
@@ -131,6 +167,20 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           throw new Error(response.error || "Failed to update contact");
         }
         
+        // Extract the new contact from the response
+        const newContact = response.user as unknown as Contact;
+        
+        // Update the contacts list
+        setContacts(prevContacts => {
+          // First filter out the old contact
+          const filteredContacts = prevContacts.filter(c => c.id !== editingContactId);
+          // Then add the new one
+          return [...filteredContacts, newContact];
+        });
+        
+        // Show success animation
+        setSuccessId(newContact.id);
+        
         toast({
           title: "Contact Updated",
           description: "Your contact information has been updated successfully",
@@ -148,16 +198,21 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           throw new Error(response.error || "Failed to add contact");
         }
         
+        // Extract the new contact from the response
+        const newContact = response.user as unknown as Contact;
+        
+        // Add the new contact to the list
+        setContacts(prevContacts => [...prevContacts, newContact]);
+        
+        // Show success animation
+        setSuccessId(newContact.id);
+        
         toast({
           title: "Contact Added",
           description: "Your contact information has been added successfully",
           variant: "default",
         });
       }
-      
-      // Reload contacts to get fresh data
-      const updatedContacts = await getUserContacts();
-      setContacts(updatedContacts);
       
       // Reset form
       resetForm();
@@ -176,6 +231,9 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   
   // Handle deleting a contact
   const handleDeleteContact = async (contactId: number) => {
+    // Mark as deleting for animation
+    setDeletingId(contactId);
+    
     try {
       const response = await deleteContact(contactId);
       
@@ -183,21 +241,31 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         throw new Error(response.error || "Failed to delete contact");
       }
       
-      // Remove the contact from the list
-      setContacts(contacts.filter(contact => contact.id !== contactId));
+      // Wait a bit for the animation to finish
+      setTimeout(() => {
+        // Remove the contact from the list
+        setContacts(contacts.filter(contact => contact.id !== contactId));
+        
+        // If we were editing this contact, reset the form
+        if (editingContactId === contactId) {
+          resetForm();
+        }
+        
+        // Clear deleting state
+        setDeletingId(null);
+        
+        toast({
+          title: "Contact Deleted",
+          description: "Your contact information has been deleted successfully",
+          variant: "default",
+        });
+      }, 300);
       
-      // If we were editing this contact, reset the form
-      if (editingContactId === contactId) {
-        resetForm();
-      }
-      
-      toast({
-        title: "Contact Deleted",
-        description: "Your contact information has been deleted successfully",
-        variant: "default",
-      });
     } catch (error) {
       console.error("Error deleting contact:", error);
+      // Reset deleting animation state
+      setDeletingId(null);
+      
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete contact",
@@ -234,157 +302,202 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     return <div className="text-center py-8">Loading contact information...</div>;
   }
 
-  console.log("Contacts in ContactForm:", contacts);
-
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Contact Information</h3>
-          <p className="text-sm text-muted-foreground">
-            Add ways for others to contact you
-          </p>
-        </div>
-        <Separator />
-        
-        {/* Existing Contacts */}
-        {contacts.length > 0 && (
-          <div className="space-y-4">
-            <h4 className="font-medium">Your Contacts</h4>
-            <div className="max-h-64 overflow-y-auto pr-1">
-              {contacts.map((contact) => (
-                <div 
-                  key={contact.id} 
-                  className={`flex items-center justify-between p-3 border rounded-md mb-2 ${
-                    editingContactId === contact.id ? 'border-primary' : ''
-                  }`}
-                >
-                  <div className="flex-1 cursor-pointer" onClick={() => startEditing(contact)}>
-                    <p className="font-medium capitalize">
-                      {contact.type}
-                      {!contact.is_public && " (Private)"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{contact.value}</p>
+    <>
+      <style jsx global>{`
+        .contact-item {
+          transition: all 0.3s ease;
+        }
+        .deleting {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        .success {
+          background-color: rgba(132, 204, 22, 0.1);
+          border-color: rgba(132, 204, 22, 0.5);
+        }
+        .form-focus {
+          animation: highlight 0.3s ease;
+        }
+        .form-reset {
+          animation: fadeOut 0.2s ease;
+        }
+        @keyframes highlight {
+          0% { background-color: transparent; }
+          50% { background-color: rgba(59, 130, 246, 0.1); }
+          100% { background-color: transparent; }
+        }
+        @keyframes fadeOut {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+      `}</style>
+    
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-medium">Contact Information</h3>
+            <p className="text-sm text-muted-foreground">
+              Add ways for others to contact you
+            </p>
+          </div>
+          <Separator />
+          
+          {/* Existing Contacts */}
+          {contacts.length > 0 ? (
+            <div className="space-y-4">
+              <h4 className="font-medium">Your Contacts ({contacts.length})</h4>
+              <div className="max-h-64 overflow-y-auto pr-1">
+                {contacts.map((contact) => (
+                  <div 
+                    key={contact.id} 
+                    className={`contact-item flex items-center justify-between p-3 border rounded-md mb-2 
+                      ${editingContactId === contact.id ? 'border-primary' : ''}
+                      ${deletingId === contact.id ? 'deleting' : ''}
+                      ${successId === contact.id ? 'success' : ''}
+                    `}
+                  >
+                    <div className="flex-1 cursor-pointer" onClick={() => startEditing(contact)}>
+                      <p className="font-medium capitalize">
+                        {contact.type}
+                        {!contact.is_public && " (Private)"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{contact.value}</p>
+                    </div>
+                    <div className="flex gap-1">
+                      {successId === contact.id ? (
+                        <div className="flex h-9 w-9 items-center justify-center text-green-500">
+                          <Check className="h-5 w-5" />
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEditing(contact)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteContact(contact.id)}
+                            disabled={deletingId === contact.id}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => startEditing(contact)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteContact(contact.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-        
-        {/* Contact Form - Add/Edit */}
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-          <div className="flex items-center justify-between">
-            <h4 className="font-medium">
-              {isEditMode ? 'Edit Contact' : 'Add New Contact'}
-            </h4>
-            {isEditMode && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={cancelEditing}
-              >
-                <X className="h-4 w-4 mr-1" />
-                Cancel
-              </Button>
-            )}
-          </div>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              No contact information added yet. Add your first contact below.
+            </div>
+          )}
           
-          <div className="grid grid-cols-1 gap-3">
-            <Label htmlFor="contactType">Contact Type</Label>
-            <Select 
-              value={contactType} 
-              onValueChange={setContactType}
-            >
-              <SelectTrigger id="contactType">
-                <SelectValue placeholder="Select contact type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="phone">Phone</SelectItem>
-                <SelectItem value="telegram">Telegram</SelectItem>
-                <SelectItem value="website">Website</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="grid grid-cols-1 gap-3">
-            <Label htmlFor="contactValue">Value</Label>
-            <Input
-              id="contactValue"
-              value={contactValue}
-              onChange={(e) => setContactValue(e.target.value)}
-              placeholder={getPlaceholder(contactType)}
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isPublic"
-              checked={contactPublic}
-              onCheckedChange={setContactPublic}
-            />
-            <Label htmlFor="isPublic">Make this contact public</Label>
-          </div>
-          
-          <div className="pt-2">
-            <Button 
-              type="submit" 
-              className="w-full"
-              disabled={isSubmitting || (!isPremium && !isEditMode && contacts.length >= 3)}
-            >
-              {isSubmitting ? (
-                isEditMode ? "Updating..." : "Adding..."
-              ) : (
-                isEditMode ? (
-                  <><Save className="h-4 w-4 mr-2" />Update Contact</>
-                ) : (
-                  <><Plus className="h-4 w-4 mr-2" />Add Contact</>
-                )
+          {/* Contact Form - Add/Edit */}
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 pt-4 rounded-md">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium">
+                {isEditMode ? 'Edit Contact' : 'Add New Contact'}
+              </h4>
+              {isEditMode && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={cancelEditing}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
               )}
-            </Button>
+            </div>
             
-            {!isPremium && !isEditMode && contacts.length >= 3 && (
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Upgrade to Premium to add more than 3 contacts
-              </p>
-            )}
-          </div>
-        </form>
-      </div>
+            <div className="grid grid-cols-1 gap-3">
+              <Label htmlFor="contactType">Contact Type</Label>
+              <Select 
+                value={contactType} 
+                onValueChange={setContactType}
+              >
+                <SelectTrigger id="contactType">
+                  <SelectValue placeholder="Select contact type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="phone">Phone</SelectItem>
+                  <SelectItem value="telegram">Telegram</SelectItem>
+                  <SelectItem value="website">Website</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3">
+              <Label htmlFor="contactValue">Value</Label>
+              <Input
+                id="contactValue"
+                value={contactValue}
+                onChange={(e) => setContactValue(e.target.value)}
+                placeholder={getPlaceholder(contactType)}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isPublic"
+                checked={contactPublic}
+                onCheckedChange={setContactPublic}
+              />
+              <Label htmlFor="isPublic">Make this contact public</Label>
+            </div>
+            
+            <div className="pt-2">
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting || (!isPremium && !isEditMode && contacts.length >= 3)}
+              >
+                {isSubmitting ? (
+                  isEditMode ? "Updating..." : "Adding..."
+                ) : (
+                  isEditMode ? (
+                    <><Save className="h-4 w-4 mr-2" />Update Contact</>
+                  ) : (
+                    <><Plus className="h-4 w-4 mr-2" />Add Contact</>
+                  )
+                )}
+              </Button>
+              
+              {!isPremium && !isEditMode && contacts.length >= 3 && (
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Upgrade to Premium to add more than 3 contacts
+                </p>
+              )}
+            </div>
+          </form>
+        </div>
 
-      <div className="flex justify-end gap-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={() => {
-            handleSuccess();
-            if (onCancel) onCancel();
-          }}
-        >
-          Done
-        </Button>
+        <div className="flex justify-end gap-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => {
+              handleSuccess();
+              if (onCancel) onCancel();
+            }}
+          >
+            Done
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
