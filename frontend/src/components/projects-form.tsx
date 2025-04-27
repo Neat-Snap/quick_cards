@@ -533,13 +533,13 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
                         <AvatarFallback>{getProjectInitials(project.name)}</AvatarFallback>
                       )}
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="font-medium">{project.name}</p>
                       {project.role && (
                         <p className="text-sm text-muted-foreground">{project.role}</p>
                       )}
                       {project.description && (
-                        <p className="text-sm mt-1 line-clamp-2 break-words">
+                        <p className="text-sm mt-1 line-clamp-1 text-ellipsis overflow-hidden">
                           {project.description}
                         </p>
                       )}

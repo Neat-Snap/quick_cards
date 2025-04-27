@@ -151,7 +151,9 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
           {project.description && (
             <div className="mb-4">
               <h3 className="text-sm font-medium mb-2">Description</h3>
-              <p className="text-sm text-muted-foreground">{project.description}</p>
+              <div className="max-h-[200px] overflow-y-auto rounded-md bg-muted/10 p-3">
+                <p className="text-sm text-muted-foreground">{project.description}</p>
+              </div>
             </div>
           )}
         </CardContent>
