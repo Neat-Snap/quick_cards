@@ -35,6 +35,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       try {
         // Load contacts
         const userContacts = await getUserContacts();
+        console.log("Loaded contacts in ContactForm:", userContacts);
         setContacts(userContacts);
         
         // Check premium status
@@ -92,9 +93,35 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         throw new Error(response.error || "Failed to add contact");
       }
       
+      console.log("Contact creation response:", response);
+      
       // Add the new contact to the list
-      if (response.user) {
-        setContacts([...contacts, response.user as unknown as Contact]);
+      // The API might return the new contact object in different formats
+      let newContact: Contact | undefined;
+
+      // First, safely check if response.user exists and is an object
+      if (response.user && typeof response.user === 'object') {
+        // Type assertion to tell TypeScript this is an object with possible properties
+        const userObj = response.user as Record<string, any>;
+        
+        // Check if it has an id property (direct contact object)
+        if ('id' in userObj) {
+          newContact = userObj as unknown as Contact;
+        } 
+        // Check if it has a contacts array
+        else if ('contacts' in userObj && Array.isArray(userObj.contacts) && userObj.contacts.length > 0) {
+          newContact = userObj.contacts[userObj.contacts.length - 1] as Contact;
+        }
+      }
+
+      if (newContact) {
+        console.log("Adding new contact to state:", newContact);
+        setContacts(prev => [...prev, newContact as Contact]);
+      } else {
+        // Fallback: reload all contacts
+        console.log("Reloading contacts after creation");
+        const updatedContacts = await getUserContacts();
+        setContacts(updatedContacts);
       }
       
       // Reset form
@@ -159,6 +186,14 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         return "https://youwebsite.com";
       default:
         return "Enter contact value";
+    }
+  };
+
+  // Handle form success - call onSuccess with updated contacts
+  const handleSuccess = () => {
+    if (onSuccess) {
+      console.log("Contact form calling onSuccess with updated contacts");
+      onSuccess();
     }
   };
 
@@ -271,7 +306,10 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         <Button 
           type="button" 
           variant="outline" 
-          onClick={onCancel}
+          onClick={() => {
+            handleSuccess();
+            if (onCancel) onCancel();
+          }}
         >
           Done
         </Button>

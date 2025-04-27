@@ -86,7 +86,10 @@ export default function Home() {
       setUserData(userData);
       
       // Check if user data contains nested objects and set them
-      if (userData.contacts) setContacts(userData.contacts as Contact[]);
+      if (userData.contacts) {
+        console.log("Setting contacts from user data:", userData.contacts);
+        setContacts(userData.contacts as Contact[]);
+      }
       if (userData.projects) setProjects(userData.projects as Project[]);
       if (userData.skills) setSkills(userData.skills as Skill[]);
       if (userData.custom_links) setCustomLinks(userData.custom_links as CustomLink[]);
@@ -100,21 +103,25 @@ export default function Home() {
         getUserLinks()
       ]);
       
+      console.log("Contacts data from dedicated endpoint:", contactsData);
+      
       // Only update state if data exists and wasn't already set from user object
-      if (contactsData.length > 0 && (!userData.contacts || userData.contacts.length === 0)) {
+      if (contactsData && contactsData.length > 0 && (!userData.contacts || userData.contacts.length === 0)) {
+        console.log("Setting contacts from dedicated endpoint");
         setContacts(contactsData);
       }
-      if (projectsData.length > 0 && (!userData.projects || userData.projects.length === 0)) {
+      if (projectsData && projectsData.length > 0 && (!userData.projects || userData.projects.length === 0)) {
         setProjects(projectsData);
       }
-      if (skillsData.length > 0 && (!userData.skills || userData.skills.length === 0)) {
+      if (skillsData && skillsData.length > 0 && (!userData.skills || userData.skills.length === 0)) {
         setSkills(skillsData);
       }
-      if (linksData.length > 0 && (!userData.custom_links || userData.custom_links.length === 0)) {
+      if (linksData && linksData.length > 0 && (!userData.custom_links || userData.custom_links.length === 0)) {
         setCustomLinks(linksData);
       }
       
       console.log("User data loaded successfully:", userData);
+      console.log("Contacts state:", contacts);
     } catch (error) {
       console.error("Error loading user data:", error);
       toast({
@@ -128,24 +135,22 @@ export default function Home() {
   };
   
   // Handle successful edit
-  // Handle successful edit
-// Handle successful edit
-const handleEditSuccess = async () => {
-  try {
-    console.log("Edit success triggered, reloading user data...");
-    
-    // First close the edit section to provide immediate feedback
-    setEditSection(null);
-    
-    // Then reload user data in the background
-    await loadUserData();
-    
-    console.log("User data reloaded successfully");
-  } catch (error) {
-    console.error("Error refreshing data after edit:", error);
-    setEditSection(null); // Ensure we still close the edit section even if reload fails
-  }
-};
+  const handleEditSuccess = async () => {
+    try {
+      console.log("Edit success triggered, reloading user data...");
+      
+      // First close the edit section to provide immediate feedback
+      setEditSection(null);
+      
+      // Then reload user data in the background
+      await loadUserData();
+      
+      console.log("User data reloaded successfully");
+    } catch (error) {
+      console.error("Error refreshing data after edit:", error);
+      setEditSection(null); // Ensure we still close the edit section even if reload fails
+    }
+  };
   
   // Handle search
   const handleSearch = async () => {
@@ -176,6 +181,14 @@ const handleEditSuccess = async () => {
   // Back to search results
   const backToSearch = () => {
     setSelectedUser(null);
+  };
+
+  // Debug function to check contacts data
+  const debugInfo = () => {
+    console.log("Current contacts:", contacts);
+    console.log("Current projects:", projects);
+    console.log("Current skills:", skills);
+    console.log("Current links:", customLinks);
   };
   
   return (
@@ -221,7 +234,11 @@ const handleEditSuccess = async () => {
                       <Button 
                         variant="outline" 
                         className="flex items-center justify-center gap-2"
-                        onClick={() => setEditSection("contact")}
+                        onClick={() => {
+                          setEditSection("contact");
+                          // Debug log
+                          debugInfo();
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                         Edit Contact Info
@@ -264,10 +281,6 @@ const handleEditSuccess = async () => {
                       <X className="h-5 w-5" />
                     </Button>
                   </div>
-
-                  {/* <div className="text-xs text-muted-foreground mb-2">
-                    {userData ? `User data loaded: ${userData.first_name}` : 'User data not available'}
-                  </div> */}
                   
                   {/* Render only the specific section of the form based on editSection */}
                   <Card>
@@ -376,7 +389,7 @@ const handleEditSuccess = async () => {
                               {user.avatar_url ? (
                                 <img src={user.avatar_url} alt={user.username} className="h-full w-full object-cover" />
                               ) : (
-                                <span>{user.first_name.charAt(0)}{user.last_name?.charAt(0)}</span>
+                                <span>{user.first_name?.charAt(0) || ''}{user.last_name?.charAt(0) || ''}</span>
                               )}
                             </div>
                             <div>

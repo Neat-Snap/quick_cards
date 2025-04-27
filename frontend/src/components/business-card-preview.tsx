@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,7 +8,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { User, Project, Skill, Contact, CustomLink } from "@/lib/api";
-import { ExternalLink, Mail, Phone, MessageCircle } from "lucide-react";
+import { ExternalLink, Mail, Phone, MessageCircle, Info } from "lucide-react";
+import { ScrollableSection, ScrollableStyles } from "@/components/scrollable-section";
+import { ItemDetailView } from "@/components/item-detail-view";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
 
@@ -49,8 +51,13 @@ export function BusinessCardPreview({
   skills = [],
   customLinks = []
 }: BusinessCardPreviewProps) {
+  // State for detail view modals
+  const [activeDetail, setActiveDetail] = useState<{
+    type: 'contact' | 'project' | 'skill';
+    data: any;
+  } | null>(null);
+
   // Default values for rendering if user is null
-  // In business-card-preview.tsx, update these lines:
   const fullName = user?.name || "Your Name";
   const firstName = user?.first_name || (user?.name ? user.name.split(' ')[0] : "Your");
   const lastName = user?.last_name || (user?.name && user.name.split(' ').length > 1 ? user.name.split(' ')[1] : "Name");
@@ -77,7 +84,7 @@ export function BusinessCardPreview({
       };
     }
     
-    // Default to a dark color instead of using background_color which might be undefined
+    // Default to a dark color
     return { backgroundColor: "#1e293b" };
   };
 
@@ -95,104 +102,170 @@ export function BusinessCardPreview({
     }
   };
 
-  return (
-    <Card className="overflow-hidden" style={getBackgroundStyle()}>
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center">
-          <Avatar className="h-24 w-24 mb-4 border-4 border-white">
-            <AvatarImage 
-              src={getAvatarUrl(user?.avatar_url)} 
-              alt={`${fullName}`} 
+  // Handle opening detail view
+  const openDetail = (type: 'contact' | 'project' | 'skill', data: any) => {
+    setActiveDetail({ type, data });
+  };
+
+  // Handle closing detail view
+  const closeDetail = () => {
+    setActiveDetail(null);
+  };
+
+  // Render contact card item
+  const renderContactCard = (contact: Contact) => (
+    <div 
+      key={contact.id} 
+      className="bg-white/10 rounded-lg p-3 min-w-[120px] cursor-pointer hover:bg-white/20 transition-colors"
+      onClick={() => openDetail('contact', contact)}
+    >
+      <div className="flex flex-col items-center text-center">
+        {getContactIcon(contact.type)}
+        <p className="mt-2 text-xs font-medium text-white capitalize">{contact.type}</p>
+        <p className="text-xs text-white/80 truncate max-w-[100px]">{contact.value}</p>
+      </div>
+    </div>
+  );
+
+  // Render custom link card item
+  const renderLinkCard = (link: CustomLink) => (
+    <a
+      key={link.id}
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="bg-white/10 rounded-lg p-3 min-w-[120px] hover:bg-white/20 transition-colors"
+    >
+      <div className="flex flex-col items-center text-center">
+        <ExternalLink className="h-4 w-4 text-white/70" />
+        <p className="mt-2 text-xs font-medium text-white truncate max-w-[100px]">{link.title}</p>
+      </div>
+    </a>
+  );
+
+  // Render skill card item
+  const renderSkillCard = (skill: Skill) => (
+    <div 
+      key={skill.id} 
+      className="bg-white/10 rounded-lg p-3 min-w-[120px] cursor-pointer hover:bg-white/20 transition-colors"
+      onClick={() => openDetail('skill', skill)}
+    >
+      <div className="flex flex-col items-center text-center">
+        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+          {skill.image_url ? (
+            <img 
+              src={skill.image_url} 
+              alt={skill.name} 
+              className="w-6 h-6"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(skill.name)}&size=48`;
+              }}
             />
-            <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
-          </Avatar>
-          
-          <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-2xl font-bold text-white">{fullName}</h2>
-            {user?.badge && (
-              <Badge variant="secondary">{user.badge}</Badge>
-            )}
-          </div>
-          
-          <p className="text-sm text-white/70 mb-4">@{username}</p>
-          
-          <p className="text-sm text-white/90 text-center mb-6">
-            {description}
-          </p>
-          
-          {/* Contacts Section */}
-          {contacts.length > 0 && (
-            <div className="w-full bg-white/10 rounded-lg p-3 mb-4">
-              <h3 className="text-sm font-medium text-white mb-2">Contact Info</h3>
-              <div className="space-y-2">
-                {contacts.map(contact => (
-                  <div key={contact.id} className="flex items-center gap-2">
-                    {getContactIcon(contact.type)}
-                    <span className="text-xs text-white/90">{contact.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          ) : (
+            <span className="text-xs text-white">{skill.name.charAt(0)}</span>
           )}
-          
-          {/* Custom Links Section */}
-          {customLinks.length > 0 && (
-            <div className="w-full bg-white/10 rounded-lg p-3 mb-4">
-              <h3 className="text-sm font-medium text-white mb-2">Links</h3>
-              <div className="space-y-2">
-                {customLinks.map(link => (
-                  <a 
-                    key={link.id} 
-                    href={link.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-white/90 hover:text-white"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    <span className="text-xs">{link.title}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Skills and Projects in a grid */}
-          <div className="grid grid-cols-1 gap-4 w-full">
-            {/* Skills Section */}
-            <div className="bg-white/10 rounded-lg p-3">
-              <h3 className="text-sm font-medium text-white mb-2">Skills</h3>
-              {skills.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {skills.map(skill => (
-                    <Badge key={skill.id} variant="outline" className="text-white border-white/30">
-                      {skill.name}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-white/70">No skills added yet</p>
+        </div>
+        <p className="mt-2 text-xs font-medium text-white">{skill.name}</p>
+      </div>
+    </div>
+  );
+
+  // Render project card item
+  const renderProjectCard = (project: Project) => (
+    <div 
+      key={project.id} 
+      className="bg-white/10 rounded-lg p-3 min-w-[160px] cursor-pointer hover:bg-white/20 transition-colors"
+      onClick={() => openDetail('project', project)}
+    >
+      <div className="flex flex-col">
+        <p className="text-xs font-semibold text-white">{project.name}</p>
+        {project.role && (
+          <p className="text-xs text-white/70 mt-1">{project.role}</p>
+        )}
+        {project.description && (
+          <p className="text-xs text-white/80 mt-2 line-clamp-2">{project.description}</p>
+        )}
+        <div className="flex justify-end mt-2">
+          <Info className="h-4 w-4 text-white/50" />
+        </div>
+      </div>
+    </div>
+  );
+
+  console.log("Rendering card with contacts:", contacts);
+
+  return (
+    <>
+      <ScrollableStyles />
+      <Card className="overflow-hidden" style={getBackgroundStyle()}>
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center">
+            {/* User Info Section */}
+            <Avatar className="h-24 w-24 mb-4 border-4 border-white">
+              <AvatarImage 
+                src={getAvatarUrl(user?.avatar_url)} 
+                alt={`${fullName}`} 
+              />
+              <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-2xl font-bold text-white">{fullName}</h2>
+              {user?.badge && (
+                <Badge variant="secondary">{user.badge}</Badge>
               )}
             </div>
             
-            {/* Projects Section */}
-            <div className="bg-white/10 rounded-lg p-3">
-              <h3 className="text-sm font-medium text-white mb-2">Projects</h3>
-              {projects.length > 0 ? (
-                <div className="space-y-2">
-                  {projects.map(project => (
-                    <div key={project.id} className="text-xs text-white/90">
-                      <div className="font-semibold">{project.name}</div>
-                      {project.role && <div className="text-white/70">{project.role}</div>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-white/70">No projects added yet</p>
-              )}
+            <p className="text-sm text-white/70 mb-4">@{username}</p>
+            
+            <p className="text-sm text-white/90 text-center mb-6">
+              {description}
+            </p>
+            
+            {/* Contacts Section - Horizontally Scrollable */}
+            <div className="w-full mb-4">
+              <ScrollableSection 
+                title="Contacts" 
+                emptyMessage="No contacts added yet"
+              >
+                {contacts.map(contact => renderContactCard(contact))}
+              </ScrollableSection>
+            </div>
+            
+            {/* Custom Links Section - If available */}
+            {customLinks && customLinks.length > 0 && (
+              <div className="w-full mb-4">
+                <ScrollableSection title="Links" emptyMessage="No links added yet">
+                  {customLinks.map(link => renderLinkCard(link))}
+                </ScrollableSection>
+              </div>
+            )}
+            
+            {/* Skills Section - Horizontally Scrollable */}
+            <div className="w-full mb-4">
+              <ScrollableSection title="Skills" emptyMessage="No skills added yet">
+                {skills.map(skill => renderSkillCard(skill))}
+              </ScrollableSection>
+            </div>
+            
+            {/* Projects Section - Horizontally Scrollable */}
+            <div className="w-full">
+              <ScrollableSection title="Projects" emptyMessage="No projects added yet">
+                {projects.map(project => renderProjectCard(project))}
+              </ScrollableSection>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Render detail view if active */}
+      {activeDetail && (
+        <ItemDetailView
+          type={activeDetail.type}
+          data={activeDetail.data}
+          onClose={closeDetail}
+        />
+      )}
+    </>
   );
 }
