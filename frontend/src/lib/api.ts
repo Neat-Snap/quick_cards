@@ -417,6 +417,20 @@ export async function deleteContact(contactId: number): Promise<ApiResponse<any>
   });
 }
 
+export async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Helper to check if a string is a data URL
+export function isDataUrl(url: string): boolean {
+  return !!url && url.startsWith('data:');
+}
+
 export async function updateContact(contactId: number, contact: Partial<Contact>): Promise<ApiResponse<Contact>> {
   return apiRequest<Contact>(`/v1/users/me/contacts/${contactId}`, {
     method: 'PATCH',

@@ -401,7 +401,7 @@ def create_project():
             description=data.get("description"),
             avatar_url=data.get("avatar_url"),
             role=data.get("role"),
-            url=data.get("url")
+            url=f"https://{data.get("url")}"
         )
         return jsonify(project_data), 201
     except Exception as e:
