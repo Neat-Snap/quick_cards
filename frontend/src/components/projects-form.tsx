@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Project, getUserProjects, createProject, updateProject, deleteProject, getPremiumStatus } from "@/lib/api";
-import { Trash2, Pencil, X, Save, Plus } from "lucide-react";
+import { Trash2, Edit, X, Save, Plus, Check, Image, Link, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ProjectsFormProps {
   userId: string | number;
@@ -23,55 +24,58 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   const [isPremium, setIsPremium] = useState(false);
   const [premiumTier, setPremiumTier] = useState(0);
   
-  // Form state for new project
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newProject, setNewProject] = useState({
-    name: "",
-    description: "",
-    role: "",
-    url: "",
-    avatar_url: ""
-  });
+  // Animation states
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [successId, setSuccessId] = useState<number | null>(null);
   
-  // Edit state
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    description: "",
-    role: "",
-    url: "",
-    avatar_url: ""
-  });
+  // Form mode state (add or edit)
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
   
-  // Loading state
+  // Project form state
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [projectRole, setProjectRole] = useState("");
+  const [projectUrl, setProjectUrl] = useState("");
+  const [projectAvatar, setProjectAvatar] = useState<File | null>(null);
+  const [projectAvatarUrl, setProjectAvatarUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Refs for form animation
+  const formRef = useRef<HTMLFormElement>(null);
   
   // Load projects and premium status on mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Load projects
-        const userProjects = await getUserProjects();
-        setProjects(userProjects);
-        
-        // Check premium status
+    loadProjects();
+  }, [userId]);
+
+  // Function to load projects - reused throughout the component
+  const loadProjects = async () => {
+    try {
+      console.log("Loading projects for user:", userId);
+      
+      // Load projects
+      const userProjects = await getUserProjects();
+      console.log("Projects loaded in ProjectsForm:", userProjects, "Count:", userProjects.length);
+      setProjects(userProjects);
+      
+      // Check premium status if we haven't already
+      if (!isPremium) {
         const premiumStatus = await getPremiumStatus();
         setIsPremium(premiumStatus.is_active);
         setPremiumTier(premiumStatus.premium_tier);
-      } catch (error) {
-        console.error("Error loading projects:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load your projects",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
       }
-    };
-    
-    loadData();
-  }, []);
+    } catch (error) {
+      console.error("Error loading project data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your projects",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Get max allowed projects based on premium tier
   const getMaxProjects = () => {
@@ -88,32 +92,81 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     return Infinity;
   };
   
-  // Reset form states
-  const resetForms = () => {
-    setNewProject({
-      name: "",
-      description: "",
-      role: "",
-      url: "",
-      avatar_url: ""
-    });
-    setEditForm({
-      name: "",
-      description: "",
-      role: "",
-      url: "",
-      avatar_url: ""
-    });
-    setEditingId(null);
-    setShowAddForm(false);
+  // Success animation handler
+  useEffect(() => {
+    if (successId !== null) {
+      const timer = setTimeout(() => {
+        setSuccessId(null);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [successId]);
+  
+  // Reset form state
+  const resetForm = () => {
+    setProjectName("");
+    setProjectDescription("");
+    setProjectRole("");
+    setProjectUrl("");
+    setProjectAvatar(null);
+    setProjectAvatarUrl("");
+    setIsEditMode(false);
+    setEditingProjectId(null);
+    
+    // Add animation class to form
+    if (formRef.current) {
+      formRef.current.classList.add('form-reset');
+      setTimeout(() => {
+        if (formRef.current) {
+          formRef.current.classList.remove('form-reset');
+        }
+      }, 300);
+    }
   };
   
-  // Handle adding a new project
-  const handleAddProject = async (e: React.FormEvent) => {
+  // Start editing a project
+  const startEditing = (project: Project) => {
+    setProjectName(project.name);
+    setProjectDescription(project.description || "");
+    setProjectRole(project.role || "");
+    setProjectUrl(project.url || "");
+    setProjectAvatarUrl(project.avatar_url || "");
+    setIsEditMode(true);
+    setEditingProjectId(project.id);
+    
+    // Add focus animation
+    if (formRef.current) {
+      formRef.current.classList.add('form-focus');
+      setTimeout(() => {
+        if (formRef.current) {
+          formRef.current.classList.remove('form-focus');
+        }
+      }, 300);
+    }
+  };
+  
+  // Cancel editing
+  const cancelEditing = () => {
+    resetForm();
+  };
+  
+  // Handle avatar file selection
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProjectAvatar(file);
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setProjectAvatarUrl(previewUrl);
+    }
+  };
+  
+  // Handle form submission (create or update)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate input
-    if (!newProject.name.trim()) {
+    if (!projectName.trim()) {
       toast({
         title: "Validation Error",
         description: "Project name is required",
@@ -122,9 +175,9 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       return;
     }
     
-    // Check if maximum projects reached
+    // Check if non-premium user is adding more than allowed
     const maxProjects = getMaxProjects();
-    if (projects.length >= maxProjects) {
+    if (!isEditMode && projects.length >= maxProjects) {
       toast({
         title: "Limit Reached",
         description: `You can only add up to ${maxProjects} projects with your current plan`,
@@ -136,94 +189,78 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setIsSubmitting(true);
     
     try {
-      const response = await createProject({
-        name: newProject.name.trim(),
-        description: newProject.description.trim(),
-        role: newProject.role.trim(),
-        url: newProject.url.trim(),
-        avatar_url: newProject.avatar_url.trim()
-      });
-      
-      if (!response.success) {
-        throw new Error(response.error || "Failed to add project");
+      if (isEditMode && editingProjectId) {
+        console.log(`Updating project with ID ${editingProjectId}`);
+        
+        // Update existing project
+        const response = await updateProject(editingProjectId, {
+          name: projectName.trim(),
+          description: projectDescription.trim(),
+          role: projectRole.trim(),
+          url: projectUrl.trim(),
+          avatar_url: projectAvatarUrl
+        });
+        
+        console.log("Update project response:", response);
+        
+        // Reload projects to get the updated list
+        await loadProjects();
+        
+        // Find the updated project to highlight
+        const updatedProjects = await getUserProjects();
+        const updatedProject = updatedProjects.find(p => p.id === editingProjectId);
+        
+        if (updatedProject) {
+          setSuccessId(updatedProject.id);
+        }
+        
+        toast({
+          title: "Project Updated",
+          description: "Your project has been updated successfully",
+          variant: "default",
+        });
+      } else {
+        // Create new project
+        console.log("Creating new project");
+        const response = await createProject({
+          name: projectName.trim(),
+          description: projectDescription.trim(),
+          role: projectRole.trim(),
+          url: projectUrl.trim(),
+          avatar_url: projectAvatarUrl
+        });
+        
+        console.log("Create project response:", response);
+        
+        // Reload projects to get the updated list
+        await loadProjects();
+        
+        // Find the newly created project to highlight
+        const updatedProjects = await getUserProjects();
+        const newProject = updatedProjects.find(p => 
+          p.name === projectName.trim() && 
+          (p.description === projectDescription.trim() || (!p.description && !projectDescription.trim()))
+        );
+        
+        if (newProject) {
+          setSuccessId(newProject.id);
+        }
+        
+        toast({
+          title: "Project Added",
+          description: "Your project has been added successfully",
+          variant: "default",
+        });
       }
       
-      // Add the new project to the list
-      if (response.user) {
-        setProjects([...projects, response.user as unknown as Project]);
-      }
+      // Reset form
+      resetForm();
       
-      // Reset form and hide it
-      resetForms();
-      
-      toast({
-        title: "Project Added",
-        description: "Your project has been added successfully",
-        variant: "default",
-      });
     } catch (error) {
-      console.error("Error adding project:", error);
+      console.error("Error handling project:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add project",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  // Handle updating a project
-  const handleUpdateProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!editingId) return;
-    
-    // Validate input
-    if (!editForm.name.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Project name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const response = await updateProject(editingId, {
-        name: editForm.name.trim(),
-        description: editForm.description.trim(),
-        role: editForm.role.trim(),
-        url: editForm.url.trim(),
-        avatar_url: editForm.avatar_url.trim()
-      });
-      
-      if (!response.success) {
-        throw new Error(response.error || "Failed to update project");
-      }
-      
-      // Update the project in the list
-      setProjects(projects.map(project => 
-        project.id === editingId 
-          ? { ...project, ...editForm }
-          : project
-      ));
-      
-      // Reset edit state
-      resetForms();
-      
-      toast({
-        title: "Project Updated",
-        description: "Your project has been updated successfully",
-        variant: "default",
-      });
-    } catch (error) {
-      console.error("Error updating project:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update project",
+        description: error instanceof Error ? error.message : "Failed to process project",
         variant: "destructive",
       });
     } finally {
@@ -233,23 +270,41 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   
   // Handle deleting a project
   const handleDeleteProject = async (projectId: number) => {
+    // Mark as deleting for animation
+    setDeletingId(projectId);
+    
     try {
-      const response = await deleteProject(projectId);
+      console.log(`Deleting project with ID ${projectId}`);
+      await deleteProject(projectId);
       
-      if ('error' in response) {
-        throw new Error(response.error || "Failed to delete project");
-      }
+      // Wait for animation, then remove from state
+      setTimeout(async () => {
+        // Remove from local state first for immediate feedback
+        setProjects(prevProjects => prevProjects.filter(project => project.id !== projectId));
+        
+        // If we were editing this project, reset the form
+        if (editingProjectId === projectId) {
+          resetForm();
+        }
+        
+        // Clear deleting state
+        setDeletingId(null);
+        
+        // Reload projects to ensure everything is in sync
+        await loadProjects();
+        
+        toast({
+          title: "Project Deleted",
+          description: "Your project has been deleted successfully",
+          variant: "default",
+        });
+      }, 300);
       
-      // Remove the project from the list
-      setProjects(projects.filter(project => project.id !== projectId));
-      
-      toast({
-        title: "Project Deleted",
-        description: "Your project has been deleted successfully",
-        variant: "default",
-      });
     } catch (error) {
       console.error("Error deleting project:", error);
+      // Reset deleting animation state
+      setDeletingId(null);
+      
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete project",
@@ -258,281 +313,284 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
   
-  // Start editing a project
-  const startEditing = (project: Project) => {
-    setEditingId(project.id);
-    setEditForm({
-      name: project.name,
-      description: project.description,
-      role: project.role,
-      url: project.url,
-      avatar_url: project.avatar_url
-    });
-    setShowAddForm(false);
+  // Handle form success - call onSuccess with updated projects
+  const handleSuccess = () => {
+    if (onSuccess) {
+      console.log("Project form calling onSuccess with updated projects");
+      onSuccess();
+    }
+  };
+
+  // Function to get initials from project name
+  const getProjectInitials = (name: string) => {
+    return name
+      .split(' ')
+      .slice(0, 2)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
   };
 
   if (loading) {
     return <div className="text-center py-8">Loading projects...</div>;
   }
 
+  const maxProjectsAllowed = getMaxProjects();
+
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-medium">Projects</h3>
-          <p className="text-sm text-muted-foreground">
-            Add projects you've worked on
-          </p>
-        </div>
-        <Separator />
-        
-        {/* Existing Projects */}
-        {projects.length > 0 ? (
-          <div className="space-y-4">
-            <h4 className="font-medium">Your Projects</h4>
-            {projects.map((project) => (
-              <div key={project.id} className="p-3 border rounded-md">
-                {editingId === project.id ? (
-                  // Edit form
-                  <form onSubmit={handleUpdateProject} className="space-y-3">
-                    <div className="flex justify-between">
-                      <h5 className="font-medium">Edit Project</h5>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditingId(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+    <>
+      <style jsx global>{`
+        .project-item {
+          transition: all 0.3s ease;
+        }
+        .deleting {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        .success {
+          background-color: rgba(132, 204, 22, 0.1);
+          border-color: rgba(132, 204, 22, 0.5);
+        }
+        .form-focus {
+          animation: highlight 0.3s ease;
+        }
+        .form-reset {
+          animation: fadeOut 0.2s ease;
+        }
+        @keyframes highlight {
+          0% { background-color: transparent; }
+          50% { background-color: rgba(59, 130, 246, 0.1); }
+          100% { background-color: transparent; }
+        }
+        @keyframes fadeOut {
+          0% { opacity: 1; }
+          50% { opacity: 0.5; }
+          100% { opacity: 1; }
+        }
+      `}</style>
+    
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-medium">Projects</h3>
+            <p className="text-sm text-muted-foreground">
+              Add up to {maxProjectsAllowed === Infinity ? "unlimited" : maxProjectsAllowed} projects to your profile
+            </p>
+          </div>
+          <Separator />
+          
+          {/* Existing Projects */}
+          {projects.length > 0 ? (
+            <div className="space-y-4">
+              <h4 className="font-medium">Your Projects ({projects.length})</h4>
+              <div className="max-h-80 overflow-y-auto pr-1">
+                {projects.map((project) => (
+                  <div 
+                    key={project.id} 
+                    className={`project-item flex items-start gap-3 p-3 border rounded-md mb-2 
+                      ${editingProjectId === project.id ? 'border-primary' : ''}
+                      ${deletingId === project.id ? 'deleting' : ''}
+                      ${successId === project.id ? 'success' : ''}
+                    `}
+                  >
+                    <Avatar className="h-10 w-10 mt-1">
+                      {project.avatar_url ? (
+                        <AvatarImage src={project.avatar_url} alt={project.name} />
+                      ) : (
+                        <AvatarFallback>{getProjectInitials(project.name)}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1 cursor-pointer" onClick={() => startEditing(project)}>
+                      <p className="font-medium">{project.name}</p>
+                      {project.role && (
+                        <p className="text-sm text-muted-foreground">{project.role}</p>
+                      )}
+                      {project.description && (
+                        <p className="text-sm mt-1 line-clamp-2">{project.description}</p>
+                      )}
+                      {project.url && (
+                        <p className="text-xs text-blue-500 mt-1 truncate">{project.url}</p>
+                      )}
                     </div>
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                      <Label htmlFor={`edit-name-${project.id}`}>Project Name *</Label>
-                      <Input
-                        id={`edit-name-${project.id}`}
-                        value={editForm.name}
-                        onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                        placeholder="Project name"
-                        required
-                      />
+                    <div className="flex gap-1">
+                      {successId === project.id ? (
+                        <div className="flex h-9 w-9 items-center justify-center text-green-500">
+                          <Check className="h-5 w-5" />
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => startEditing(project)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteProject(project.id)}
+                            disabled={deletingId === project.id}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </>
+                      )}
                     </div>
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                      <Label htmlFor={`edit-role-${project.id}`}>Your Role</Label>
-                      <Input
-                        id={`edit-role-${project.id}`}
-                        value={editForm.role}
-                        onChange={(e) => setEditForm({...editForm, role: e.target.value})}
-                        placeholder="e.g., Lead Developer"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                      <Label htmlFor={`edit-description-${project.id}`}>Description</Label>
-                      <Textarea
-                        id={`edit-description-${project.id}`}
-                        value={editForm.description}
-                        onChange={(e) => setEditForm({...editForm, description: e.target.value})}
-                        placeholder="Brief description of the project and your contribution"
-                        className="min-h-[80px]"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                      <Label htmlFor={`edit-url-${project.id}`}>Project URL</Label>
-                      <Input
-                        id={`edit-url-${project.id}`}
-                        value={editForm.url}
-                        onChange={(e) => setEditForm({...editForm, url: e.target.value})}
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                    
-                    <div className="flex justify-end gap-2 mt-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setEditingId(null)}
-                        disabled={isSubmitting}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? <Save className="h-4 w-4 mr-2" /> : "Save Changes"}
-                      </Button>
-                    </div>
-                  </form>
-                ) : (
-                  // Project display
-                  <div>
-                    <div className="flex justify-between">
-                      <h5 className="font-medium">{project.name}</h5>
-                      <div className="flex gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => startEditing(project)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteProject(project.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {project.role && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {project.role}
-                      </p>
-                    )}
-                    
-                    {project.description && (
-                      <p className="text-sm mt-2">
-                        {project.description}
-                      </p>
-                    )}
-                    
-                    {project.url && (
-                      <a
-                        href={project.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-500 hover:underline mt-2 inline-block"
-                      >
-                        Visit Project
-                      </a>
-                    )}
                   </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              No projects added yet. Add your first project below.
+            </div>
+          )}
+          
+          {/* Project Form - Add/Edit */}
+          {(!isEditMode && projects.length >= maxProjectsAllowed) ? (
+            <div className="text-center py-4 border rounded-md bg-muted/20">
+              <p className="text-sm text-muted-foreground mb-2">
+                You've reached the maximum number of projects for your plan ({maxProjectsAllowed}).
+              </p>
+              {premiumTier < 2 && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  onClick={() => window.location.href = '/#premium'}
+                >
+                  Upgrade to Premium
+                </Button>
+              )}
+            </div>
+          ) : (
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 pt-4 rounded-md">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">
+                  {isEditMode ? 'Edit Project' : 'Add New Project'}
+                </h4>
+                {isEditMode && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={cancelEditing}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
                 )}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-4 text-muted-foreground">
-            No projects added yet
-          </div>
-        )}
-        
-        {/* Add New Project Button */}
-        {!showAddForm && !editingId && (
-          <div className="pt-2">
-            <Button
-              type="button"
-              className="w-full"
-              onClick={() => setShowAddForm(true)}
-              disabled={projects.length >= getMaxProjects()}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Project
-            </Button>
-            
-            {projects.length >= getMaxProjects() && (
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                {premiumTier < 2
-                  ? "Upgrade to Premium to add more projects"
-                  : "You've reached the maximum number of projects for your plan"}
-              </p>
-            )}
-          </div>
-        )}
-        
-        {/* Add New Project Form */}
-        {showAddForm && !editingId && (
-          <form onSubmit={handleAddProject} className="space-y-4 border rounded-md p-4">
-            <div className="flex justify-between">
-              <h4 className="font-medium">Add New Project</h4>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowAddForm(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <Label htmlFor="project-name">Project Name *</Label>
-              <Input
-                id="project-name"
-                value={newProject.name}
-                onChange={(e) => setNewProject({...newProject, name: e.target.value})}
-                placeholder="Project name"
-                required
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <Label htmlFor="project-role">Your Role</Label>
-              <Input
-                id="project-role"
-                value={newProject.role}
-                onChange={(e) => setNewProject({...newProject, role: e.target.value})}
-                placeholder="e.g., Lead Developer"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <Label htmlFor="project-description">Description</Label>
-              <Textarea
-                id="project-description"
-                value={newProject.description}
-                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                placeholder="Brief description of the project and your contribution"
-                className="min-h-[80px]"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 gap-3">
-              <Label htmlFor="project-url">Project URL</Label>
-              <Input
-                id="project-url"
-                value={newProject.url}
-                onChange={(e) => setNewProject({...newProject, url: e.target.value})}
-                placeholder="https://example.com"
-              />
-            </div>
-            
-            <div className="flex justify-end gap-2 mt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowAddForm(false)}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Adding..." : "Add Project"}
-              </Button>
-            </div>
-          </form>
-        )}
-      </div>
+              
+              {/* Project Avatar */}
+              <div className="flex flex-col items-center gap-3 mb-2">
+                <Avatar className="h-20 w-20">
+                  {projectAvatarUrl ? (
+                    <AvatarImage src={projectAvatarUrl} alt={projectName} />
+                  ) : (
+                    <AvatarFallback>
+                      {projectName ? getProjectInitials(projectName) : 'PR'}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <Input
+                    id="project-avatar"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById('project-avatar')?.click()}
+                  >
+                    <Image className="h-4 w-4 mr-2" />
+                    {projectAvatarUrl ? 'Change Image' : 'Add Image'}
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <Label htmlFor="project-name">Project Name *</Label>
+                <Input
+                  id="project-name"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  placeholder="Enter project name"
+                  required
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <Label htmlFor="project-role">Your Role</Label>
+                <Input
+                  id="project-role"
+                  value={projectRole}
+                  onChange={(e) => setProjectRole(e.target.value)}
+                  placeholder="e.g., Lead Developer, Project Manager"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <Label htmlFor="project-description">Description</Label>
+                <Textarea
+                  id="project-description"
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
+                  placeholder="Brief description of this project"
+                  className="min-h-[80px]"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <Label htmlFor="project-url">Project URL</Label>
+                <Input
+                  id="project-url"
+                  value={projectUrl}
+                  onChange={(e) => setProjectUrl(e.target.value)}
+                  placeholder="https://example.com"
+                />
+              </div>
+              
+              <div className="pt-2">
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    isEditMode ? "Updating..." : "Adding..."
+                  ) : (
+                    isEditMode ? (
+                      <><Save className="h-4 w-4 mr-2" />Update Project</>
+                    ) : (
+                      <><Plus className="h-4 w-4 mr-2" />Add Project</>
+                    )
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
 
-      <div className="flex justify-end gap-2">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onCancel}
-        >
-          Done
-        </Button>
+        <div className="flex justify-end gap-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => {
+              handleSuccess();
+              if (onCancel) onCancel();
+            }}
+          >
+            Done
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
