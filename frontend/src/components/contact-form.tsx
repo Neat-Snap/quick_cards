@@ -151,12 +151,15 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     
     try {
       if (isEditMode && editingContactId) {
+        // Store the old ID for reference
+        const oldContactId = editingContactId;
+        
         // Update existing contact
         // Since your API doesn't have an updateContact function, we'll simulate by:
         // 1. Delete the existing contact
-        // 2. Create a new one with updated values
-        await deleteContact(editingContactId);
+        await deleteContact(oldContactId);
         
+        // 2. Create a new one with updated values
         const response = await createContact({
           type: contactType,
           value: contactValue.trim(),
@@ -167,19 +170,27 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           throw new Error(response.error || "Failed to update contact");
         }
         
-        // Extract the new contact from the response
-        const newContact = response.user as unknown as Contact;
+        // Reload contacts to ensure we have latest data
+        const updatedContacts = await getUserContacts();
         
-        // Update the contacts list
-        setContacts(prevContacts => {
-          // First filter out the old contact
-          const filteredContacts = prevContacts.filter(c => c.id !== editingContactId);
-          // Then add the new one
-          return [...filteredContacts, newContact];
-        });
+        // Find the newly created contact (it will be the most recent one with matching values)
+        const newContact = updatedContacts.find(c => 
+          c.type === contactType && 
+          c.value === contactValue.trim() &&
+          c.is_public === contactPublic
+        );
         
-        // Show success animation
-        setSuccessId(newContact.id);
+        if (newContact) {
+          console.log("Found updated contact:", newContact);
+          // Update the contacts list completely
+          setContacts(updatedContacts);
+          
+          // Show success animation on the new contact
+          setSuccessId(newContact.id);
+        } else {
+          console.log("Couldn't find the updated contact, using full reload");
+          setContacts(updatedContacts);
+        }
         
         toast({
           title: "Contact Updated",
@@ -198,14 +209,16 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           throw new Error(response.error || "Failed to add contact");
         }
         
-        // Extract the new contact from the response
-        const newContact = response.user as unknown as Contact;
+        // Reload contacts to ensure we have the latest
+        const updatedContacts = await getUserContacts();
+        setContacts(updatedContacts);
         
-        // Add the new contact to the list
-        setContacts(prevContacts => [...prevContacts, newContact]);
-        
-        // Show success animation
-        setSuccessId(newContact.id);
+        // Find the newly created contact to show success animation
+        // It will likely be the last one in the list
+        if (updatedContacts.length > 0) {
+          const newContact = updatedContacts[updatedContacts.length - 1];
+          setSuccessId(newContact.id);
+        }
         
         toast({
           title: "Contact Added",
@@ -235,16 +248,12 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setDeletingId(contactId);
     
     try {
-      const response = await deleteContact(contactId);
-      
-      if ('error' in response) {
-        throw new Error(response.error || "Failed to delete contact");
-      }
+      await deleteContact(contactId);
       
       // Wait a bit for the animation to finish
       setTimeout(() => {
-        // Remove the contact from the list
-        setContacts(contacts.filter(contact => contact.id !== contactId));
+        // Use the functional update form to ensure we have the latest state
+        setContacts(prevContacts => prevContacts.filter(contact => contact.id !== contactId));
         
         // If we were editing this contact, reset the form
         if (editingContactId === contactId) {
