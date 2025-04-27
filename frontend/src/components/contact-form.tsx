@@ -230,6 +230,8 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     return <div className="text-center py-8">Loading contact information...</div>;
   }
 
+  console.log("Contacts in ContactForm:", contacts);
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
