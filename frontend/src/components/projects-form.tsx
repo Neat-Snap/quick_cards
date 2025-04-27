@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { Project, getUserProjects, createProject, updateProject, deleteProject, getPremiumStatus, getCurrentUser } from "@/lib/api";
+import { Project, getUserProjects, createProject, updateProject, deleteProject, getPremiumStatus, getCurrentUser, fileToDataUrl } from "@/lib/api";
 import { Trash2, Edit, X, Save, Plus, Check, Image, Link, User, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -187,13 +187,24 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   };
   
   // Handle avatar file selection
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setProjectAvatar(file);
-      // Create preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setProjectAvatarUrl(previewUrl);
+      
+      try {
+        // Convert to Base64 data URL for persistence across page reloads
+        const dataUrl = await fileToDataUrl(file);
+        setProjectAvatarUrl(dataUrl);
+        
+        // Log success
+        console.log("Project image converted to persistent data URL");
+      } catch (error) {
+        console.error("Error converting project image to data URL:", error);
+        // Fallback to blob URL if conversion fails
+        const blobUrl = URL.createObjectURL(file);
+        setProjectAvatarUrl(blobUrl);
+      }
     }
   };
   
