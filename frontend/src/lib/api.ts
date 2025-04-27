@@ -378,6 +378,13 @@ export async function deleteContact(contactId: number): Promise<ApiResponse<any>
   });
 }
 
+export async function updateContact(contactId: number, contact: Partial<Contact>): Promise<ApiResponse<Contact>> {
+  return apiRequest<Contact>(`/v1/users/me/contacts/${contactId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(contact),
+  });
+}
+
 // Project functions
 export async function getUserProjects(): Promise<Project[]> {
   const response = await apiRequest<any>('/v1/users/me');

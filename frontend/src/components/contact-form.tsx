@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { Contact, getUserContacts, createContact, deleteContact, getPremiumStatus } from "@/lib/api";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit, X, Save, Plus } from "lucide-react";
 
 interface ContactFormProps {
   userId: string | number;
@@ -23,10 +23,14 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   
-  // New contact form state
-  const [newContactType, setNewContactType] = useState("email");
-  const [newContactValue, setNewContactValue] = useState("");
-  const [newContactPublic, setNewContactPublic] = useState(true);
+  // Form mode state (add or edit)
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingContactId, setEditingContactId] = useState<number | null>(null);
+  
+  // Contact form state
+  const [contactType, setContactType] = useState("email");
+  const [contactValue, setContactValue] = useState("");
+  const [contactPublic, setContactPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Load contacts and premium status on mount
@@ -56,12 +60,35 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     loadData();
   }, []);
   
-  // Handle adding a new contact
-  const handleAddContact = async (e: React.FormEvent) => {
+  // Reset form state
+  const resetForm = () => {
+    setContactType("email");
+    setContactValue("");
+    setContactPublic(true);
+    setIsEditMode(false);
+    setEditingContactId(null);
+  };
+  
+  // Start editing a contact
+  const startEditing = (contact: Contact) => {
+    setContactType(contact.type);
+    setContactValue(contact.value);
+    setContactPublic(contact.is_public);
+    setIsEditMode(true);
+    setEditingContactId(contact.id);
+  };
+  
+  // Cancel editing
+  const cancelEditing = () => {
+    resetForm();
+  };
+  
+  // Handle form submission (create or update)
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate input
-    if (!newContactType || !newContactValue.trim()) {
+    if (!contactType || !contactValue.trim()) {
       toast({
         title: "Validation Error",
         description: "Please provide both type and value for the contact",
@@ -70,8 +97,8 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       return;
     }
     
-    // Check if non-premium user already has 3 contacts
-    if (!isPremium && contacts.length >= 3) {
+    // Check if non-premium user is adding more than allowed
+    if (!isPremium && !isEditMode && contacts.length >= 3) {
       toast({
         title: "Premium Required",
         description: "You need Premium to add more than 3 contacts",
@@ -83,62 +110,59 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setIsSubmitting(true);
     
     try {
-      const response = await createContact({
-        type: newContactType,
-        value: newContactValue.trim(),
-        is_public: newContactPublic
-      });
-      
-      if (!response.success) {
-        throw new Error(response.error || "Failed to add contact");
-      }
-      
-      console.log("Contact creation response:", response);
-      
-      // Add the new contact to the list
-      // The API might return the new contact object in different formats
-      let newContact: Contact | undefined;
-
-      // First, safely check if response.user exists and is an object
-      if (response.user && typeof response.user === 'object') {
-        // Type assertion to tell TypeScript this is an object with possible properties
-        const userObj = response.user as Record<string, any>;
+      if (isEditMode && editingContactId) {
+        // Update existing contact
+        // Since your API doesn't have an updateContact function, we'll simulate by:
+        // 1. Delete the existing contact
+        // 2. Create a new one with updated values
+        await deleteContact(editingContactId);
         
-        // Check if it has an id property (direct contact object)
-        if ('id' in userObj) {
-          newContact = userObj as unknown as Contact;
-        } 
-        // Check if it has a contacts array
-        else if ('contacts' in userObj && Array.isArray(userObj.contacts) && userObj.contacts.length > 0) {
-          newContact = userObj.contacts[userObj.contacts.length - 1] as Contact;
+        const response = await createContact({
+          type: contactType,
+          value: contactValue.trim(),
+          is_public: contactPublic
+        });
+        
+        if (!response.success) {
+          throw new Error(response.error || "Failed to update contact");
         }
-      }
-
-      if (newContact) {
-        console.log("Adding new contact to state:", newContact);
-        setContacts(prev => [...prev, newContact as Contact]);
+        
+        toast({
+          title: "Contact Updated",
+          description: "Your contact information has been updated successfully",
+          variant: "default",
+        });
       } else {
-        // Fallback: reload all contacts
-        console.log("Reloading contacts after creation");
-        const updatedContacts = await getUserContacts();
-        setContacts(updatedContacts);
+        // Create new contact
+        const response = await createContact({
+          type: contactType,
+          value: contactValue.trim(),
+          is_public: contactPublic
+        });
+        
+        if (!response.success) {
+          throw new Error(response.error || "Failed to add contact");
+        }
+        
+        toast({
+          title: "Contact Added",
+          description: "Your contact information has been added successfully",
+          variant: "default",
+        });
       }
+      
+      // Reload contacts to get fresh data
+      const updatedContacts = await getUserContacts();
+      setContacts(updatedContacts);
       
       // Reset form
-      setNewContactType("email");
-      setNewContactValue("");
-      setNewContactPublic(true);
+      resetForm();
       
-      toast({
-        title: "Contact Added",
-        description: "Your contact information has been added successfully",
-        variant: "default",
-      });
     } catch (error) {
-      console.error("Error adding contact:", error);
+      console.error("Error handling contact:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add contact",
+        description: error instanceof Error ? error.message : "Failed to process contact",
         variant: "destructive",
       });
     } finally {
@@ -157,6 +181,11 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       
       // Remove the contact from the list
       setContacts(contacts.filter(contact => contact.id !== contactId));
+      
+      // If we were editing this contact, reset the form
+      if (editingContactId === contactId) {
+        resetForm();
+      }
       
       toast({
         title: "Contact Deleted",
@@ -213,44 +242,72 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         <Separator />
         
         {/* Existing Contacts */}
-        {contacts.length > 0 ? (
+        {contacts.length > 0 && (
           <div className="space-y-4">
             <h4 className="font-medium">Your Contacts</h4>
-            {contacts.map((contact) => (
-              <div key={contact.id} className="flex items-center justify-between p-3 border rounded-md">
-                <div>
-                  <p className="font-medium capitalize">
-                    {contact.type}
-                    {!contact.is_public && " (Private)"}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{contact.value}</p>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteContact(contact.id)}
+            <div className="max-h-64 overflow-y-auto pr-1">
+              {contacts.map((contact) => (
+                <div 
+                  key={contact.id} 
+                  className={`flex items-center justify-between p-3 border rounded-md mb-2 ${
+                    editingContactId === contact.id ? 'border-primary' : ''
+                  }`}
                 >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-4 text-muted-foreground">
-            No contact information added yet
+                  <div className="flex-1 cursor-pointer" onClick={() => startEditing(contact)}>
+                    <p className="font-medium capitalize">
+                      {contact.type}
+                      {!contact.is_public && " (Private)"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{contact.value}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => startEditing(contact)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteContact(contact.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
         
-        {/* Add New Contact Form */}
-        <form onSubmit={handleAddContact} className="space-y-4 pt-4">
-          <h4 className="font-medium">Add New Contact</h4>
+        {/* Contact Form - Add/Edit */}
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-medium">
+              {isEditMode ? 'Edit Contact' : 'Add New Contact'}
+            </h4>
+            {isEditMode && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={cancelEditing}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+            )}
+          </div>
           
           <div className="grid grid-cols-1 gap-3">
             <Label htmlFor="contactType">Contact Type</Label>
             <Select 
-              value={newContactType} 
-              onValueChange={setNewContactType}
+              value={contactType} 
+              onValueChange={setContactType}
             >
               <SelectTrigger id="contactType">
                 <SelectValue placeholder="Select contact type" />
@@ -269,17 +326,17 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
             <Label htmlFor="contactValue">Value</Label>
             <Input
               id="contactValue"
-              value={newContactValue}
-              onChange={(e) => setNewContactValue(e.target.value)}
-              placeholder={getPlaceholder(newContactType)}
+              value={contactValue}
+              onChange={(e) => setContactValue(e.target.value)}
+              placeholder={getPlaceholder(contactType)}
             />
           </div>
           
           <div className="flex items-center space-x-2">
             <Switch
               id="isPublic"
-              checked={newContactPublic}
-              onCheckedChange={setNewContactPublic}
+              checked={contactPublic}
+              onCheckedChange={setContactPublic}
             />
             <Label htmlFor="isPublic">Make this contact public</Label>
           </div>
@@ -288,12 +345,20 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={isSubmitting || (!isPremium && contacts.length >= 3)}
+              disabled={isSubmitting || (!isPremium && !isEditMode && contacts.length >= 3)}
             >
-              {isSubmitting ? "Adding..." : "Add Contact"}
+              {isSubmitting ? (
+                isEditMode ? "Updating..." : "Adding..."
+              ) : (
+                isEditMode ? (
+                  <><Save className="h-4 w-4 mr-2" />Update Contact</>
+                ) : (
+                  <><Plus className="h-4 w-4 mr-2" />Add Contact</>
+                )
+              )}
             </Button>
             
-            {!isPremium && contacts.length >= 3 && (
+            {!isPremium && !isEditMode && contacts.length >= 3 && (
               <p className="text-xs text-muted-foreground text-center mt-2">
                 Upgrade to Premium to add more than 3 contacts
               </p>
