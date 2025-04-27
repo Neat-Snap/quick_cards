@@ -307,6 +307,41 @@ def create_contact():
         logger.error(f"Error creating contact: {str(e)}")
         return jsonify({"error": f"Failed to create contact: {str(e)}"}), 500
 
+
+@users_bp.route("/users/me/contacts/<int:contact_id>", methods=["PATCH"])
+def update_contact(contact_id):
+    """Update a contact in user profile"""
+    user, error = get_authenticated_user()
+    if error:
+        return error
+    
+    # Get contact data
+    contact = get_contact_by_id(contact_id)
+    if not contact or contact.get("user_id") != user.id:
+        return jsonify({"error": "Contact not found"}), 404
+    
+    data = request.json
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    
+    # Update contact fields
+    update_fields = ["type", "value", "is_public"]
+    for field in update_fields:
+        if field in data:
+            contact[field] = data[field]
+    
+    # Set contact id to ensure we update the existing contact
+    contact["id"] = contact_id
+    
+    # Update contact
+    try:
+        updated_contact = set_contact_data(contact)
+        return jsonify(updated_contact)
+    except Exception as e:
+        logger.error(f"Error updating contact: {str(e)}")
+        return jsonify({"error": f"Failed to update contact: {str(e)}"}), 500
+
+
 @users_bp.route("/users/me/contacts/<int:contact_id>", methods=["DELETE"])
 def delete_contact(contact_id):
     """Delete a contact from user profile"""
@@ -433,6 +468,7 @@ def add_skill_to_user_endpoint(skill_id):
         return jsonify({"error": "Failed to add skill to user"}), 500
     
     return jsonify({"success": True, "skill": skill})
+    
 
 @users_bp.route("/users/me/skills/<int:skill_id>", methods=["DELETE"])
 def remove_skill_from_user_endpoint(skill_id):
