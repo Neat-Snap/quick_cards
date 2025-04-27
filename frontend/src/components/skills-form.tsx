@@ -27,6 +27,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [isPremium, setIsPremium] = useState(false);
   
   // Check premium status on mount
+  // Check premium status on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -36,7 +37,11 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         
         // Check premium status
         const premiumStatus = await getPremiumStatus();
-        setIsPremium(premiumStatus.is_active);
+        console.log("Premium status for skills:", premiumStatus);
+        
+        // Consider user as premium if their tier is > 0
+        // This ensures even if is_active has issues, the tier is respected
+        setIsPremium(premiumStatus.is_active || premiumStatus.premium_tier > 0);
       } catch (error) {
         console.error("Error loading skills data:", error);
         toast({
@@ -95,19 +100,25 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   
   // Handle adding a skill to user
   const handleAddSkill = async (skill: Skill) => {
-    if (!isPremium) {
-      toast({
-        title: "Premium Required",
-        description: "Skills are a premium feature. Please upgrade to add skills.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+    // Double-check premium status before adding
     try {
+      const premiumStatus = await getPremiumStatus();
+      const hasPremium = premiumStatus.is_active || premiumStatus.premium_tier > 0;
+      
+      if (!hasPremium) {
+        toast({
+          title: "Premium Required",
+          description: "Skills are a premium feature. Please upgrade to add skills.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log("Adding skill:", skill.name);
       const response = await addSkillToUser(skill.id);
       
       if (!response.success) {
+        console.error("Server response for adding skill:", response);
         throw new Error(response.error || "Failed to add skill");
       }
       
