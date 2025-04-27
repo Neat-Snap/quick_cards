@@ -222,17 +222,17 @@ export function BusinessCardPreview({
               {description}
             </p>
             
-            {/* Contacts Section - Horizontally Scrollable */}
-            <div className="w-full mb-4">
-              <ScrollableSection 
-                title="Contacts" 
-                emptyMessage="No contacts added yet"
-              >
-                {contacts.map(contact => renderContactCard(contact))}
-              </ScrollableSection>
-            </div>
+            {contacts && contacts.length > 0 && (
+              <div className="w-full mb-4">
+                <ScrollableSection 
+                  title="Contacts" 
+                  emptyMessage="No contacts added yet"
+                >
+                  {contacts.map(contact => renderContactCard(contact))}
+                </ScrollableSection>
+              </div>
+            )}
             
-            {/* Custom Links Section - If available */}
             {customLinks && customLinks.length > 0 && (
               <div className="w-full mb-4">
                 <ScrollableSection title="Links" emptyMessage="No links added yet">
@@ -241,19 +241,21 @@ export function BusinessCardPreview({
               </div>
             )}
             
-            {/* Skills Section - Horizontally Scrollable */}
-            <div className="w-full mb-4">
-              <ScrollableSection title="Skills" emptyMessage="No skills added yet">
-                {skills.map(skill => renderSkillCard(skill))}
-              </ScrollableSection>
-            </div>
+            {skills && skills.length > 0 && (
+              <div className="w-full mb-4">
+                <ScrollableSection title="Skills" emptyMessage="No skills added yet">
+                  {skills.map(skill => renderSkillCard(skill))}
+                </ScrollableSection>
+              </div>
+            )}
             
-            {/* Projects Section - Horizontally Scrollable */}
-            <div className="w-full">
-              <ScrollableSection title="Projects" emptyMessage="No projects added yet">
-                {projects.map(project => renderProjectCard(project))}
-              </ScrollableSection>
-            </div>
+            {projects && projects.length > 0 && (
+              <div className="w-full">
+                <ScrollableSection title="Projects" emptyMessage="No projects added yet">
+                  {projects.map(project => renderProjectCard(project))}
+                </ScrollableSection>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

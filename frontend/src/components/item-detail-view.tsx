@@ -42,6 +42,51 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
   // Rendering for contact details
   const renderContactDetail = () => {
     const contact = data as Contact;
+    
+    // Generate the appropriate button text and action based on contact type
+    const getContactButton = () => {
+      const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            // Show toast notification
+            alert("Copied to clipboard!");
+          })
+          .catch(err => {
+            console.error('Failed to copy: ', err);
+          });
+      };
+      
+      switch(contact.type.toLowerCase()) {
+        case 'email':
+          return {
+            text: 'Send Email',
+            action: () => window.location.href = `mailto:${contact.value}`
+          };
+        case 'phone':
+          return {
+            text: 'Copy Number',
+            action: () => copyToClipboard(contact.value)
+          };
+        case 'telegram':
+          return {
+            text: 'Open in Telegram',
+            action: () => window.location.href = `https://t.me/${contact.value.replace('@', '')}`
+          };
+        case 'website':
+          return {
+            text: 'Visit Website',
+            action: () => window.open(contact.value, '_blank')
+          };
+        default:
+          return {
+            text: 'Copy Value',
+            action: () => copyToClipboard(contact.value)
+          };
+      }
+    };
+    
+    const contactButton = getContactButton();
+    
     return (
       <>
         <CardHeader className="pb-4">
@@ -57,38 +102,22 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
         </CardHeader>
         <CardContent className="pb-2">
           <div className="py-2">
-            {contact.type === 'email' && (
-              <p className="text-sm text-muted-foreground">
-                Click the button below to send an email to this address.
-              </p>
-            )}
-            {contact.type === 'phone' && (
-              <p className="text-sm text-muted-foreground">
-                Click the button below to call this number.
-              </p>
-            )}
-            {contact.type === 'telegram' && (
-              <p className="text-sm text-muted-foreground">
-                Click the button below to open this profile in Telegram.
-              </p>
-            )}
-            {contact.type === 'website' && (
-              <p className="text-sm text-muted-foreground">
-                Click the button below to visit this website.
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground">
+              {contact.type === 'email' && 'Click the button below to send an email.'}
+              {contact.type === 'phone' && 'Click the button below to copy this number.'}
+              {contact.type === 'telegram' && 'Click the button below to open this profile in Telegram.'}
+              {contact.type === 'website' && 'Click the button below to visit this website.'}
+              {!['email', 'phone', 'telegram', 'website'].includes(contact.type.toLowerCase()) && 
+                'Click the button below to copy this information.'}
+            </p>
           </div>
         </CardContent>
         <CardFooter>
           <Button 
             className="w-full" 
-            onClick={() => handleContactAction(contact.type, contact.value)}
+            onClick={contactButton.action}
           >
-            {contact.type === 'email' && 'Send Email'}
-            {contact.type === 'phone' && 'Call Number'}
-            {contact.type === 'telegram' && 'Open in Telegram'}
-            {contact.type === 'website' && 'Visit Website'}
-            {!['email', 'phone', 'telegram', 'website'].includes(contact.type) && 'Contact'}
+            {contactButton.text}
           </Button>
         </CardFooter>
       </>
