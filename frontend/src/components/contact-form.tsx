@@ -83,7 +83,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     
     try {
       const response = await createContact({
-        contact_type: newContactType,
+        type: newContactType,
         value: newContactValue.trim(),
         is_public: newContactPublic
       });
@@ -185,7 +185,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
               <div key={contact.id} className="flex items-center justify-between p-3 border rounded-md">
                 <div>
                   <p className="font-medium capitalize">
-                    {contact.contact_type}
+                    {contact.type}
                     {!contact.is_public && " (Private)"}
                   </p>
                   <p className="text-sm text-muted-foreground">{contact.value}</p>

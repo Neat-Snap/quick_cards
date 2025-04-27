@@ -31,7 +31,7 @@ export interface User {
 export interface Contact {
   id: number;
   user_id: number | string;
-  contact_type: string;
+  type: string;
   value: string;
   is_public: boolean;
 }
