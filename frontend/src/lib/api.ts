@@ -509,13 +509,36 @@ export async function deleteCustomLink(linkId: number): Promise<ApiResponse<any>
 }
 
 // Premium functions
+// Premium functions
 export async function getPremiumStatus(): Promise<PremiumStatus> {
-  const response = await apiRequest<PremiumStatus>('/v1/premium/status');
-  if (response.success && response.user) {
-    return response.user as PremiumStatus;
+  try {
+    const response = await apiRequest<any>('/v1/premium/status');
+    console.log("Premium status response:", response);
+    
+    // If the response is successful and contains user data
+    if (response.success && response.user) {
+      return response.user as PremiumStatus;
+    }
+    
+    // Handle case where response might contain data directly
+    if (response && !response.success && !response.user) {
+      // Check if the response itself is the premium status
+      if (response.premium_tier !== undefined) {
+        // Ensure is_active is set correctly based on premium_tier
+        const premiumTier = response.premium_tier;
+        return {
+          ...response,
+          is_active: premiumTier > 0
+        };
+      }
+    }
+    
+    // Default value if the request fails or returns no data
+    return { premium_tier: 0, tier_name: 'Free', expires_at: null, is_active: false };
+  } catch (error) {
+    console.error("Error fetching premium status:", error);
+    return { premium_tier: 0, tier_name: 'Free', expires_at: null, is_active: false };
   }
-  // Default value if the request fails or returns no data
-  return { premium_tier: 0, tier_name: 'Free', expires_at: null, is_active: false };
 }
 
 export async function getPremiumTiers(): Promise<PremiumTier[]> {
