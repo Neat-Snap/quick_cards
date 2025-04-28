@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify, request, g
 import logging
 from datetime import datetime, timedelta
 from app.db.session import db
+from app.core.search import get_skill_search
 from app.db.models import User, Contact, Project, Skill, CustomLink
 import sys
 import os
@@ -506,14 +507,57 @@ def get_skills_endpoint():
     """Get all available skills or search for skills"""
     q = request.args.get("q")
     
-    # This endpoint would ideally use a search function from functions.py
-    # Since that's not available, we'll use db.session directly
-    
-    
     try:
         if q:
+            # If query is provided, use the skill search service
+            skill_search = get_skill_search()
+            skill_results = skill_search.search_skills(q)
+            
+            # If we have predefined skills, check if they exist in DB
+            if skill_results:
+                # Check which predefined skills already exist in the DB
+                existing_skills = db.session.query(Skill).filter(
+                    Skill.name.in_([skill['name'] for skill in skill_results])
+                ).all()
+                
+                # Create a mapping for quick lookup
+                existing_map = {skill.name.lower(): skill for skill in existing_skills}
+                
+                # Update search results with DB IDs if skills exist
+                for skill in skill_results:
+                    skill_name_lower = skill['name'].lower()
+                    if skill_name_lower in existing_map:
+                        db_skill = existing_map[skill_name_lower]
+                        skill['id'] = db_skill.id
+                        skill['image_url'] = db_skill.image_url or skill['image_url']
+                        skill['description'] = db_skill.description or skill['description']
+                
+                # Add DB skills to the start of results
+                db_skills = db.session.query(Skill).filter(
+                    Skill.name.ilike(f"%{q}%")
+                ).all()
+                
+                # Add DB skills that weren't in our predefined results
+                for db_skill in db_skills:
+                    if not any(s['id'] == db_skill.id for s in skill_results):
+                        skill_results.append({
+                            'id': db_skill.id,
+                            'name': db_skill.name,
+                            'description': db_skill.description,
+                            'image_url': db_skill.image_url,
+                            'is_predefined': False,
+                            'score': 0.7  # Give custom skills a reasonably high score
+                        })
+                
+                # Re-sort by score
+                skill_results.sort(key=lambda x: x['score'], reverse=True)
+                
+                return jsonify(skill_results)
+            
+            # If no predefined results, fall back to DB search
             skills = db.session.query(Skill).filter(Skill.name.ilike(f"%{q}%")).all()
         else:
+            # Without query, just return all skills from DB
             skills = db.session.query(Skill).all()
         
         return jsonify([
@@ -528,33 +572,162 @@ def get_skills_endpoint():
         logger.error(f"Error getting skills: {str(e)}")
         return jsonify({"error": f"Failed to get skills: {str(e)}"}), 500
 
-@users_bp.route("/users/me/links", methods=["POST"])
-def add_custom_link():
-    """Add a custom link to user profile"""
+@users_bp.route("/skills", methods=["POST"])
+def create_skill_endpoint():
+    """Create a new custom skill"""
     user, error = get_authenticated_user()
     if error:
         return error
     
+    # Check if user has premium for skills
+    user_data = get_user(user.id)
+    if user_data.get("premium_tier", 0) == 0:
+        return jsonify({"error": "Premium subscription required for skills"}), 403
+    
     data = request.json
-    if not data or "title" not in data or "url" not in data:
+    if not data or "name" not in data:
         return jsonify({"error": "Missing required fields"}), 400
     
-    # Check if user has premium for custom links
-    user_data = get_user(user.id)
-    if user_data.get("premium_tier", 0) < 2:  # Premium tier 2 required for custom links
-        return jsonify({"error": "Premium tier 2 required for custom links"}), 403
-    
-    # Create custom link
     try:
-        link_data = db_create_custom_link(
-            user_id=user.id,
-            title=data["title"],
-            url=data["url"]
+        # Check if a similar skill already exists
+        existing_skill = db.session.query(Skill).filter(
+            Skill.name.ilike(data['name'])
+        ).first()
+        
+        if existing_skill:
+            # If skill exists, just add it to the user
+            success = add_skill_to_user(user.id, existing_skill.id)
+            if not success:
+                return jsonify({"error": "Failed to add skill to user"}), 500
+            
+            return jsonify({
+                "success": True,
+                "message": "Existing skill added to user",
+                "skill": {
+                    "id": existing_skill.id,
+                    "name": existing_skill.name,
+                    "description": existing_skill.description,
+                    "image_url": existing_skill.image_url
+                }
+            })
+        
+        # Check if this is a predefined skill
+        skill_search = get_skill_search()
+        predefined_skill = skill_search.get_predefined_skill(data['name'])
+        
+        if predefined_skill:
+            # Create the predefined skill in the DB
+            new_skill = Skill(
+                name=predefined_skill['name'],
+                description=predefined_skill.get('description') or data.get('description', ''),
+                image_url=predefined_skill.get('image_url') or data.get('image_url', '')
+            )
+            db.session.add(new_skill)
+            db.session.flush()  # Get the ID without committing
+            
+            # Add the skill to the user
+            user_skill = user_skills.insert().values(
+                user_id=user.id,
+                skill_id=new_skill.id
+            )
+            db.session.execute(user_skill)
+            db.session.commit()
+            
+            return jsonify({
+                "success": True,
+                "message": "Predefined skill created and added to user",
+                "skill": {
+                    "id": new_skill.id,
+                    "name": new_skill.name,
+                    "description": new_skill.description,
+                    "image_url": new_skill.image_url
+                }
+            })
+        
+        # Create a new custom skill
+        new_skill = Skill(
+            name=data['name'],
+            description=data.get('description', ''),
+            image_url=data.get('image_url', '')
         )
-        return jsonify(link_data), 201
+        db.session.add(new_skill)
+        db.session.flush()  # Get the ID without committing
+        
+        # Add the skill to the user
+        user_skill = user_skills.insert().values(
+            user_id=user.id,
+            skill_id=new_skill.id
+        )
+        db.session.execute(user_skill)
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": "Custom skill created and added to user",
+            "skill": {
+                "id": new_skill.id,
+                "name": new_skill.name,
+                "description": new_skill.description,
+                "image_url": new_skill.image_url
+            }
+        })
     except Exception as e:
-        logger.error(f"Error creating custom link: {str(e)}")
-        return jsonify({"error": f"Failed to create custom link: {str(e)}"}), 500
+        db.session.rollback()
+        logger.error(f"Error creating skill: {str(e)}")
+        return jsonify({"error": f"Failed to create skill: {str(e)}"}), 500
+
+@users_bp.route("/skills/upload-image", methods=["POST"])
+def upload_skill_image():
+    """Upload a skill image"""
+    user, error = get_authenticated_user()
+    if error:
+        return error
+    
+    # Check if user has premium for skills
+    user_data = get_user(user.id)
+    if user_data.get("premium_tier", 0) == 0:
+        return jsonify({"error": "Premium subscription required for skills"}), 403
+    
+    # Check if file is in the request
+    if 'file' not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+        
+    file = request.files['file']
+    
+    # Check if the file has a name
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+        
+    # Check if the file is allowed
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
+    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({"error": "File type not allowed"}), 400
+    
+    # Create the skills directory if it doesn't exist
+    skills_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'files', 'skills')
+    os.makedirs(skills_path, exist_ok=True)
+    
+    # Generate a unique filename
+    import uuid
+    file_uuid = str(uuid.uuid4())
+    extension = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"{file_uuid}.{extension}"
+    file_path = os.path.join(skills_path, filename)
+    
+    try:
+        file.save(file_path)
+        
+        # Return the URL to the uploaded image
+        image_url = f"/files/skills/{filename}"
+        
+        return jsonify({
+            "success": True,
+            "image_url": image_url
+        })
+    except Exception as e:
+        logger.error(f"Error saving skill image: {str(e)}")
+        return jsonify({"error": f"Failed to save skill image: {str(e)}"}), 500
+
 
 @users_bp.route("/users/me/links/<int:link_id>", methods=["DELETE"])
 def delete_custom_link(link_id):

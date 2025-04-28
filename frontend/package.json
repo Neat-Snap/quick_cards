@@ -29,7 +29,8 @@
     "react-dom": "18.2.0",
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
-    "@radix-ui/react-toast": "^1.1.5"
+    "@radix-ui/react-toast": "^1.1.5",
+    "simple-icons": "^9.19.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
