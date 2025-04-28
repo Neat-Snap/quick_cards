@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Contact, Project, Skill } from "@/lib/api";
 import { X, Mail, Phone, MessageCircle, ExternalLink, ArrowLeft } from "lucide-react";
+import { getSkillIconUrl } from "@/lib/SkillIconHelper";
 
 interface ItemDetailViewProps {
   type: 'contact' | 'project' | 'skill';
@@ -176,26 +177,35 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
   // Rendering for skill details
   const renderSkillDetail = () => {
     const skill = data as Skill;
+    
+    // Get icon for this skill
+    const iconUrl = getSkillIconUrl(skill);
+    
     return (
       <>
         <CardHeader>
           <CardTitle>{skill.name}</CardTitle>
         </CardHeader>
         <CardContent>
-          {skill.image_url && (
-            <div className="mb-4 flex justify-center">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+          <div className="mb-4 flex justify-center">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+              {iconUrl ? (
                 <img 
-                  src={skill.image_url} 
+                  src={iconUrl} 
                   alt={skill.name} 
                   className="w-full h-full object-cover" 
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(skill.name)}&size=128`;
+                    // Fallback to name initials if image fails to load
+                    (e.target as HTMLImageElement).style.display = 'none';
+                    (e.target as HTMLImageElement).parentElement!.innerHTML = 
+                      `<span class="text-xl font-medium">${skill.name.substring(0, 2).toUpperCase()}</span>`;
                   }}
                 />
-              </div>
+              ) : (
+                <span className="text-xl font-medium">{skill.name.substring(0, 2).toUpperCase()}</span>
+              )}
             </div>
-          )}
+          </div>
           
           {skill.description && (
             <div>
