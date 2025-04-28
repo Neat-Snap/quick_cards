@@ -73,8 +73,23 @@ class Skill(db.Model):
     name = db.Column(db.String, unique=True)
     description = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.String, nullable=True)
+    is_predefined = Column(Boolean, default=False)
     
     users = db.relationship("User", secondary=user_skill, back_populates="skills")
+
+    def __repr__(self):
+        return f"<Skill(id={self.id}, name='{self.name}')>"
+    
+    def to_dict(self):
+        """Convert model to dictionary"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "image_url": self.image_url,
+            "category": self.category,
+            "is_predefined": self.is_predefined
+        }
 
 
 class CustomLink(db.Model):
