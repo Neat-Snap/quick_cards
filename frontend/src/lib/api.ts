@@ -47,12 +47,14 @@ export interface Project {
   url: string;
 }
 
-// Skill interface
 export interface Skill {
-  id: number;
+  id: number | null;  // Allow null for predefined skills that aren't in DB yet
   name: string;
-  description: string;
-  image_url: string;
+  description?: string;
+  image_url?: string;
+  category?: string;
+  is_predefined?: boolean;
+  score?: number;  // For search results sorting
 }
 
 // Custom Link interface

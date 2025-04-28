@@ -7,10 +7,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-import { Skill, getUserSkills, searchSkills, addSkillToUser, removeSkillFromUser, getPremiumStatus } from "@/lib/api";
-import { X, Search, Plus } from "lucide-react";
+import { 
+  Skill, 
+  getUserSkills, 
+  searchSkills, 
+  addSkillToUser, 
+  removeSkillFromUser, 
+  getPremiumStatus, 
+  createCustomSkill, 
+  uploadSkillImage, 
+  fileToDataUrl 
+} from "@/lib/api";
+import { X, Search, Plus, Check, ArrowRight, Upload, Loader2 } from "lucide-react";
 import debounce from 'lodash/debounce';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+// import * as SimpleIcons from 'simple-icons';
 
 interface SkillsFormProps {
   userId: string | number;
@@ -56,9 +70,8 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     
     loadData();
   }, []);
-  
-  // Debounced search function
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim()) {
@@ -69,10 +82,17 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       
       try {
         const results = await searchSkills(query.trim());
+        console.log("Search results for", query, ":", results);
         
         // Filter out skills that user already has
         const filteredResults = results.filter(skill => 
-          !userSkills.some(userSkill => userSkill.id === skill.id)
+          !userSkills.some(userSkill => {
+            // Compare by ID if available, otherwise by name
+            if (skill.id && userSkill.id) {
+              return userSkill.id === skill.id;
+            }
+            return userSkill.name.toLowerCase() === skill.name.toLowerCase();
+          })
         );
         
         setSearchResults(filteredResults);
@@ -100,12 +120,13 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   
   // Handle adding a skill to user
   const handleAddSkill = async (skill: Skill) => {
-    // Double-check premium status before adding
     try {
+      // Double-check premium status before adding
       const premiumStatus = await getPremiumStatus();
-      const hasPremium = premiumStatus.is_active || premiumStatus.premium_tier > 0;
+      const hasPremium = premiumStatus.premium_tier > 0;
       
       if (!hasPremium) {
+        console.error("Cannot add skill - user does not have premium");
         toast({
           title: "Premium Required",
           description: "Skills are a premium feature. Please upgrade to add skills.",
@@ -114,12 +135,50 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         return;
       }
       
-      console.log("Adding skill:", skill.name);
+      console.log("Adding skill:", skill.name, "with ID:", skill.id);
+      
+      // Check if skill has a valid ID (not null or undefined)
+      if (skill.id === null || skill.id === undefined) {
+        console.log("Skill has no ID - creating custom skill instead");
+        // If skill has no ID, we need to create it first using createCustomSkill
+        const createResponse = await createCustomSkill({
+          name: skill.name,
+          description: skill.description || "",
+          image_url: skill.image_url || ""
+        });
+        
+        if (!createResponse.success) {
+          throw new Error(createResponse.error || "Failed to create skill");
+        }
+        
+        console.log("Custom skill created successfully:", createResponse);
+        
+        // Use the newly created skill data
+        const newSkill = createResponse.user as Skill;
+        
+        // Add skill to user skills
+        setUserSkills([...userSkills, newSkill]);
+        
+        // Remove skill from search results
+        setSearchResults(searchResults.filter(s => s.name !== skill.name));
+        
+        toast({
+          title: "Skill Added",
+          description: `${skill.name} has been added to your profile`,
+          variant: "default",
+        });
+        
+        return;
+      }
+      
+      // Normal flow for skills with valid IDs
       const response = await addSkillToUser(skill.id);
       
-      if (!response.success) {
-        console.error("Server response for adding skill:", response);
-        throw new Error(response.error || "Failed to add skill");
+      console.log("Server response for adding skill:", response);
+      
+      // Check for error in response
+      if (response.error) {
+        throw new Error(response.error);
       }
       
       // Add skill to user skills
@@ -144,7 +203,18 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   };
   
   // Handle removing a skill from user
-  const handleRemoveSkill = async (skillId: number) => {
+  const handleRemoveSkill = async (skillId: number | null) => {
+    // If skill ID is null, we can't remove it through the API
+    if (skillId === null) {
+      console.error("Cannot remove skill with null ID");
+      toast({
+        title: "Error",
+        description: "Cannot remove this skill. It has no valid ID.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const response = await removeSkillFromUser(skillId);
       
@@ -232,14 +302,30 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
           {userSkills.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {userSkills.map(skill => (
-                <Badge key={skill.id} variant="secondary" className="px-3 py-1 flex items-center gap-1">
+                <Badge 
+                  // Use string for key to avoid null issues - combine id and name for uniqueness
+                  key={`skill-${skill.id || ''}-${skill.name}`} 
+                  variant="secondary" 
+                  className="px-3 py-1 flex items-center gap-1"
+                >
                   {skill.name}
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="h-4 w-4 ml-1 hover:bg-destructive/10"
-                    onClick={() => handleRemoveSkill(skill.id)}
+                    onClick={() => {
+                      // Only call removeSkill if ID is not null
+                      if (skill.id !== null) {
+                        handleRemoveSkill(skill.id);
+                      } else {
+                        toast({
+                          title: "Cannot Remove",
+                          description: "This skill cannot be removed because it has no ID",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
                   >
                     <X className="h-3 w-3" />
                   </Button>
