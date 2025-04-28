@@ -152,11 +152,11 @@ export function BusinessCardPreview({
     return (
       <div 
         key={skill.id} 
-        className="bg-white/10 rounded-lg p-3 min-w-[120px] cursor-pointer hover:bg-white/20 transition-colors"
+        className="bg-white/20 backdrop-blur-sm rounded-lg p-3 min-w-[120px] cursor-pointer hover:bg-white/30 transition-colors"
         onClick={() => openDetail('skill', skill)}
       >
         <div className="flex flex-col items-center text-center">
-          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-sm">
             {iconUrl ? (
               <img 
                 src={iconUrl} 
@@ -166,11 +166,11 @@ export function BusinessCardPreview({
                   // If image fails to load, show initials instead
                   (e.target as HTMLImageElement).style.display = 'none';
                   (e.target as HTMLImageElement).parentElement!.innerHTML = 
-                    `<span class="text-xs text-white">${skill.name.charAt(0)}</span>`;
+                    `<span class="text-xs font-medium">${skill.name.charAt(0).toUpperCase()}</span>`;
                 }}
               />
             ) : (
-              <span className="text-xs text-white">{skill.name.charAt(0)}</span>
+              <span className="text-xs font-medium">{skill.name.charAt(0).toUpperCase()}</span>
             )}
           </div>
           <p className="mt-2 text-xs font-medium text-white">{skill.name}</p>
