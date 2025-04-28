@@ -472,8 +472,39 @@ export async function getUserSkills(): Promise<Skill[]> {
 
 export async function searchSkills(query: string): Promise<Skill[]> {
   const response = await apiRequest<any>(`/v1/skills?q=${encodeURIComponent(query)}`);
-  // Fix: Return the array from the response, not the response object itself
-  return response.success && Array.isArray(response) ? response : [];
+  
+  // Direct array response
+  if (Array.isArray(response)) {
+    return response;
+  }
+  
+  // Response wrapped in 'user' property (our standard ApiResponse format)
+  if (response && response.success && response.user) {
+    // Check if user property is the array itself
+    if (Array.isArray(response.user)) {
+      return response.user;
+    }
+  }
+  
+  // Use type assertion for response to check for other possible properties
+  const responseObj = response as any;
+  
+  // Check for data in various possible locations
+  if (responseObj && typeof responseObj === 'object') {
+    // Check common property names for API responses
+    if (responseObj.data && Array.isArray(responseObj.data)) {
+      return responseObj.data;
+    }
+    if (responseObj.skills && Array.isArray(responseObj.skills)) {
+      return responseObj.skills;
+    }
+    if (responseObj.results && Array.isArray(responseObj.results)) {
+      return responseObj.results;
+    }
+  }
+
+  // Empty array as fallback
+  return [];
 }
 
 
@@ -487,6 +518,55 @@ export async function removeSkillFromUser(skillId: number): Promise<ApiResponse<
   return apiRequest<any>(`/v1/users/me/skills/${skillId}`, {
     method: 'DELETE',
   });
+}
+
+export async function createCustomSkill(skill: { 
+  name: string; 
+  description?: string; 
+  image_url?: string;
+}): Promise<ApiResponse<Skill>> {
+  return apiRequest<Skill>('/v1/skills', {
+    method: 'POST',
+    body: JSON.stringify(skill),
+  });
+}
+
+export async function uploadSkillImage(file: File): Promise<ApiResponse<{ image_url: string }>> {
+  // Create a FormData object to send the file
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  try {
+    const token = localStorage.getItem('authToken');
+    
+    // Use fetch directly for multipart/form-data
+    const response = await fetch(`${API_URL}/v1/skills/upload-image`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+      credentials: 'include'
+    });
+    
+    const data = await response.json();
+    console.log("Skill image upload response:", data);
+    
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || `Upload failed with status ${response.status}`
+      };
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Skill image upload error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error during upload'
+    };
+  }
 }
 
 // Custom links functions
