@@ -87,12 +87,14 @@ export interface ApiResponse<T> {
   success: boolean;
   error?: string;
   user?: T;
-  skill?: Skill;  // Added skill property for skill responses
+  skill?: Skill;  // Single skill response
+  skills?: Skill[];  // Array of skills response
   token?: string;
   is_new_user?: boolean;
   valid?: boolean;
   payment_url?: string;
   message?: string;  // Added message property for informational messages
+  image_url?: string; // Added for image upload responses
 }
 
 // Helper function to make API requests with proper error handling
@@ -608,10 +610,15 @@ export async function createCustomSkill(skill: {
   });
 }
 
-export async function uploadSkillImage(file: File): Promise<ApiResponse<{ image_url: string }>> {
+export async function uploadSkillImage(file: File, skillId?: number): Promise<ApiResponse<{ image_url: string }>> {
   // Create a FormData object to send the file
   const formData = new FormData();
   formData.append('file', file);
+  
+  // Add skill_id if provided
+  if (skillId) {
+    formData.append('skill_id', skillId.toString());
+  }
   
   try {
     const token = localStorage.getItem('authToken');
@@ -636,7 +643,10 @@ export async function uploadSkillImage(file: File): Promise<ApiResponse<{ image_
       };
     }
     
-    return data;
+    return {
+      success: true,
+      image_url: data.image_url
+    };
   } catch (error) {
     console.error("Skill image upload error:", error);
     return {

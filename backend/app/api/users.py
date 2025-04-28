@@ -739,18 +739,32 @@ def upload_skill_image():
     skills_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'files', 'skills')
     os.makedirs(skills_path, exist_ok=True)
     
-    # Generate a unique filename
-    import uuid
-    file_uuid = str(uuid.uuid4())
+    # Check if skill_id is provided in the request
+    skill_id = request.form.get("skill_id")
+    
+    # Generate filename based on user_id and optional skill_id
     extension = file.filename.rsplit('.', 1)[1].lower()
-    filename = f"{file_uuid}.{extension}"
+    
+    if skill_id:
+        # If skill_id is provided, use user_id_skill_id format
+        filename = f"{user.id}_{skill_id}.{extension}"
+    else:
+        # If no skill_id, use user_id_timestamp format for temporary images
+        import time
+        timestamp = int(time.time())
+        filename = f"{user.id}_{timestamp}.{extension}"
+    
     file_path = os.path.join(skills_path, filename)
     
     try:
+        # If file exists, remove it first
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            
         file.save(file_path)
         
         # Return the URL to the uploaded image
-        image_url = f"/files/skills/{filename}"
+        image_url = f"/v1/files/skills/{filename}"
         
         return jsonify({
             "success": True,

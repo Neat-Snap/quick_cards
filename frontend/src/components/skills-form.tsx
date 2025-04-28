@@ -396,42 +396,33 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       const previewUrl = await fileToDataUrl(file);
       setCustomSkillImageUrl(previewUrl);
       
-      // Now upload to server
-      const response = await uploadSkillImage(file);
+      // Now upload to server - pass skill_id if we're editing an existing skill
+      const skillId: number | undefined = undefined; // No editing mode in current implementation
+      const response = await uploadSkillImage(file, skillId);
       
       if (!response.success) {
         throw new Error(response.error || "Failed to upload image");
       }
       
-      // Get the image URL from the correct location in the response
-      let imageUrl: string | undefined;
-      
-      // Check various possible locations where the image URL might be
-      if (response.user && typeof response.user === 'object' && 'image_url' in response.user) {
-        // If it's in the user object
-        imageUrl = (response.user as any).image_url;
-      } else if (response.user && typeof response.user === 'string') {
-        // If the user property is directly the URL
-        imageUrl = response.user;
-      } else if ('image_url' in response) {
-        // If it's directly in the response
-        imageUrl = (response as any).image_url;
-      }
-      
-      if (!imageUrl) {
-        console.warn("Image uploaded successfully but URL not found in response:", response);
-        // Keep using the preview URL since upload succeeded
-        toast({
-          title: "Image Uploaded",
-          description: "Image uploaded successfully, but using local preview for display",
-          variant: "default",
-        });
-      } else {
-        // Update with the real URL from server
-        setCustomSkillImageUrl(imageUrl);
+      // Update with the URL directly from our response
+      if (response.image_url) {
+        // Construct the full URL to the image
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+        const fullImageUrl = `${apiUrl}${response.image_url}`;
+        
+        console.log("Setting skill image URL to:", fullImageUrl);
+        setCustomSkillImageUrl(fullImageUrl);
+        
         toast({
           title: "Image Uploaded",
           description: "Skill image uploaded successfully",
+          variant: "default",
+        });
+      } else {
+        console.warn("Image uploaded but no URL returned:", response);
+        toast({
+          title: "Image Uploaded",
+          description: "Image uploaded but using local preview",
           variant: "default",
         });
       }
@@ -585,16 +576,18 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                     variant="secondary" 
                     className="px-3 py-1 flex items-center gap-1"
                   >
-                    {/* Add skill icon */}
+                    {/* Add skill icon with white background */}
                     {iconUrl && (
-                      <img 
-                        src={iconUrl} 
-                        alt="" 
-                        className="w-3 h-3 mr-1"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
+                      <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={iconUrl} 
+                          alt="" 
+                          className="w-3 h-3"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
                     )}
                     {skill.name}
                     <Button

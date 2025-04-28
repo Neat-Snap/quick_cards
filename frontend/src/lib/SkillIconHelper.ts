@@ -193,11 +193,16 @@ export function getSkillIconDataUrl(skillName: string, size: number = 24): strin
   
   if (!icon) return null;
   
-  // Create SVG content
+  // Create SVG content with white circular background
   const color = `#${icon.hex}`;
   const svgContent = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}">
-      <path d="${icon.path}"/>
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24">
+      <!-- White circular background -->
+      <circle cx="12" cy="12" r="12" fill="white" />
+      <!-- Icon with padding (80% of size) -->
+      <g transform="translate(2.4, 2.4) scale(0.8)">
+        <path d="${icon.path}" fill="${color}"/>
+      </g>
     </svg>
   `.trim();
   
