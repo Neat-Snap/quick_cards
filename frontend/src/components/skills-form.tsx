@@ -18,7 +18,8 @@ import {
   getPremiumStatus, 
   createCustomSkill, 
   uploadSkillImage, 
-  fileToDataUrl 
+  fileToDataUrl,
+  getCurrentUser 
 } from "@/lib/api";
 import { X, Search, Plus, Check, ArrowRight, Upload, Loader2 } from "lucide-react";
 import debounce from 'lodash/debounce';
@@ -40,29 +41,68 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [searching, setSearching] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   
-  // Check premium status on mount
-  // Check premium status on mount
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Load user skills
-        const skills = await getUserSkills();
-        setUserSkills(skills);
+        setLoading(true);
         
-        // Check premium status
+        // Check premium status first
         const premiumStatus = await getPremiumStatus();
         console.log("Premium status for skills:", premiumStatus);
         
         // Consider user as premium if their tier is > 0
-        // This ensures even if is_active has issues, the tier is respected
-        setIsPremium(premiumStatus.is_active || premiumStatus.premium_tier > 0);
+        const hasPremium = premiumStatus.premium_tier > 0;
+        setIsPremium(hasPremium);
+        
+        if (hasPremium) {
+          console.log("User has premium (tier:", premiumStatus.premium_tier, "), skills feature is enabled");
+          
+          // Force-reload the user profile to get fresh skills data
+          try {
+            console.log("Fetching full user profile to get latest skills...");
+            const userResponse = await getCurrentUser();
+            
+            // Get the skills from the full user response
+            let loadedSkills: Skill[] = [];
+            
+            if (userResponse.success && userResponse.user && Array.isArray(userResponse.user.skills)) {
+              loadedSkills = userResponse.user.skills;
+              console.log(`Loaded ${loadedSkills.length} skills from user profile:`, loadedSkills);
+            } else {
+              // Fall back to direct skills endpoint
+              console.log("No skills in user profile, trying dedicated skills endpoint...");
+              loadedSkills = await getUserSkills();
+              console.log(`Loaded ${loadedSkills.length} skills from dedicated endpoint:`, loadedSkills);
+            }
+            
+            if (loadedSkills.length > 0) {
+              setUserSkills(loadedSkills);
+            } else {
+              console.log("No skills found for user");
+              setUserSkills([]);
+            }
+          } catch (skillsError) {
+            console.error("Error loading skills:", skillsError);
+            toast({
+              title: "Error",
+              description: "Failed to load your skills",
+              variant: "destructive",
+            });
+            setUserSkills([]);
+          }
+        } else {
+          console.log("User does not have premium, skills feature will be disabled");
+          setUserSkills([]);
+        }
       } catch (error) {
-        console.error("Error loading skills data:", error);
+        console.error("Error loading premium status:", error);
         toast({
           title: "Error",
-          description: "Failed to load your skills",
+          description: "Failed to check premium status",
           variant: "destructive",
         });
+        setIsPremium(false);
+        setUserSkills([]);
       } finally {
         setLoading(false);
       }
@@ -435,9 +475,17 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         <Button 
           type="button" 
           variant="outline" 
-          onClick={onCancel}
+          onClick={() => {
+            // Call onSuccess to refresh data before calling onCancel
+            if (onSuccess) {
+              onSuccess();
+            }
+            if (onCancel) {
+              onCancel();
+            }
+          }}
         >
-          Back
+          Done
         </Button>
       </div>
     </div>
