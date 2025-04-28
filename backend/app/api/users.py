@@ -4,12 +4,14 @@ import logging
 from datetime import datetime, timedelta
 from app.db.session import db
 from app.core.search import get_skill_search
-from app.db.models import User, Contact, Project, Skill, CustomLink
+from app.db.models import User, Contact, Project, Skill, CustomLink, user_skill
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
+
+from app.core.search import get_skill_search
 
 # Import all database functions from app.db package
 from app.db import (
@@ -622,74 +624,78 @@ def create_skill_endpoint():
         
         if existing_skill:
             # If skill exists, just add it to the user
-            success = add_skill_to_user(user.id, existing_skill.id)
-            if not success:
-                return jsonify({"error": "Failed to add skill to user"}), 500
-            
-            return jsonify({
-                "success": True,
-                "message": "Existing skill added to user",
-                "skill": {
-                    "id": existing_skill.id,
-                    "name": existing_skill.name,
-                    "description": existing_skill.description,
-                    "image_url": existing_skill.image_url
-                }
-            })
+            # Use SQLAlchemy directly instead of helper function
+            try:
+                # Check if the user already has this skill
+                existing_user_skill = db.session.query(user_skill).filter_by(
+                    user_id=user.id, skill_id=existing_skill.id
+                ).first()
+                
+                if not existing_user_skill:
+                    # Add the association
+                    db.session.execute(
+                        user_skill.insert().values(
+                            user_id=user.id,
+                            skill_id=existing_skill.id
+                        )
+                    )
+                    db.session.commit()
+                
+                return jsonify({
+                    "success": True,
+                    "message": "Existing skill added to user",
+                    "skill": {
+                        "id": existing_skill.id,
+                        "name": existing_skill.name,
+                        "description": existing_skill.description,
+                        "image_url": existing_skill.image_url
+                    }
+                })
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f"Error adding existing skill: {str(e)}")
+                return jsonify({"error": f"Failed to add skill: {str(e)}"}), 500
         
         # Check if this is a predefined skill
         skill_search = get_skill_search()
         predefined_skill = skill_search.get_predefined_skill(data['name'])
         
+        # Create a new skill (either from predefined data or custom)
         if predefined_skill:
             # Create the predefined skill in the DB
             new_skill = Skill(
                 name=predefined_skill['name'],
                 description=predefined_skill.get('description') or data.get('description', ''),
-                image_url=predefined_skill.get('image_url') or data.get('image_url', '')
+                image_url=predefined_skill.get('image_url') or data.get('image_url', ''),
+                is_predefined=True
             )
-            db.session.add(new_skill)
-            db.session.flush()  # Get the ID without committing
-            
-            # Add the skill to the user
-            user_skill = user_skills.insert().values(
-                user_id=user.id,
-                skill_id=new_skill.id
+            msg = "Predefined skill created and added to user"
+        else:
+            # Create a new custom skill
+            new_skill = Skill(
+                name=data['name'],
+                description=data.get('description', ''),
+                image_url=data.get('image_url', ''),
+                is_predefined=False
             )
-            db.session.execute(user_skill)
-            db.session.commit()
-            
-            return jsonify({
-                "success": True,
-                "message": "Predefined skill created and added to user",
-                "skill": {
-                    "id": new_skill.id,
-                    "name": new_skill.name,
-                    "description": new_skill.description,
-                    "image_url": new_skill.image_url
-                }
-            })
+            msg = "Custom skill created and added to user"
         
-        # Create a new custom skill
-        new_skill = Skill(
-            name=data['name'],
-            description=data.get('description', ''),
-            image_url=data.get('image_url', '')
-        )
+        # Add the skill to database
         db.session.add(new_skill)
         db.session.flush()  # Get the ID without committing
         
         # Add the skill to the user
-        user_skill = user_skills.insert().values(
-            user_id=user.id,
-            skill_id=new_skill.id
+        db.session.execute(
+            user_skill.insert().values(
+                user_id=user.id,
+                skill_id=new_skill.id
+            )
         )
-        db.session.execute(user_skill)
         db.session.commit()
         
         return jsonify({
             "success": True,
-            "message": "Custom skill created and added to user",
+            "message": msg,
             "skill": {
                 "id": new_skill.id,
                 "name": new_skill.name,
