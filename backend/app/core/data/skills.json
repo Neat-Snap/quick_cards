@@ -1,0 +1,562 @@
+{
+  "javascript": {
+    "name": "JavaScript",
+    "variations": [
+      "javascript",
+      "js"
+    ],
+    "category": "Programming",
+    "description": "High-level programming language essential for web development",
+    "icon_name": "javascript",
+    "is_predefined": true
+  },
+  "python": {
+    "name": "Python",
+    "variations": [
+      "python",
+      "py"
+    ],
+    "category": "Programming",
+    "description": "Versatile programming language with simple, readable syntax",
+    "icon_name": "python",
+    "is_predefined": true
+  },
+  "java": {
+    "name": "Java",
+    "variations": [
+      "java"
+    ],
+    "category": "Programming",
+    "description": "Object-oriented programming language for cross-platform applications",
+    "icon_name": "java",
+    "is_predefined": true
+  },
+  "c++": {
+    "name": "C++",
+    "variations": [
+      "c",
+      "c++"
+    ],
+    "category": "Programming",
+    "description": "Powerful programming language with high performance",
+    "icon_name": "cplusplus",
+    "is_predefined": true
+  },
+  "c#": {
+    "name": "C#",
+    "variations": [
+      "c",
+      "c#"
+    ],
+    "category": "Programming",
+    "description": "Microsoft programming language for .NET development",
+    "icon_name": "csharp",
+    "is_predefined": true
+  },
+  "php": {
+    "name": "PHP",
+    "variations": [
+      "php"
+    ],
+    "category": "Programming",
+    "description": "Server-side scripting language for web development",
+    "icon_name": "php",
+    "is_predefined": true
+  },
+  "swift": {
+    "name": "Swift",
+    "variations": [
+      "swift"
+    ],
+    "category": "Programming",
+    "description": "Apple's programming language for iOS, macOS, and more",
+    "icon_name": "swift",
+    "is_predefined": true
+  },
+  "kotlin": {
+    "name": "Kotlin",
+    "variations": [
+      "kotlin"
+    ],
+    "category": "Programming",
+    "description": "Modern programming language for Android development",
+    "icon_name": "kotlin",
+    "is_predefined": true
+  },
+  "ruby": {
+    "name": "Ruby",
+    "variations": [
+      "ruby"
+    ],
+    "category": "Programming",
+    "description": "Dynamic programming language focused on simplicity",
+    "icon_name": "ruby",
+    "is_predefined": true
+  },
+  "react": {
+    "name": "React",
+    "variations": [
+      "react"
+    ],
+    "category": "Frontend",
+    "description": "JavaScript library for building user interfaces",
+    "icon_name": "react",
+    "is_predefined": true
+  },
+  "angular": {
+    "name": "Angular",
+    "variations": [
+      "angular"
+    ],
+    "category": "Frontend",
+    "description": "Platform for building web applications",
+    "icon_name": "angular",
+    "is_predefined": true
+  },
+  "vue.js": {
+    "name": "Vue.js",
+    "variations": [
+      "vuejs",
+      "vue.js"
+    ],
+    "category": "Frontend",
+    "description": "Progressive JavaScript framework for UIs",
+    "icon_name": "vuedotjs",
+    "is_predefined": true
+  },
+  "django": {
+    "name": "Django",
+    "variations": [
+      "django"
+    ],
+    "category": "Backend",
+    "description": "Python web framework for rapid development",
+    "icon_name": "django",
+    "is_predefined": true
+  },
+  "flask": {
+    "name": "Flask",
+    "variations": [
+      "flask"
+    ],
+    "category": "Backend",
+    "description": "Lightweight Python web framework",
+    "icon_name": "flask",
+    "is_predefined": true
+  },
+  "express.js": {
+    "name": "Express.js",
+    "variations": [
+      "expressjs",
+      "express.js"
+    ],
+    "category": "Backend",
+    "description": "Web application framework for Node.js",
+    "icon_name": "express",
+    "is_predefined": true
+  },
+  "spring boot": {
+    "name": "Spring Boot",
+    "variations": [
+      "spring boot",
+      "springboot",
+      "spring.boot"
+    ],
+    "category": "Backend",
+    "description": "Java-based framework for microservices",
+    "icon_name": "springboot",
+    "is_predefined": true
+  },
+  "tensorflow": {
+    "name": "TensorFlow",
+    "variations": [
+      "tensorflow"
+    ],
+    "category": "Data Science",
+    "description": "End-to-end open source platform for machine learning",
+    "icon_name": "tensorflow",
+    "is_predefined": true
+  },
+  "pytorch": {
+    "name": "PyTorch",
+    "variations": [
+      "pytorch"
+    ],
+    "category": "Data Science",
+    "description": "Open source machine learning framework",
+    "icon_name": "pytorch",
+    "is_predefined": true
+  },
+  "postgresql": {
+    "name": "PostgreSQL",
+    "variations": [
+      "postgresql",
+      "postgres",
+      "psql"
+    ],
+    "category": "Database",
+    "description": "Advanced open-source relational database",
+    "icon_name": "postgresql",
+    "is_predefined": true
+  },
+  "mysql": {
+    "name": "MySQL",
+    "variations": [
+      "mysql"
+    ],
+    "category": "Database",
+    "description": "Popular open-source relational database system",
+    "icon_name": "mysql",
+    "is_predefined": true
+  },
+  "mongodb": {
+    "name": "MongoDB",
+    "variations": [
+      "mongodb"
+    ],
+    "category": "Database",
+    "description": "NoSQL document database for modern applications",
+    "icon_name": "mongodb",
+    "is_predefined": true
+  },
+  "redis": {
+    "name": "Redis",
+    "variations": [
+      "redis"
+    ],
+    "category": "Database",
+    "description": "In-memory data structure store",
+    "icon_name": "redis",
+    "is_predefined": true
+  },
+  "sqlite": {
+    "name": "SQLite",
+    "variations": [
+      "sqlite"
+    ],
+    "category": "Database",
+    "description": "Self-contained, serverless SQL database engine",
+    "icon_name": "sqlite",
+    "is_predefined": true
+  },
+  "figma": {
+    "name": "Figma",
+    "variations": [
+      "figma"
+    ],
+    "category": "Design",
+    "description": "Collaborative interface design tool",
+    "icon_name": "figma",
+    "is_predefined": true
+  },
+  "adobe photoshop": {
+    "name": "Adobe Photoshop",
+    "variations": [
+      "adobe.photoshop",
+      "ps",
+      "photoshop",
+      "adobe photoshop",
+      "adobephotoshop"
+    ],
+    "category": "Design",
+    "description": "Raster graphics editor for image editing and creation",
+    "icon_name": "adobephotoshop",
+    "is_predefined": true
+  },
+  "adobe illustrator": {
+    "name": "Adobe Illustrator",
+    "variations": [
+      "adobeillustrator",
+      "illustrator",
+      "ai",
+      "adobe.illustrator",
+      "adobe illustrator"
+    ],
+    "category": "Design",
+    "description": "Vector graphics editor for logos and illustrations",
+    "icon_name": "adobeillustrator",
+    "is_predefined": true
+  },
+  "sketch": {
+    "name": "Sketch",
+    "variations": [
+      "sketch"
+    ],
+    "category": "Design",
+    "description": "Digital design app for macOS",
+    "icon_name": "sketch",
+    "is_predefined": true
+  },
+  "invision": {
+    "name": "InVision",
+    "variations": [
+      "invision"
+    ],
+    "category": "Design",
+    "description": "Digital product design platform",
+    "icon_name": "invision",
+    "is_predefined": true
+  },
+  "adobe xd": {
+    "name": "Adobe XD",
+    "variations": [
+      "adobe.xd",
+      "adobe xd",
+      "adobexd"
+    ],
+    "category": "Design",
+    "description": "Vector-based user experience design tool",
+    "icon_name": "adobexd",
+    "is_predefined": true
+  },
+  "blender": {
+    "name": "Blender",
+    "variations": [
+      "blender"
+    ],
+    "category": "3D Design",
+    "description": "Free and open-source 3D creation suite",
+    "icon_name": "blender",
+    "is_predefined": true
+  },
+  "autocad": {
+    "name": "AutoCAD",
+    "variations": [
+      "autocad"
+    ],
+    "category": "CAD",
+    "description": "Computer-aided design software",
+    "icon_name": "autodesk",
+    "is_predefined": true
+  },
+  "fusion 360": {
+    "name": "Fusion 360",
+    "variations": [
+      "fusion.360",
+      "fusion 360",
+      "fusion360"
+    ],
+    "category": "CAD",
+    "description": "3D CAD, CAM, and CAE tool",
+    "icon_name": "autodesk",
+    "is_predefined": true
+  },
+  "archicad": {
+    "name": "ArchiCAD",
+    "variations": [
+      "archicad"
+    ],
+    "category": "CAD",
+    "description": "Architectural BIM CAD software",
+    "icon_name": "graphisoft",
+    "is_predefined": true
+  },
+  "sketchup": {
+    "name": "SketchUp",
+    "variations": [
+      "sketchup"
+    ],
+    "category": "3D Design",
+    "description": "3D modeling computer program",
+    "icon_name": "sketchup",
+    "is_predefined": true
+  },
+  "rhino 3d": {
+    "name": "Rhino 3D",
+    "variations": [
+      "rhino 3d",
+      "rhino3d",
+      "rhino.3d"
+    ],
+    "category": "CAD",
+    "description": "3D computer graphics and CAD software",
+    "icon_name": "rhino",
+    "is_predefined": true
+  },
+  "revit": {
+    "name": "Revit",
+    "variations": [
+      "revit"
+    ],
+    "category": "CAD",
+    "description": "BIM software for architecture and engineering",
+    "icon_name": "autodesk",
+    "is_predefined": true
+  },
+  "git": {
+    "name": "Git",
+    "variations": [
+      "git"
+    ],
+    "category": "Development Tools",
+    "description": "Distributed version control system",
+    "icon_name": "git",
+    "is_predefined": true
+  },
+  "docker": {
+    "name": "Docker",
+    "variations": [
+      "docker"
+    ],
+    "category": "DevOps",
+    "description": "Platform for developing, shipping, and running applications",
+    "icon_name": "docker",
+    "is_predefined": true
+  },
+  "kubernetes": {
+    "name": "Kubernetes",
+    "variations": [
+      "kubernetes"
+    ],
+    "category": "DevOps",
+    "description": "Open-source system for automating deployment and management",
+    "icon_name": "kubernetes",
+    "is_predefined": true
+  },
+  "jira": {
+    "name": "Jira",
+    "variations": [
+      "jira"
+    ],
+    "category": "Project Management",
+    "description": "Issue tracking product for agile teams",
+    "icon_name": "jira",
+    "is_predefined": true
+  },
+  "github": {
+    "name": "GitHub",
+    "variations": [
+      "github"
+    ],
+    "category": "Development Tools",
+    "description": "Web-based hosting service for version control using Git",
+    "icon_name": "github",
+    "is_predefined": true
+  },
+  "aws": {
+    "name": "AWS",
+    "variations": [
+      "aws"
+    ],
+    "category": "Cloud",
+    "description": "Cloud computing platform by Amazon",
+    "icon_name": "amazonaws",
+    "is_predefined": true
+  },
+  "google cloud": {
+    "name": "Google Cloud",
+    "variations": [
+      "google.cloud",
+      "google cloud",
+      "googlecloud"
+    ],
+    "category": "Cloud",
+    "description": "Cloud computing services by Google",
+    "icon_name": "googlecloud",
+    "is_predefined": true
+  },
+  "azure": {
+    "name": "Azure",
+    "variations": [
+      "azure"
+    ],
+    "category": "Cloud",
+    "description": "Cloud computing service by Microsoft",
+    "icon_name": "microsoftazure",
+    "is_predefined": true
+  },
+  "project management": {
+    "name": "Project Management",
+    "variations": [
+      "project management",
+      "project.management",
+      "projectmanagement"
+    ],
+    "category": "Management",
+    "description": "Planning, organizing, and overseeing projects",
+    "icon_name": null,
+    "is_predefined": true
+  },
+  "ui design": {
+    "name": "UI Design",
+    "variations": [
+      "ui.design",
+      "uidesign",
+      "ui design"
+    ],
+    "category": "Design",
+    "description": "Design of user interfaces for machines and software",
+    "icon_name": null,
+    "is_predefined": true
+  },
+  "ux design": {
+    "name": "UX Design",
+    "variations": [
+      "ux.design",
+      "uxdesign",
+      "ux design"
+    ],
+    "category": "Design",
+    "description": "Enhancing user satisfaction by improving usability",
+    "icon_name": null,
+    "is_predefined": true
+  },
+  "content writing": {
+    "name": "Content Writing",
+    "variations": [
+      "contentwriting",
+      "content.writing",
+      "content writing"
+    ],
+    "category": "Content",
+    "description": "Creating content for digital and print media",
+    "icon_name": null,
+    "is_predefined": true
+  },
+  "seo": {
+    "name": "SEO",
+    "variations": [
+      "seo"
+    ],
+    "category": "Marketing",
+    "description": "Search engine optimization techniques",
+    "icon_name": "googlesearchconsole",
+    "is_predefined": true
+  },
+  "data analysis": {
+    "name": "Data Analysis",
+    "variations": [
+      "data.analysis",
+      "data analysis",
+      "dataanalysis"
+    ],
+    "category": "Data Science",
+    "description": "Process of inspecting, cleaning, and modeling data",
+    "icon_name": null,
+    "is_predefined": true
+  },
+  "digital marketing": {
+    "name": "Digital Marketing",
+    "variations": [
+      "digital marketing",
+      "digital.marketing",
+      "digitalmarketing"
+    ],
+    "category": "Marketing",
+    "description": "Marketing of products or services using digital technologies",
+    "icon_name": null,
+    "is_predefined": true
+  },
+  "agile methodology": {
+    "name": "Agile Methodology",
+    "variations": [
+      "agile.methodology",
+      "agile methodology",
+      "agilemethodology"
+    ],
+    "category": "Management",
+    "description": "Approach to project management and software development",
+    "icon_name": null,
+    "is_predefined": true
+  }
+}
