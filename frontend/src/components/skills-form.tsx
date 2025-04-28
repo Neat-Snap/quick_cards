@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,21 +9,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { 
   Skill, 
-  getUserSkills, 
+  getUserSkills,
+  getCurrentUser,
   searchSkills, 
   addSkillToUser, 
   removeSkillFromUser, 
   getPremiumStatus, 
   createCustomSkill, 
   uploadSkillImage, 
-  fileToDataUrl,
-  getCurrentUser 
+  fileToDataUrl 
 } from "@/lib/api";
 import { X, Search, Plus, Check, ArrowRight, Upload, Loader2 } from "lucide-react";
 import debounce from 'lodash/debounce';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-// import * as SimpleIcons from 'simple-icons';
+import { getSkillIconUrl, SUGGESTED_SKILLS } from "@/lib/SkillIconHelper";
 
 interface SkillsFormProps {
   userId: string | number;
@@ -41,6 +39,20 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [searching, setSearching] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   
+  // Suggestions state
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  
+  // Custom skill creation state
+  const [isCreatingSkill, setIsCreatingSkill] = useState(false);
+  const [customSkillName, setCustomSkillName] = useState("");
+  const [customSkillDescription, setCustomSkillDescription] = useState("");
+  const [customSkillImage, setCustomSkillImage] = useState<File | null>(null);
+  const [customSkillImageUrl, setCustomSkillImageUrl] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [creatingSkill, setCreatingSkill] = useState(false);
+  
+  // Check premium status and load skills on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -110,8 +122,9 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     
     loadData();
   }, []);
-
-// eslint-disable-next-line react-hooks/exhaustive-deps
+  
+  // Debounced search function
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim()) {
@@ -119,6 +132,9 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         setSearching(false);
         return;
       }
+      
+      // Hide suggestions when searching
+      setShowSuggestions(false);
       
       try {
         const results = await searchSkills(query.trim());
@@ -154,8 +170,58 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    setSearching(Boolean(query.trim()));
-    debouncedSearch(query);
+    
+    if (query.trim()) {
+      setSearching(true);
+      debouncedSearch(query);
+    } else {
+      // Show suggestions when search is cleared
+      setSearchResults([]);
+      setShowSuggestions(true);
+    }
+  };
+  
+  // Handle adding a skill from suggestion
+  const handleAddSuggestion = async (skillName: string) => {
+    console.log("Adding suggested skill:", skillName);
+    
+    // Start search for this skill
+    setSearchQuery(skillName);
+    setSearching(true);
+    
+    try {
+      // Search for the skill
+      const results = await searchSkills(skillName);
+      
+      // Find the exact match (should be first result)
+      const exactMatch = results.find(s => 
+        s.name.toLowerCase() === skillName.toLowerCase()
+      );
+      
+      if (exactMatch) {
+        // Add this skill
+        await handleAddSkill(exactMatch);
+      } else if (results.length > 0) {
+        // Add the first result
+        await handleAddSkill(results[0]);
+      } else {
+        // Create custom skill with this name
+        setCustomSkillName(skillName);
+        await handleCreateSkill();
+      }
+      
+      // Hide suggestions after adding
+      setShowSuggestions(false);
+    } catch (error) {
+      console.error("Error adding suggestion:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add suggested skill",
+        variant: "destructive",
+      });
+    } finally {
+      setSearching(false);
+    }
   };
   
   // Handle adding a skill to user
@@ -301,6 +367,143 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       });
     }
   };
+  
+  // Start creating a custom skill
+  const startCreatingSkill = () => {
+    setIsCreatingSkill(true);
+    setCustomSkillName(searchQuery);
+  }
+  
+  // Cancel creating a custom skill
+  const cancelCreatingSkill = () => {
+    setIsCreatingSkill(false);
+    setCustomSkillName("");
+    setCustomSkillDescription("");
+    setCustomSkillImage(null);
+    setCustomSkillImageUrl("");
+  }
+  
+  // Handle skill image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setCustomSkillImage(file);
+    setIsUploadingImage(true);
+    
+    try {
+      // First create a temporary preview
+      const previewUrl = await fileToDataUrl(file);
+      setCustomSkillImageUrl(previewUrl);
+      
+      // Now upload to server
+      const response = await uploadSkillImage(file);
+      
+      if (!response.success) {
+        throw new Error(response.error || "Failed to upload image");
+      }
+      
+      // Get the image URL from the correct location in the response
+      let imageUrl: string | undefined;
+      
+      // Check various possible locations where the image URL might be
+      if (response.user && typeof response.user === 'object' && 'image_url' in response.user) {
+        // If it's in the user object
+        imageUrl = (response.user as any).image_url;
+      } else if (response.user && typeof response.user === 'string') {
+        // If the user property is directly the URL
+        imageUrl = response.user;
+      } else if ('image_url' in response) {
+        // If it's directly in the response
+        imageUrl = (response as any).image_url;
+      }
+      
+      if (!imageUrl) {
+        console.warn("Image uploaded successfully but URL not found in response:", response);
+        // Keep using the preview URL since upload succeeded
+        toast({
+          title: "Image Uploaded",
+          description: "Image uploaded successfully, but using local preview for display",
+          variant: "default",
+        });
+      } else {
+        // Update with the real URL from server
+        setCustomSkillImageUrl(imageUrl);
+        toast({
+          title: "Image Uploaded",
+          description: "Skill image uploaded successfully",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading skill image:", error);
+      toast({
+        title: "Upload Error",
+        description: error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+      setUploadProgress(0);
+    }
+  }
+  
+  // Handle creating a custom skill
+  const handleCreateSkill = async () => {
+    if (!customSkillName.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Skill name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setCreatingSkill(true);
+    
+    try {
+      // Create the custom skill
+      const response = await createCustomSkill({
+        name: customSkillName.trim(),
+        description: customSkillDescription.trim(),
+        image_url: customSkillImageUrl
+      });
+      
+      if (!response.success) {
+        throw new Error(response.error || "Failed to create skill");
+      }
+      
+      // Add the new skill to the user's skills
+      const newSkill = response.skill as Skill;
+      setUserSkills([...userSkills, newSkill]);
+      
+      toast({
+        title: "Skill Created",
+        description: `${customSkillName} has been added to your profile`,
+        variant: "default",
+      });
+      
+      // Reset the form
+      cancelCreatingSkill();
+      
+    } catch (error) {
+      console.error("Error creating custom skill:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create skill",
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingSkill(false);
+    }
+  }
+  
+  // Filter suggested skills to remove ones the user already has
+  const filteredSuggestions = SUGGESTED_SKILLS.filter(suggestion => 
+    !userSkills.some(skill => 
+      skill.name.toLowerCase() === suggestion.toLowerCase()
+    )
+  );
 
   if (loading) {
     return <div className="text-center py-8">Loading skills...</div>;
@@ -337,9 +540,17 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
           <Button 
             type="button" 
             variant="outline" 
-            onClick={onCancel}
+            onClick={() => {
+              // Call onSuccess to refresh data before calling onCancel
+              if (onSuccess) {
+                onSuccess();
+              }
+              if (onCancel) {
+                onCancel();
+              }
+            }}
           >
-            Back
+            Done
           </Button>
         </div>
       </div>
@@ -363,112 +574,302 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
           
           {userSkills.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {userSkills.map(skill => (
-                <Badge 
-                  // Use string for key to avoid null issues - combine id and name for uniqueness
-                  key={`skill-${skill.id || ''}-${skill.name}`} 
-                  variant="secondary" 
-                  className="px-3 py-1 flex items-center gap-1"
-                >
-                  {skill.name}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-4 w-4 ml-1 hover:bg-destructive/10"
-                    onClick={() => {
-                      // Only call removeSkill if ID is not null
-                      if (skill.id !== null) {
-                        handleRemoveSkill(skill.id);
-                      } else {
-                        toast({
-                          title: "Cannot Remove",
-                          description: "This skill cannot be removed because it has no ID",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
+              {userSkills.map(skill => {
+                // Get icon for this skill
+                const iconUrl = getSkillIconUrl(skill);
+                
+                return (
+                  <Badge 
+                    // Use string for key to avoid null issues - combine id and name for uniqueness
+                    key={`skill-${skill.id || ''}-${skill.name}`} 
+                    variant="secondary" 
+                    className="px-3 py-1 flex items-center gap-1"
                   >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
+                    {/* Add skill icon */}
+                    {iconUrl && (
+                      <img 
+                        src={iconUrl} 
+                        alt="" 
+                        className="w-3 h-3 mr-1"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    )}
+                    {skill.name}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 ml-1 hover:bg-destructive/10"
+                      onClick={() => {
+                        // Only call removeSkill if ID is not null
+                        if (skill.id !== null) {
+                          handleRemoveSkill(skill.id);
+                        } else {
+                          toast({
+                            title: "Cannot Remove",
+                            description: "This skill cannot be removed because it has no ID",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No skills added yet. Search to add skills.
+              No skills added yet. Search or select from suggestions below.
             </p>
           )}
         </div>
         
-        {/* Search Skills */}
-        <div className="space-y-4 pt-2">
-          <h4 className="font-medium">Add Skills</h4>
-          
-          <div className="relative">
-            <div className="flex">
-              <div className="relative flex-grow">
-                <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+        {/* Create Custom Skill Form */}
+        {isCreatingSkill ? (
+          <Card className="border-dashed border-primary/50 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="text-base">Create Custom Skill</CardTitle>
+              <CardDescription>
+                Add your own custom skill to your profile
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3">
+                <Label htmlFor="skill-name">Skill Name*</Label>
                 <Input
-                  placeholder="Search for skills..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="pl-9"
-                  disabled={!isPremium}
+                  id="skill-name"
+                  value={customSkillName}
+                  onChange={e => setCustomSkillName(e.target.value)}
+                  placeholder="e.g., 3D Rendering"
+                  required
                 />
               </div>
-            </div>
-            
-            {/* Premium upgrade notice if needed */}
-            {!isPremium && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Skills are a premium feature. Upgrade to add skills.
-              </p>
-            )}
-            
-            {/* Search results */}
-            {searchQuery.trim() && (
-              <div className="mt-2 border rounded-md overflow-hidden">
-                {searching ? (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    Searching...
+              
+              <div className="grid gap-3">
+                <Label htmlFor="skill-description">Description</Label>
+                <Textarea
+                  id="skill-description"
+                  value={customSkillDescription}
+                  onChange={e => setCustomSkillDescription(e.target.value)}
+                  placeholder="Brief description of the skill"
+                  className="min-h-[80px]"
+                />
+              </div>
+              
+              <div className="grid gap-3">
+                <Label htmlFor="skill-image">Skill Image</Label>
+                <div className="flex items-center gap-3">
+                  {customSkillImageUrl ? (
+                    <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center overflow-hidden">
+                      <img 
+                        src={customSkillImageUrl} 
+                        alt="Skill preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-xs">{customSkillName.substring(0, 2).toUpperCase()}</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex-1">
+                    <Input
+                      id="skill-image"
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={isUploadingImage}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById("skill-image")?.click()}
+                      disabled={isUploadingImage}
+                      className="w-full justify-start"
+                    >
+                      {isUploadingImage ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {customSkillImageUrl ? "Change Image" : "Upload Image"}
+                        </>
+                      )}
+                    </Button>
                   </div>
-                ) : searchResults.length > 0 ? (
-                  <div className="max-h-60 overflow-y-auto">
-                    {searchResults.map(skill => (
-                      <div 
-                        key={skill.id}
-                        className="p-3 hover:bg-muted/30 flex justify-between items-center border-b last:border-0"
-                      >
-                        <div>
-                          <p className="font-medium">{skill.name}</p>
-                          {skill.description && (
-                            <p className="text-xs text-muted-foreground">{skill.description}</p>
-                          )}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2"
-                          onClick={() => handleAddSkill(skill)}
-                          disabled={!isPremium}
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={cancelCreatingSkill}
+                disabled={creatingSkill}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleCreateSkill}
+                disabled={!customSkillName.trim() || creatingSkill}
+              >
+                {creatingSkill ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Skill
+                  </>
+                )}
+              </Button>
+            </CardFooter>
+          </Card>
+        ) : (
+          <>
+            {/* Search Skills */}
+            <div className="space-y-4 pt-2">
+              <h4 className="font-medium">Add Skills</h4>
+              
+              {/* Skill Suggestions */}
+              {showSuggestions && filteredSuggestions.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground mb-2">Suggested skills:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {filteredSuggestions.slice(0, 8).map((skill, index) => {
+                      // Get icon for this suggested skill
+                      const iconUrl = getSkillIconUrl({ name: skill });
+                      
+                      return (
+                        <Badge 
+                          key={`suggestion-${index}`}
+                          variant="outline"
+                          className="py-1 px-3 cursor-pointer hover:bg-accent"
+                          onClick={() => handleAddSuggestion(skill)}
                         >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add
+                          {/* Add skill icon */}
+                          {iconUrl && (
+                            <img 
+                              src={iconUrl} 
+                              alt="" 
+                              className="w-3 h-3 mr-1"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          )}
+                          {skill}
+                          <Plus className="h-3 w-3 ml-1" />
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              <div className="relative">
+                <div className="flex">
+                  <div className="relative flex-grow">
+                    <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+                    <Input
+                      placeholder="Search for skills..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      className="pl-9"
+                      disabled={!isPremium}
+                    />
+                  </div>
+                </div>
+                
+                {/* Premium upgrade notice if needed */}
+                {!isPremium && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Skills are a premium feature. Upgrade to add skills.
+                  </p>
+                )}
+                
+                {/* Search results */}
+                {searchQuery.trim() && (
+                  <div className="mt-2 border rounded-md overflow-hidden">
+                    {searching ? (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Searching...
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <div className="max-h-60 overflow-y-auto">
+                        {searchResults.map(skill => {
+                          // Get icon for this skill
+                          const iconUrl = getSkillIconUrl(skill);
+                          
+                          return (
+                            <div 
+                              key={`search-${skill.id || skill.name}`}
+                              className="p-3 hover:bg-muted/30 flex justify-between items-center border-b last:border-0"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  {iconUrl ? (
+                                    <AvatarImage src={iconUrl} />
+                                  ) : null}
+                                  <AvatarFallback>
+                                    {skill.name.substring(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium">{skill.name}</p>
+                                  {skill.description && (
+                                    <p className="text-xs text-muted-foreground">{skill.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2"
+                                onClick={() => handleAddSkill(skill)}
+                                disabled={!isPremium}
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Add
+                              </Button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center">
+                        <p className="text-sm text-muted-foreground mb-3">
+                          No skills found for "{searchQuery.trim()}"
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          onClick={startCreatingSkill}
+                          className="mx-auto"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create "{searchQuery.trim()}" Skill
                         </Button>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 text-center text-sm text-muted-foreground">
-                    No skills found for "{searchQuery.trim()}"
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="flex justify-end gap-2">

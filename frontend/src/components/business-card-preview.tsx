@@ -11,6 +11,7 @@ import { User, Project, Skill, Contact, CustomLink } from "@/lib/api";
 import { ExternalLink, Mail, Phone, MessageCircle, Info } from "lucide-react";
 import { ScrollableSection, ScrollableStyles } from "@/components/scrollable-section";
 import { ItemDetailView } from "@/components/item-detail-view";
+import { getSkillIconUrl } from "@/lib/SkillIconHelper";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
 
@@ -144,31 +145,39 @@ export function BusinessCardPreview({
   );
 
   // Render skill card item
-  const renderSkillCard = (skill: Skill) => (
-    <div 
-      key={skill.id} 
-      className="bg-white/10 rounded-lg p-3 min-w-[120px] cursor-pointer hover:bg-white/20 transition-colors"
-      onClick={() => openDetail('skill', skill)}
-    >
-      <div className="flex flex-col items-center text-center">
-        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-          {skill.image_url ? (
-            <img 
-              src={skill.image_url} 
-              alt={skill.name} 
-              className="w-6 h-6"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(skill.name)}&size=48`;
-              }}
-            />
-          ) : (
-            <span className="text-xs text-white">{skill.name.charAt(0)}</span>
-          )}
+  const renderSkillCard = (skill: Skill) => {
+    // Get the skill icon
+    const iconUrl = getSkillIconUrl(skill);
+    
+    return (
+      <div 
+        key={skill.id} 
+        className="bg-white/10 rounded-lg p-3 min-w-[120px] cursor-pointer hover:bg-white/20 transition-colors"
+        onClick={() => openDetail('skill', skill)}
+      >
+        <div className="flex flex-col items-center text-center">
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+            {iconUrl ? (
+              <img 
+                src={iconUrl} 
+                alt={skill.name} 
+                className="w-6 h-6"
+                onError={(e) => {
+                  // If image fails to load, show initials instead
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).parentElement!.innerHTML = 
+                    `<span class="text-xs text-white">${skill.name.charAt(0)}</span>`;
+                }}
+              />
+            ) : (
+              <span className="text-xs text-white">{skill.name.charAt(0)}</span>
+            )}
+          </div>
+          <p className="mt-2 text-xs font-medium text-white">{skill.name}</p>
         </div>
-        <p className="mt-2 text-xs font-medium text-white">{skill.name}</p>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Render project card item
   const renderProjectCard = (project: Project) => (
