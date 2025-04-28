@@ -6,6 +6,9 @@ This module provides functions for matching user queries to predefined skills.
 from typing import Dict, List, Set, Optional, Tuple
 import re
 from difflib import SequenceMatcher
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Dictionary structure:
 # - Main key is the canonical ID of the skill (lowercase, no spaces)
@@ -436,16 +439,16 @@ class SkillSearch:
             if os.path.exists(SKILLS_DATA_PATH):
                 with open(SKILLS_DATA_PATH, 'r', encoding='utf-8') as f:
                     self.skills_data = json.load(f)
-                print(f"Loaded {len(self.skills_data)} skills from data file")
+                logger.info(f"Loaded {len(self.skills_data)} skills from data file")
             else:
-                print(f"Skills data file not found at {SKILLS_DATA_PATH}, initializing empty")
+                logger.info(f"Skills data file not found at {SKILLS_DATA_PATH}, initializing empty")
                 self.skills_data = {}
                 # Create directory if it doesn't exist
                 os.makedirs(os.path.dirname(SKILLS_DATA_PATH), exist_ok=True)
                 # Create empty file
                 self.save_skills_data()
         except Exception as e:
-            print(f"Error loading skills data: {e}")
+            logger.error(f"Error loading skills data: {e}")
             self.skills_data = {}
     
     def save_skills_data(self):
@@ -453,9 +456,9 @@ class SkillSearch:
         try:
             with open(SKILLS_DATA_PATH, 'w', encoding='utf-8') as f:
                 json.dump(self.skills_data, f, indent=2, ensure_ascii=False)
-            print("Skills data saved successfully")
+            logger.info("Skills data saved successfully")
         except Exception as e:
-            print(f"Error saving skills data: {e}")
+            logger.error(f"Error saving skills data: {e}")
     
     def add_skill(self, name: str, variations: List[str] = None, 
                   category: str = None, description: str = None, 
@@ -753,7 +756,7 @@ def populate_initial_skills():
     skill_search.add_skill("Digital Marketing", description="Marketing of products or services using digital technologies", category="Marketing")
     skill_search.add_skill("Agile Methodology", description="Approach to project management and software development", category="Management")
     
-    print(f"Populated {len(skill_search.skills_data)} initial skills")
+    logger.info(f"Populated {len(skill_search.skills_data)} initial skills")
 
 
 if __name__ == "__main__":
@@ -764,6 +767,6 @@ if __name__ == "__main__":
     test_queries = ["javascript", "python", "react", "figma", "js", "pg", "fusion", "archicad"]
     for query in test_queries:
         results = searcher.search_skills(query)
-        print(f"\nSearch for '{query}':")
+        logger.info(f"\nSearch for '{query}':")
         for res in results:
-            print(f"  - {res['name']} (score: {res['score']:.2f})")
+            logger.info(f"  - {res['name']} (score: {res['score']:.2f})")

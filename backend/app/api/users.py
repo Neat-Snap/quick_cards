@@ -506,24 +506,30 @@ def remove_skill_from_user_endpoint(skill_id):
 def get_skills_endpoint():
     """Get all available skills or search for skills"""
     q = request.args.get("q")
+    logger.info(f"Received skills request with query: {q}")
     
     try:
         if q:
+            logger.info("Query parameter provided, initiating skill search")
             # If query is provided, use the skill search service
             skill_search = get_skill_search()
             skill_results = skill_search.search_skills(q)
+            logger.info(f"Skill search returned {len(skill_results) if skill_results else 0} results")
             
             # If we have predefined skills, check if they exist in DB
             if skill_results:
+                logger.info("Processing predefined skills and checking database matches")
                 # Check which predefined skills already exist in the DB
                 existing_skills = db.session.query(Skill).filter(
                     Skill.name.in_([skill['name'] for skill in skill_results])
                 ).all()
+                logger.info(f"Found {len(existing_skills)} existing skills in database")
                 
                 # Create a mapping for quick lookup
                 existing_map = {skill.name.lower(): skill for skill in existing_skills}
                 
                 # Update search results with DB IDs if skills exist
+                updated_count = 0
                 for skill in skill_results:
                     skill_name_lower = skill['name'].lower()
                     if skill_name_lower in existing_map:
@@ -531,13 +537,17 @@ def get_skills_endpoint():
                         skill['id'] = db_skill.id
                         skill['image_url'] = db_skill.image_url or skill['image_url']
                         skill['description'] = db_skill.description or skill['description']
+                        updated_count += 1
+                logger.info(f"Updated {updated_count} predefined skills with database information")
                 
                 # Add DB skills to the start of results
                 db_skills = db.session.query(Skill).filter(
                     Skill.name.ilike(f"%{q}%")
                 ).all()
+                logger.info(f"Found {len(db_skills)} additional skills in database matching query")
                 
                 # Add DB skills that weren't in our predefined results
+                added_count = 0
                 for db_skill in db_skills:
                     if not any(s['id'] == db_skill.id for s in skill_results):
                         skill_results.append({
@@ -548,17 +558,24 @@ def get_skills_endpoint():
                             'is_predefined': False,
                             'score': 0.7  # Give custom skills a reasonably high score
                         })
+                        added_count += 1
+                logger.info(f"Added {added_count} custom skills from database to results")
                 
                 # Re-sort by score
                 skill_results.sort(key=lambda x: x['score'], reverse=True)
+                logger.info(f"Returning {len(skill_results)} total skills after sorting")
                 
                 return jsonify(skill_results)
             
+            logger.info("No predefined results found, falling back to database search")
             # If no predefined results, fall back to DB search
             skills = db.session.query(Skill).filter(Skill.name.ilike(f"%{q}%")).all()
+            logger.info(f"Database search returned {len(skills)} results")
         else:
+            logger.info("No query parameter provided, returning all skills from database")
             # Without query, just return all skills from DB
             skills = db.session.query(Skill).all()
+            logger.info(f"Retrieved {len(skills)} total skills from database")
         
         return jsonify([
             {
@@ -569,7 +586,7 @@ def get_skills_endpoint():
             } for skill in skills
         ])
     except Exception as e:
-        logger.error(f"Error getting skills: {str(e)}")
+        logger.error(f"Error getting skills: {str(e)}", exc_info=True)
         return jsonify({"error": f"Failed to get skills: {str(e)}"}), 500
 
 @users_bp.route("/skills", methods=["POST"])
