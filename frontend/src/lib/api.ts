@@ -313,13 +313,26 @@ export async function getCurrentUser(): Promise<ApiResponse<User>> {
   try {
     const response = await apiRequest<any>(`/v1/users/me?_=${cacheBuster}`);
     
+    console.log("getCurrentUser response:", response);
+    
     // Check if the response contains user data directly (not wrapped in a 'user' property)
-    if (response && !response.user) {
+    if (response && !response.success && !response.user) {
       // This means the API returned the user object directly at the root level
       // Convert it to the expected ApiResponse format
       return {
         success: true,
         user: response as unknown as User  // Use unknown as an intermediate step for type safety
+      };
+    }
+    
+    // Make sure we have a proper response to return
+    if (response.success === undefined) {
+      // If response doesn't have a success property, it's likely the user object itself
+      // We need to type cast carefully here
+      const userObj = response as unknown; // First cast to unknown
+      return {
+        success: true,
+        user: userObj as User  // Then cast to User
       };
     }
     
@@ -469,9 +482,69 @@ export async function deleteProject(projectId: number): Promise<ApiResponse<any>
 }
 
 // Skills functions
+// Skills functions
 export async function getUserSkills(): Promise<Skill[]> {
-  const response = await apiRequest<any>('/v1/users/me');
-  return response.success && response.user ? response.user.skills || [] : [];
+  try {
+    console.log("Getting user skills from API...");
+    // First try direct user skills endpoint
+    const response = await apiRequest<any>('/v1/users/me/skills');
+    
+    // If response is directly the skills array
+    if (Array.isArray(response)) {
+      console.log(`Found ${response.length} skills from direct endpoint`);
+      return response;
+    }
+    
+    // If response is a standard API response with user property
+    if (response && response.success && response.user) {
+      // If user contains skills array
+      if (response.user.skills && Array.isArray(response.user.skills)) {
+        console.log(`Found ${response.user.skills.length} skills in user object`);
+        return response.user.skills;
+      }
+      
+      // If user is directly the skills array
+      if (Array.isArray(response.user)) {
+        console.log(`Found ${response.user.length} skills in user array`);
+        return response.user;
+      }
+    }
+    
+    // Fallback to getting user full profile
+    console.log("No skills found in direct response, checking full user profile...");
+    const userResponse = await apiRequest<any>('/v1/users/me');
+    
+    if (userResponse && userResponse.success && userResponse.user) {
+      // If user contains skills array
+      if (userResponse.user.skills && Array.isArray(userResponse.user.skills)) {
+        console.log(`Found ${userResponse.user.skills.length} skills in full user profile`);
+        return userResponse.user.skills;
+      }
+    }
+    
+    // If userResponse itself might be the user object
+    // First cast to any to access potential skills property
+    const userResponseObj = userResponse as any;
+    if (userResponseObj && 
+        (!userResponseObj.success || userResponseObj.success === undefined) && 
+        userResponseObj.skills && 
+        Array.isArray(userResponseObj.skills)) {
+      
+      console.log(`Found ${userResponseObj.skills.length} skills in user response object`);
+      return userResponseObj.skills;
+    }
+    
+    // Last resort - log the responses for debugging
+    console.log("Could not find skills in any expected location. API responses:", { 
+      response, 
+      userResponse 
+    });
+    
+    return [];
+  } catch (error) {
+    console.error("Error fetching user skills:", error);
+    return [];
+  }
 }
 
 export async function searchSkills(query: string): Promise<Skill[]> {
