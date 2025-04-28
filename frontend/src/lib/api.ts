@@ -87,10 +87,12 @@ export interface ApiResponse<T> {
   success: boolean;
   error?: string;
   user?: T;
+  skill?: Skill;  // Added skill property for skill responses
   token?: string;
   is_new_user?: boolean;
   valid?: boolean;
   payment_url?: string;
+  message?: string;  // Added message property for informational messages
 }
 
 // Helper function to make API requests with proper error handling

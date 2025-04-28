@@ -153,20 +153,42 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         
         console.log("Custom skill created successfully:", createResponse);
         
-        // Use the newly created skill data
-        const newSkill = createResponse.user as Skill;
-        
-        // Add skill to user skills
-        setUserSkills([...userSkills, newSkill]);
-        
-        // Remove skill from search results
-        setSearchResults(searchResults.filter(s => s.name !== skill.name));
-        
-        toast({
-          title: "Skill Added",
-          description: `${skill.name} has been added to your profile`,
-          variant: "default",
-        });
+        // Use the newly created skill data from the 'skill' property, not 'user'
+        if (createResponse.skill) {
+          const newSkill = createResponse.skill as Skill;
+          
+          // Add skill to user skills
+          setUserSkills([...userSkills, newSkill]);
+          
+          // Remove skill from search results
+          setSearchResults(searchResults.filter(s => s.name !== skill.name));
+          
+          toast({
+            title: "Skill Added",
+            description: `${skill.name} has been added to your profile`,
+            variant: "default",
+          });
+        } else {
+          // Fallback handling if skill is not in the response
+          console.error("Skill data missing from server response:", createResponse);
+          
+          // Create a skill object from the original data + response message
+          const constructedSkill: Skill = {
+            id: null, // We don't know the ID, but frontend can still display it
+            name: skill.name,
+            description: skill.description || "",
+            image_url: skill.image_url || ""
+          };
+          
+          // Add constructed skill to user skills list
+          setUserSkills([...userSkills, constructedSkill]);
+          
+          toast({
+            title: "Skill Added",
+            description: "The skill was added but some data may be incomplete",
+            variant: "default",
+          });
+        }
         
         return;
       }
