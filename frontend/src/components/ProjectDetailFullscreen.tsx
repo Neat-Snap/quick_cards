@@ -45,6 +45,8 @@ export default function ProjectDetailFullscreen({ project, onBack }: Props) {
         )}
         
         {project.url && typeof project.url === 'string' && project.url.trim() !== '' && (
+            <div className="mb-6">
+            <h1>{project.url}</h1>
           <Button 
             variant="outline" 
             className="w-full"
@@ -53,6 +55,7 @@ export default function ProjectDetailFullscreen({ project, onBack }: Props) {
             <ExternalLink className="mr-2 h-4 w-4" />
             Visit Project
           </Button>
+          </div>
         )}
       </div>
     </div>
