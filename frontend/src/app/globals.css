@@ -58,14 +58,6 @@
   }
 }
 
-body::-webkit-scrollbar {
-  display: none;
-}
-
-body {
-  /* -ms-text-overflow: none; */
-  scrollbar-width: none;
-}
 
 .hide-scrollbar {
   -ms-overflow-style: none;  /* Internet Explorer and Edge */
