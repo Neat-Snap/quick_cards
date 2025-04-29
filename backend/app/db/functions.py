@@ -343,7 +343,8 @@ def get_skill_by_id(skill_id: int) -> Optional[Dict[str, Any]]:
             "id": skill.id,
             "name": skill.name,
             "description": skill.description,
-            "image_url": skill.image_url
+            "image_url": skill.image_url,
+            "is_predefined": skill.is_predefined
         }
     except SQLAlchemyError as e:
         logger.error(f"Database error while retrieving skill {skill_id}: {str(e)}")
@@ -362,7 +363,8 @@ def get_skills(user_id: str) -> List[Dict[str, Any]]:
                 "id": skill.id,
                 "name": skill.name,
                 "description": skill.description,
-                "image_url": skill.image_url
+                "image_url": skill.image_url,
+                "is_predefined": skill.is_predefined
             }
             for skill in user.skills
         ]
@@ -407,7 +409,7 @@ def set_skill(skill_data: Dict[str, Any]) -> Dict[str, Any]:
         logger.error(f"Database error while saving skill: {str(e)}")
         raise
 
-def create_skill(name: str, description: str = None, image_url: str = None) -> Dict[str, Any]:
+def create_skill(name: str, description: str = None, image_url: str = None, is_predefined: bool = False) -> Dict[str, Any]:
     """
     Create a new skill (if it doesn't already exist).
     
@@ -427,7 +429,8 @@ def create_skill(name: str, description: str = None, image_url: str = None) -> D
         skill = Skill(
             name=name,
             description=description,
-            image_url=image_url
+            image_url=image_url,
+            is_predefined=is_predefined
         )
         db.session.add(skill)
         commit_with_error_handling()
@@ -489,7 +492,7 @@ def remove_skill_from_user(user_id: str, skill_id: int) -> bool:
         raise
 
 def create_skill_and_add_to_user(user_id: str, name: str, 
-                                description: str = None, image_url: str = None) -> Dict[str, Any]:
+                                description: str = None, image_url: str = None, is_predefined: bool = False) -> Dict[str, Any]:
     """
     Create a new skill (if needed) and add it to a user.
     
@@ -507,7 +510,7 @@ def create_skill_and_add_to_user(user_id: str, name: str,
             raise ValueError(f"User not found: {user_id}")
             
         # Create or get existing skill
-        skill_data = create_skill(name, description, image_url)
+        skill_data = create_skill(name, description, image_url, is_predefined)
         skill_id = skill_data["id"]
         
         # Add skill to user

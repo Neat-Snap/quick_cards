@@ -590,7 +590,8 @@ def get_skills_endpoint():
                 "id": skill.id,
                 "name": skill.name,
                 "description": skill.description,
-                "image_url": skill.image_url
+                "image_url": skill.image_url,
+                "is_predefined": skill.is_predefined
             } for skill in skills
         ])
     except Exception as e:
@@ -648,7 +649,8 @@ def create_skill_endpoint():
                         "id": existing_skill.id,
                         "name": existing_skill.name,
                         "description": existing_skill.description,
-                        "image_url": existing_skill.image_url
+                        "image_url": existing_skill.image_url,
+                        "is_predefined": existing_skill.is_predefined
                     }
                 })
             except Exception as e:
@@ -700,7 +702,8 @@ def create_skill_endpoint():
                 "id": new_skill.id,
                 "name": new_skill.name,
                 "description": new_skill.description,
-                "image_url": new_skill.image_url
+                "image_url": new_skill.image_url,
+                "is_predefined": new_skill.is_predefined
             }
         })
     except Exception as e:

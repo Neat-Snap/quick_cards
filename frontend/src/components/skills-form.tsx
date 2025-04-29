@@ -29,18 +29,16 @@ import { getSkillIconUrl, SUGGESTED_SKILLS } from "@/lib/SkillIconHelper";
 const PRIVATE_SKILL_PREFIX = "🔒";
 
 // Check if a skill is private (created by the user)
-const isPrivateSkill = (skillName: string): boolean => {
-  return skillName.startsWith(PRIVATE_SKILL_PREFIX);
+const isPrivateSkill = (skill: Skill): boolean => {
+  return skill.is_predefined === false;
 };
+
 
 // Get displayable name (without prefix if viewing own skills)
 const getDisplayName = (skill: Skill, isOwner: boolean = true): string => {
-  if (isPrivateSkill(skill.name) && isOwner) {
-    // Show the lock icon next to the name but remove the prefix from the displayed name
-    return skill.name.substring(PRIVATE_SKILL_PREFIX.length).trim();
-  }
   return skill.name;
 };
+
 
 interface SkillsFormProps {
   userId: string | number;
@@ -185,7 +183,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
           if (userHasSkill) return false;
           
           // Skip private skills (created by other users)
-          if (isPrivateSkill(skill.name)) return false;
+          if (isPrivateSkill(skill)) return false;
           
           return true;
         });
@@ -508,7 +506,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     
     try {
       // Add the private prefix to the skill name to indicate it's a user-created custom skill
-      const privateSkillName = `${PRIVATE_SKILL_PREFIX}${customSkillName.trim()}`;
+      const privateSkillName = customSkillName.trim();
       
       // Create the custom skill with private prefix
       const response = await createCustomSkill({
@@ -658,7 +656,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                 {userSkills.map(skill => {
                   // Get icon for this skill
                   const iconUrl = getSkillIconUrl(skill);
-                  const isPrivate = isPrivateSkill(skill.name);
+                  const isPrivate = isPrivateSkill(skill);
                   const displayName = getDisplayName(skill);
                   
                   return (
