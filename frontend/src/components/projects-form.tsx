@@ -728,9 +728,8 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
               </div>
             </form>
           )}
-        </div>
 
-        <Button 
+          <Button 
             type="button" 
             variant="outline" 
             className="w-full sm:w-auto"
@@ -741,6 +740,9 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
           >
             Back
           </Button>
+        </div>
+
+        
       </div>
 
       {/* Render project detail view if active */}
