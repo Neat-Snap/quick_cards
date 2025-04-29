@@ -43,8 +43,8 @@ export default function ProjectDetailFullscreen({ project, onBack }: Props) {
             <p className="text-sm text-muted-foreground">{project.description}</p>
           </div>
         )}
-
-        {project.url && (
+        
+        {project.url && typeof project.url === 'string' && project.url.trim() !== '' && (
           <Button 
             variant="outline" 
             className="w-full"
