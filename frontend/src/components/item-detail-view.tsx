@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Contact, Project, Skill } from "@/lib/api";
 import { X, Mail, Phone, MessageCircle, ExternalLink, ArrowLeft } from "lucide-react";
 import { getSkillIconUrl } from "@/lib/SkillIconHelper";
+import ProjectDetailFullscreen from "@/components/ProjectDetailFullscreen";
+
 
 interface ItemDetailViewProps {
   type: 'contact' | 'project' | 'skill';
@@ -243,7 +245,35 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
         
         {/* Render the appropriate content based on type */}
         {type === 'contact' && renderContactDetail()}
-        {type === 'project' && renderProjectDetail()}
+        {type === 'project' ? (
+          <ProjectDetailFullscreen 
+            project={data as Project} 
+            onBack={onClose} 
+          />
+        ) : (
+          <Card className="w-full max-w-md mx-auto z-10">
+            <div className="absolute top-2 right-2">
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="pt-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-1 ml-4 mt-2"
+                onClick={onClose}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            </div>
+            
+            {type === 'contact' && renderContactDetail()}
+            {type === 'skill' && renderSkillDetail()}
+          </Card>
+        )}
         {type === 'skill' && renderSkillDetail()}
       </Card>
     </div>
