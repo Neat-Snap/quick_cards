@@ -149,7 +149,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
             <Input 
               id="avatar" 
               type="file" 
-              className="hidden" 
+              className="hidden"
               accept="image/*"
               onChange={handleAvatarChange}
             />

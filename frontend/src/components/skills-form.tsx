@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { 
   Skill, 
@@ -19,7 +20,7 @@ import {
   uploadSkillImage, 
   fileToDataUrl 
 } from "@/lib/api";
-import { X, Search, Plus, Check, ArrowRight, Upload, Loader2 } from "lucide-react";
+import { X, Search, Plus, Check, ArrowRight, Upload, Loader2, Lock } from "lucide-react";
 import debounce from 'lodash/debounce';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,22 @@ interface SkillsFormProps {
   onCancel?: () => void;
 }
 
+// Constants
+const PRIVATE_SKILL_PREFIX = "🔒 ";
+
+// Helper to check if a skill is private based on name
+const checkIsPrivateSkill = (skill: Skill): boolean => {
+  return skill.name.startsWith(PRIVATE_SKILL_PREFIX);
+};
+
+// Helper to get the display name (without private prefix)
+const getSkillDisplayName = (skill: Skill): string => {
+  if (checkIsPrivateSkill(skill)) {
+    return skill.name.substring(PRIVATE_SKILL_PREFIX.length);
+  }
+  return skill.name;
+};
+
 export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [userSkills, setUserSkills] = useState<Skill[]>([]);
   const [searchResults, setSearchResults] = useState<Skill[]>([]);
@@ -38,6 +55,10 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  
+  // Deletion animation state
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [successId, setSuccessId] = useState<number | null>(null);
   
   // Suggestions state
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -51,6 +72,9 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [creatingSkill, setCreatingSkill] = useState(false);
+  
+  // Private skill toggle
+  const [isPrivateSkill, setIsPrivateSkill] = useState(false);
   
   // Check premium status and load skills on mount
   useEffect(() => {
@@ -123,6 +147,16 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     loadData();
   }, []);
   
+  // Success animation handler
+  useEffect(() => {
+    if (successId !== null) {
+      const timer = setTimeout(() => {
+        setSuccessId(null);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [successId]);
+  
   // Debounced search function
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
@@ -147,7 +181,11 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
             if (skill.id && userSkill.id) {
               return userSkill.id === skill.id;
             }
-            return userSkill.name.toLowerCase() === skill.name.toLowerCase();
+            
+            // For custom skills, compare normalized names (without private prefix)
+            const userSkillName = getSkillDisplayName(userSkill).toLowerCase();
+            const searchSkillName = getSkillDisplayName(skill).toLowerCase();
+            return userSkillName === searchSkillName;
           })
         );
         
@@ -343,28 +381,46 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       return;
     }
     
+    // Set deleting animation state immediately
+    setDeletingId(skillId);
+    
+    // Find the skill to get its name for the toast
+    const skillToRemove = userSkills.find(skill => skill.id === skillId);
+    const skillName = skillToRemove ? getSkillDisplayName(skillToRemove) : "Skill";
+    
+    // Immediately update the UI by removing from local state
+    setUserSkills(prev => prev.filter(skill => skill.id !== skillId));
+    
     try {
+      // Make the API call in the background
       const response = await removeSkillFromUser(skillId);
       
       if ('error' in response) {
         throw new Error(response.error || "Failed to remove skill");
       }
       
-      // Remove skill from user skills
-      setUserSkills(userSkills.filter(skill => skill.id !== skillId));
-      
+      // After successful removal, show success toast
       toast({
         title: "Skill Removed",
-        description: "Skill has been removed from your profile",
+        description: `${skillName} has been removed from your profile`,
         variant: "default",
       });
     } catch (error) {
       console.error("Error removing skill:", error);
+      
+      // If error occurred, add the skill back
+      if (skillToRemove) {
+        setUserSkills(prev => [...prev, skillToRemove]);
+      }
+      
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to remove skill",
         variant: "destructive",
       });
+    } finally {
+      // Clear the deleting state
+      setDeletingId(null);
     }
   };
   
@@ -372,6 +428,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const startCreatingSkill = () => {
     setIsCreatingSkill(true);
     setCustomSkillName(searchQuery);
+    setIsPrivateSkill(false); // Reset private flag when starting to create
   }
   
   // Cancel creating a custom skill
@@ -381,6 +438,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     setCustomSkillDescription("");
     setCustomSkillImage(null);
     setCustomSkillImageUrl("");
+    setIsPrivateSkill(false);
   }
   
   // Handle skill image upload
@@ -453,9 +511,14 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     setCreatingSkill(true);
     
     try {
+      // Add private prefix if needed
+      const finalSkillName = isPrivateSkill 
+        ? `${PRIVATE_SKILL_PREFIX}${customSkillName.trim()}`
+        : customSkillName.trim();
+      
       // Create the custom skill
       const response = await createCustomSkill({
-        name: customSkillName.trim(),
+        name: finalSkillName,
         description: customSkillDescription.trim(),
         image_url: customSkillImageUrl
       });
@@ -466,11 +529,22 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       
       // Add the new skill to the user's skills
       const newSkill = response.skill as Skill;
-      setUserSkills([...userSkills, newSkill]);
+      
+      // Set success animation state
+      if (newSkill && newSkill.id) {
+        setSuccessId(newSkill.id);
+        
+        // Clear after animation completes
+        setTimeout(() => {
+          setSuccessId(null);
+        }, 1500);
+      }
+      
+      setUserSkills(prevSkills => [...prevSkills, newSkill]);
       
       toast({
         title: "Skill Created",
-        description: `${customSkillName} has been added to your profile`,
+        description: `${getSkillDisplayName(newSkill)} has been added to your profile`,
         variant: "default",
       });
       
@@ -492,7 +566,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   // Filter suggested skills to remove ones the user already has
   const filteredSuggestions = SUGGESTED_SKILLS.filter(suggestion => 
     !userSkills.some(skill => 
-      skill.name.toLowerCase() === suggestion.toLowerCase()
+      getSkillDisplayName(skill).toLowerCase() === suggestion.toLowerCase()
     )
   );
 
@@ -550,6 +624,20 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
 
   return (
     <div className="space-y-6">
+      <style jsx global>{`
+        .skill-item {
+          transition: all 0.3s ease;
+        }
+        .deleting {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        .success {
+          background-color: rgba(132, 204, 22, 0.1);
+          border-color: rgba(132, 204, 22, 0.5);
+        }
+      `}</style>
+    
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Skills</h3>
@@ -568,13 +656,17 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
               {userSkills.map(skill => {
                 // Get icon for this skill
                 const iconUrl = getSkillIconUrl(skill);
+                const displayName = getSkillDisplayName(skill);
+                const isPrivate = checkIsPrivateSkill(skill);
                 
                 return (
                   <Badge 
                     // Use string for key to avoid null issues - combine id and name for uniqueness
                     key={`skill-${skill.id || ''}-${skill.name}`} 
-                    variant="secondary" 
-                    className="px-3 py-1 flex items-center gap-1"
+                    variant={isPrivate ? "outline" : "secondary"}
+                    className={`px-3 py-1 flex items-center gap-1 skill-item ${
+                      (deletingId === skill.id) ? 'deleting' : ''
+                    } ${successId === skill.id ? 'success' : ''}`}
                   >
                     {/* Add skill icon with white background */}
                     {iconUrl && (
@@ -589,7 +681,11 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                         />
                       </div>
                     )}
-                    {skill.name}
+                    {/* Show lock icon for private skills */}
+                    {isPrivate && (
+                      <Lock className="h-3 w-3 mr-1 text-muted-foreground" />
+                    )}
+                    {displayName}
                     <Button
                       type="button"
                       variant="ghost"
@@ -607,6 +703,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                           });
                         }
                       }}
+                      disabled={deletingId === skill.id}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -700,6 +797,19 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                     </Button>
                   </div>
                 </div>
+              </div>
+              
+              {/* Private skill toggle */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="private-skill"
+                  checked={isPrivateSkill}
+                  onCheckedChange={setIsPrivateSkill}
+                />
+                <Label htmlFor="private-skill" className="flex items-center">
+                  <Lock className="h-4 w-4 mr-1" />
+                  Make this a private skill (only visible to you)
+                </Label>
               </div>
             </CardContent>
             <CardFooter className="justify-between">
@@ -805,6 +915,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                         {searchResults.map(skill => {
                           // Get icon for this skill
                           const iconUrl = getSkillIconUrl(skill);
+                          const displayName = getSkillDisplayName(skill);
                           
                           return (
                             <div 
@@ -817,11 +928,11 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                                     <AvatarImage src={iconUrl} />
                                   ) : null}
                                   <AvatarFallback>
-                                    {skill.name.substring(0, 2).toUpperCase()}
+                                    {displayName.substring(0, 2).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <p className="font-medium">{skill.name}</p>
+                                  <p className="font-medium">{displayName}</p>
                                   {skill.description && (
                                     <p className="text-xs text-muted-foreground">{skill.description}</p>
                                   )}
