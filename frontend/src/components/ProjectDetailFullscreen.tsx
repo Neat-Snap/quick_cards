@@ -12,7 +12,7 @@ interface Props {
 
 export default function ProjectDetailFullscreen({ project, onBack }: Props) {
   return (
-    <div className="fixed inset-0 bg-background z-50 overflow-y-auto p-10">
+    <div className="fixed inset-0 bg-background z-50 overflow-y-auto p-4">
       <div className="p-4 max-w-2xl mx-auto">
         <Button 
           variant="ghost" 
@@ -20,7 +20,7 @@ export default function ProjectDetailFullscreen({ project, onBack }: Props) {
           className="flex items-center gap-2 mb-4"
           onClick={onBack}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 pl-0" />
           Back
         </Button>
 
