@@ -59,8 +59,8 @@
 }
 
 body {
-  /* overflow: hidden; */
-  scrollbar-width: none;
+  overflow: hidden;
+  /* scrollbar-width: none; */
 }
 
 .hide-scrollbar {
