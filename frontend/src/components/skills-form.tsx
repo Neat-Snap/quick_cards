@@ -960,7 +960,8 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         <div className="flex justify-end gap-2">
           <Button 
             type="button" 
-            variant="outline" 
+            // variant="outline"
+            className="w-full sm:w-auto" 
             onClick={() => {
               // Call onSuccess to refresh data before calling onCancel
               if (onSuccess) {
