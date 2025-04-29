@@ -730,10 +730,11 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
           )}
         </div>
 
-        <div className="flex justify-end gap-1 w-4">
+        <div className="flex justify-end gap-1">
           <Button 
             type="button" 
             variant="outline" 
+            className="w-full sm:w-auto"
             onClick={() => {
               handleSuccess();
               if (onCancel) onCancel();
