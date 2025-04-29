@@ -603,6 +603,7 @@ export async function createCustomSkill(skill: {
   name: string; 
   description?: string; 
   image_url?: string;
+  is_predefined?: boolean;
 }): Promise<ApiResponse<Skill>> {
   return apiRequest<Skill>('/v1/skills', {
     method: 'POST',
