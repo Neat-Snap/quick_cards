@@ -58,9 +58,13 @@
   }
 }
 
+body::-webkit-scrollbar {
+  display: none;
+}
+
 body {
-  overflow: hidden;
-  /* scrollbar-width: none; */
+  /* -ms-text-overflow: none; */
+  scrollbar-width: none;
 }
 
 .hide-scrollbar {
