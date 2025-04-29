@@ -493,6 +493,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           <Button 
             type="button" 
             variant="outline" 
+            className="w-full sm:w-auto"
             onClick={() => {
               handleSuccess();
               if (onCancel) onCancel();

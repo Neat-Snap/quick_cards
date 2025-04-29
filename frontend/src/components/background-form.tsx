@@ -287,20 +287,22 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="space-y-2 pt-4">
+        <Button 
+          type="submit"
+          className="w-full"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Saving..." : "Save"}
+        </Button>
         <Button 
           type="button" 
           variant="outline" 
+          className="w-full"
           onClick={onCancel}
           disabled={isSubmitting}
         >
           Cancel
-        </Button>
-        <Button 
-          type="submit"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>
