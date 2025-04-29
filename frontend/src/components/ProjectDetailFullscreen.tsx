@@ -12,7 +12,7 @@ interface Props {
 
 export default function ProjectDetailFullscreen({ project, onBack }: Props) {
   return (
-    <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-background z-50 overflow-y-auto p-10">
       <div className="p-4 max-w-2xl mx-auto">
         <Button 
           variant="ghost" 
@@ -24,7 +24,7 @@ export default function ProjectDetailFullscreen({ project, onBack }: Props) {
           Back
         </Button>
 
-        <h1 className="text-2xl font-bold mb-1">{project.name}</h1>
+        <h1 className="text-2xl font-bold mb-5">{project.name}</h1>
         {project.role && <p className="text-sm text-muted-foreground mb-4">{project.role}</p>}
 
         {project.avatar_url && (
