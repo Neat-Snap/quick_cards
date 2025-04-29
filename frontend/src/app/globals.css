@@ -56,7 +56,12 @@
   body {
     @apply bg-background text-foreground;
   }
-} 
+}
+
+body {
+  /* overflow: hidden; */
+  scrollbar-width: none;
+}
 
 .hide-scrollbar {
   -ms-overflow-style: none;  /* Internet Explorer and Edge */
