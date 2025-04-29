@@ -37,6 +37,9 @@ interface PremiumFeaturesProps {
   onSubscribed?: () => void;
 }
 
+// Local mapping of tier indices to display names
+const TIER_LABELS = ["Basic", "Premium", "Ultimate", "God"];
+
 export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
   const [premiumStatus, setPremiumStatus] = useState<PremiumStatus | null>(null);
   const [premiumTiers, setPremiumTiers] = useState<PremiumTier[]>([]);
@@ -61,7 +64,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
       try {
         const status = await getPremiumStatus();
         setPremiumStatus(status);
-
         const tiers = await getPremiumTiers();
         setPremiumTiers(tiers);
       } catch (error) {
@@ -88,8 +90,8 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
           window.open(response.payment_url, '_blank');
         }
       }
-      // Optimistically update status
-      setPremiumStatus({ premium_tier: tier, tier_name: premiumTiers.find(t => t.tier === tier)?.name || "Premium", expires_at: new Date(Date.now() + 30*24*60*60*1000).toISOString(), is_active: true });
+      // Optimistic update
+      setPremiumStatus(prev => prev ? { ...prev, premium_tier: tier, is_active: true, expires_at: new Date(Date.now() + 30*24*60*60*1000).toISOString() } : null);
       toast({ title: "Subscription Initiated", description: "You will be redirected to complete your subscription", variant: "default" });
       onSubscribed?.();
     } catch (error) {
@@ -110,38 +112,38 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
 
   const isPremium = premiumStatus?.is_active ?? false;
   const currentTier = premiumStatus?.premium_tier ?? 0;
-  const maxTier = premiumTiers.length;
+  const maxTier = premiumTiers.length > 0 ? Math.max(...premiumTiers.map(t => t.tier)) : 3;
 
   // Next-level features
   const nextTier = currentTier < maxTier ? currentTier + 1 : null;
-  const upcomingFeatures = nextTier
-    ? premiumFeatures.filter(f => f.tier === nextTier)
-    : [];
+  const upcomingFeatures = nextTier ? premiumFeatures.filter(f => f.tier === nextTier) : [];
 
   return (
     <div className="space-y-6">
       {/* Premium Status Banner */}
-      {isPremium && premiumStatus ? (
-        <div className="text-center">
-          <Badge variant="default" className="bg-yellow-400 text-black px-3 py-1 text-sm">Active Premium Subscription</Badge>
-          <h2 className="text-xl font-bold mt-4 mb-2">{premiumStatus.tier_name} Plan</h2>
-          <p className="text-sm text-muted-foreground flex justify-center items-center gap-1">
-            <Calendar className="h-4 w-4" />
-            Expires: {premiumStatus.expires_at ? formatExpirationDate(premiumStatus.expires_at) : "Never"}
-          </p>
-        </div>
-      ) : (
-        <div className="text-center mb-8">
-          <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Upgrade to Premium</h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">Get access to exclusive features to customize your business card and stand out from the crowd.</p>
-        </div>
-      )}
+      <div className="text-center">
+        {isPremium ? (
+          <>
+            <Badge variant="default" className="bg-yellow-400 text-black px-3 py-1 text-sm">Active Premium Subscription</Badge>
+            <h2 className="text-xl font-bold mt-4 mb-2">{TIER_LABELS[currentTier]} Plan</h2>
+            <p className="text-sm text-muted-foreground flex justify-center items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              Expires: {premiumStatus?.expires_at ? formatExpirationDate(premiumStatus.expires_at) : "Never"}
+            </p>
+          </>
+        ) : (
+          <>
+            <Star className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Upgrade to Premium</h2>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">Get access to exclusive features to customize your business card and stand out from the crowd.</p>
+          </>
+        )}
+      </div>
 
-      {/* Upcoming Features */}
-      {isPremium && nextTier && upcomingFeatures.length > 0 && (
+      {/* Upcoming Features (always show next-level benefits) */}
+      {nextTier && upcomingFeatures.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-center mb-4">Features in {premiumTiers.find(t => t.tier === nextTier)?.name} Plan</h3>
+          <h3 className="text-lg font-semibold text-center mb-4">Features in {TIER_LABELS[nextTier]} Plan</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {upcomingFeatures.map((feature, idx) => {
               const Icon = feature.icon;
@@ -172,7 +174,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <TierIcon className={`h-5 w-5 ${isCurrent ? 'text-yellow-400' : ''}`} />
-                    {tier.name} Plan
+                    {TIER_LABELS[tier.tier]} Plan
                   </CardTitle>
                   <Badge variant={isCurrent ? "default" : "outline"}>{isCurrent ? "Current" : `${tier.price} Stars`}</Badge>
                 </div>
@@ -180,15 +182,18 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               </CardHeader>
               <CardContent className="pt-6">
                 <div className="space-y-4">
-                  {premiumFeatures.filter(f => f.tier <= tier.tier).map((feature, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <h3 className="font-medium">{feature.name}</h3>
-                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  {premiumFeatures
+                    .filter(f => f.tier <= tier.tier)
+                    .map((feature, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <h3 className="font-medium">{feature.name}</h3>
+                          <p className="text-sm text-muted-foreground">{feature.description}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  }
                 </div>
               </CardContent>
               <CardFooter>
