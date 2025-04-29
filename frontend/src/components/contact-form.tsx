@@ -487,9 +487,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
               )}
             </div>
           </form>
-        </div>
 
-        <div className="flex justify-end gap-2">
           <Button 
             type="button" 
             variant="outline" 
@@ -502,6 +500,10 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
             Back
           </Button>
         </div>
+
+        {/* <div className="flex justify-end gap-2">
+          
+        </div> */}
       </div>
     </>
   );
