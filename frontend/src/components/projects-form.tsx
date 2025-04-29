@@ -732,7 +732,7 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
           <Button 
             type="button" 
             variant="outline" 
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto mt-2"
             onClick={() => {
               handleSuccess();
               if (onCancel) onCancel();
