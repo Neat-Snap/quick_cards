@@ -20,7 +20,7 @@ class Settings:
     # Telegram
     # This MUST match the bot token of the bot handling your Telegram Mini App
     # The current token is a placeholder and must be replaced with your actual bot token
-    TELEGRAM_BOT_TOKEN: str = "7762206500:AAEhEMh69UAS39seEPGScbIjyq7TAMtMhvU"
+    TELEGRAM_BOT_TOKEN: str = "7762206500:AAGvP48wGoOpkK4aetC3FFFBceLTT1e9Ylo"
     
     # Admin users - List of telegram_id values for admin users
     # These users will receive notifications about new users, security issues, etc.
