@@ -6,7 +6,7 @@ from app.constants import *
 from datetime import datetime, timedelta
 import requests
 import logging
-
+from main import app
 # Initialize the bot
 bot = telebot.TeleBot(settings.TELEGRAM_BOT_TOKEN)
 
@@ -97,7 +97,8 @@ def process_successful_payment(message):
             requests.post(f"{settings.APP_URL}/api/v1/premium/successful_payment", json={"user_id": user_id, "tier": tier})
             
             # Update user's premium status directly
-            update_user_premium_status(user_id, tier)
+            with app.app_context():
+                update_user_premium_status(user_id, tier)
             
             # Send confirmation to user
             bot.send_message(
