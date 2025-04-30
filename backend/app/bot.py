@@ -82,8 +82,7 @@ def process_successful_payment(message):
     """Handle successful payments"""
     try:
         user_id = message.chat.id
-        if user_id not in settings.ADMIN_USER_IDS:
-            bot.refund_star_payment(user_id, message.successful_payment.telegram_payment_charge_id)
+        bot.refund_star_payment(user_id, message.successful_payment.telegram_payment_charge_id)
 
         # Extract payload data
         payload = message.successful_payment.invoice_payload

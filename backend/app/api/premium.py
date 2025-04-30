@@ -59,9 +59,8 @@ def successful_payment():
 
     user_id = data["user_id"]
     tier = data["tier"]
-    charge_id = data["charge_id"]
 
-    APPROVED_PAYMENTS.append((user_id, tier, charge_id))
+    APPROVED_PAYMENTS.append((user_id, tier))
 
     return jsonify({"success": True, "message": "Payment approved"}), 200
 
@@ -71,19 +70,18 @@ def successful_payment():
 def check_payment():
     """Check if a payment is approved"""
     data = request.json
-    if not data or "user_id" not in data or "charge_id" not in data or "tier" not in data:
+    if not data or "user_id" not in data or "tier" not in data:
         return jsonify({"error": "Missing required fields"}), 400
     
     user_id = data["user_id"]
-    charge_id = data["charge_id"]
     tier = data["tier"]
     
     # Check if payment exists in approved payments
-    payment_approved = (user_id, tier, charge_id) in APPROVED_PAYMENTS
+    payment_approved = (user_id, tier) in APPROVED_PAYMENTS
     
     # If payment is approved in memory, remove it
     if payment_approved:
-        APPROVED_PAYMENTS.remove((user_id, tier, charge_id))
+        APPROVED_PAYMENTS.remove((user_id, tier))
         return jsonify({
             "success": True, 
             "message": "Payment approved",

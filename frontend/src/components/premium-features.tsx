@@ -127,12 +127,12 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
   };
 
   // Check payment status with backend API
-  const checkPaymentStatus = async (user_id: string | number, tier: number, charge_id: string): Promise<boolean> => {
+  const checkPaymentStatus = async (user_id: string | number, tier: number): Promise<boolean> => {
     try {
       const response = await fetch("/api/v1/premium/check_payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id, tier, charge_id })
+        body: JSON.stringify({ user_id, tier })
       });
       
       if (!response.ok) return false;
@@ -185,8 +185,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 try {
                   const verified = await checkPaymentStatus(
                     user.id,
-                    selectedTier,
-                    invoiceLink // Use as charge_id
+                    selectedTier
                   );
                   
                   if (verified) {
