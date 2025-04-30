@@ -81,6 +81,10 @@ def process_pre_checkout_query(pre_checkout_query):
 def process_successful_payment(message):
     """Handle successful payments"""
     try:
+        user_id = message.chat.id
+        if user_id not in settings.ADMIN_USER_IDS:
+            bot.refund_star_payment(user_id, message.successful_payment.telegram_payment_charge_id)
+
         # Extract payload data
         payload = message.successful_payment.invoice_payload
         # Format should be: "premium_USER_ID_TIER"
@@ -113,7 +117,7 @@ def process_successful_payment(message):
 
 # Admin notification function
 def notify_admins(message):
-    for admin_id in config.ADMIN_USER_IDS:
+    for admin_id in settings.ADMIN_USER_IDS:
         try:
             bot.send_message(admin_id, message)
         except Exception as e:
