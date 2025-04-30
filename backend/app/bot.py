@@ -1,12 +1,12 @@
 import telebot
-from core.config import settings
+from app.core.config import settings
 from telebot.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
-from db.functions import get_user, set_user, update_user_premium_status
-from constants import *
+from app.db.functions import get_user, set_user, update_user_premium_status
+from app.constants import *
 from datetime import datetime, timedelta
 import requests
 import logging
-from main import app
+from app.main import app
 # Initialize the bot
 bot = telebot.TeleBot(settings.TELEGRAM_BOT_TOKEN)
 
