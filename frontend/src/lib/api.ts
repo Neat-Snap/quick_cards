@@ -781,3 +781,48 @@ export async function searchUsers(query: string, skillFilter?: string, limit: nu
 export async function getUserById(userId: string): Promise<ApiResponse<User>> {
   return apiRequest<User>(`/v1/users/${userId}`);
 }
+
+
+// In api.ts
+
+// Generate a payment link
+export async function generatePaymentLink(tier: number): Promise<ApiResponse<{ payment_url: string }>> {
+  try {
+    const response = await apiRequest<{ payment_url: string }>('/v1/premium/link', {
+      method: 'POST',
+      body: JSON.stringify({ tier }),
+    });
+    return response;
+  } catch (error) {
+    console.error("Error generating payment link:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error generating payment link"
+    };
+  }
+}
+
+// Check payment status
+export async function checkPaymentStatus(
+  userId: string | number,
+  tier: number,
+  chargeId: string
+): Promise<ApiResponse<PremiumStatus>> {
+  try {
+    const response = await apiRequest<PremiumStatus>('/v1/premium/check_payment', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: userId,
+        tier,
+        charge_id: chargeId
+      }),
+    });
+    return response;
+  } catch (error) {
+    console.error("Error checking payment status:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error checking payment"
+    };
+  }
+}

@@ -68,6 +68,10 @@ declare global {
           button_text_color?: string;
           secondary_bg_color?: string;
         };
+        openInvoice: (
+          invoiceUrl: string, 
+          callback?: (status: "paid" | "cancelled" | "failed" | string) => void
+        ) => void;
       };
     };
   }

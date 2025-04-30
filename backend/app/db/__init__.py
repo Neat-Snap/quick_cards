@@ -91,7 +91,9 @@ __all__ = [
     'get_premium_feature_by_id',
     'get_premium_features_by_tier',
     'set_premium_feature',
-    'create_premium_feature'
+    'create_premium_feature',
+
+    'update_user_premium_status'
 ]
 
 # Initialize logging
