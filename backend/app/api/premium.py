@@ -179,7 +179,7 @@ def generate_payment_link():
     return jsonify({"success": True, "payment_url": bot.create_invoice_link(description=f"Premium tier {tier} - 1",
                                                                             title=f"Premium tier {tier}",
                                                                             currency="XTR",
-                                                                            payload=1,
+                                                                            payload="Payload data",
                                                                             provider_token=None,
                                                                             prices=[LabeledPrice(label="Label", amount=find_tier_price(tier))])})
     
