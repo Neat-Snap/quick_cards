@@ -4,6 +4,8 @@ import os
 class Settings:
     PROJECT_NAME: str = "Telegram Business Card"
     API_V1_STR: str = "/api/v1"
+
+    APP_URL: str = "https://face-cards.ru"
     
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "maskotter"
