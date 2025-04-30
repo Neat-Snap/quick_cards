@@ -1,8 +1,8 @@
 import telebot
-from app.core.config import settings
+from core.config import settings
 from telebot.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
-from app.db.functions import get_user, set_user, update_user_premium_status
-from app.constants import *
+from db.functions import get_user, set_user, update_user_premium_status
+from constants import *
 from datetime import datetime, timedelta
 import requests
 import logging
