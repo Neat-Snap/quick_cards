@@ -788,9 +788,14 @@ export async function getUserById(userId: string): Promise<ApiResponse<User>> {
 // Generate a payment link
 export async function generatePaymentLink(tier: number): Promise<ApiResponse<{ payment_url: string }>> {
   try {
+    const token = localStorage.getItem('authToken');
+
     const response = await apiRequest<{ payment_url: string }>('/v1/premium/link', {
       method: 'POST',
       body: JSON.stringify({ tier }),
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
     });
     return response;
   } catch (error) {
