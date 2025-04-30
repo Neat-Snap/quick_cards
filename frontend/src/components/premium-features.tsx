@@ -35,7 +35,8 @@ import {
   PremiumTier, 
   PremiumStatus, 
   getPremiumStatus, 
-  getPremiumTiers 
+  getPremiumTiers,
+  generatePaymentLink
 } from "@/lib/api";
 
 // Display labels for each tier index
@@ -155,23 +156,19 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
     
     try {
       // Generate payment link
-      const response = await fetch(`/api/v1/premium/link`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tier: selectedTier })
-      });
+      const response = await generatePaymentLink(selectedTier);
       
-      if (!response.ok) {
-        throw new Error(`Failed to generate payment link: ${response.statusText}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`Failed to generate payment link: ${response.statusText}`);
+      // }
       
-      const data = await response.json();
+      // const data = await response.json();
       
-      if (!data.success) {
-        throw new Error(data.error || "Failed to generate payment link");
-      }
+      // if (!data.success) {
+      //   throw new Error(data.error || "Failed to generate payment link");
+      // }
       
-      const invoiceLink = data.payment_url as string;
+      const invoiceLink = response.payment_url as string;
       
       // Use Telegram WebApp to open invoice
       if (window.Telegram?.WebApp) {
