@@ -27,9 +27,9 @@ from app.middleware.auth import get_current_user as get_authenticated_user
 APPROVED_PAYMENTS = []
 
 # In premium.py
-def find_tier_price(tier):
+def find_tier_price(tier_number):
     for tier_item in PREMIUM_TIERS:  # Change to tier_item
-        if tier_item["name"] == tier:
+        if tier_item["tier"] == tier_number:
             return tier_item["price"]
     return None
 
