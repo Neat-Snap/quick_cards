@@ -94,7 +94,7 @@ def process_successful_payment(message):
             tier = int(payload_parts[2])
             charge_id = message.successful_payment.telegram_payment_charge_id
             
-            # Add to approved payments
+            requests.post(f"{settings.APP_URL}/api/v1/premium/successful_payment", json={"user_id": user_id, "tier": tier})
             
             # Update user's premium status directly
             update_user_premium_status(user_id, tier)

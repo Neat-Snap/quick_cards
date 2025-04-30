@@ -77,6 +77,8 @@ def check_payment():
     tier = data["tier"]
     
     # Check if payment exists in approved payments
+    logger.info(f"Checking payment for user {user_id} and tier {tier}")
+    logger.info(f"APPROVED_PAYMENTS: {APPROVED_PAYMENTS}")
     payment_approved = (user_id, tier) in APPROVED_PAYMENTS
     
     # If payment is approved in memory, remove it
@@ -179,7 +181,7 @@ def generate_payment_link():
     return jsonify({"success": True, "payment_url": bot.create_invoice_link(description=f"Premium tier {tier} - 1",
                                                                             title=f"Premium tier {tier}",
                                                                             currency="XTR",
-                                                                            payload="Payload data",
+                                                                            payload=f"premium_{user.id}_{tier}",
                                                                             provider_token=None,
                                                                             prices=[LabeledPrice(label="Label", amount=find_tier_price(tier))])})
     
