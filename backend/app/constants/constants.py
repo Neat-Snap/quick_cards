@@ -2,7 +2,7 @@ PREMIUM_TIERS = [
     {
         "tier": 1,
         "name": "Premium",
-        "price": 250,
+        "price": 1,
         "description": "Basic premium features for your card",
         "features": [
             "Custom Background Image",
@@ -13,7 +13,7 @@ PREMIUM_TIERS = [
     {
         "tier": 2,
         "name": "Ultimate",
-        "price": 500,
+        "price": 1,
         "description": "Enhanced premium features for your card",
         "features": [
             "Custom Background Image",
