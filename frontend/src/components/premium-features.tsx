@@ -47,21 +47,21 @@ const DEFAULT_PREMIUM_TIERS: PremiumTier[] = [
   {
     tier: 1,
     name: "Basic",
-    price: 100,
+    price: 1,
     description: "Essential premium features",
     features: ["Custom Background Image", "Custom Badge", "Skills"]
   },
   {
     tier: 2,
     name: "Premium",
-    price: 250,
+    price: 1,
     description: "Advanced customization options",
     features: ["Extended Projects", "Animated Elements", "Custom Links"]
   },
   {
     tier: 3,
     name: "Ultimate",
-    price: 500,
+    price: 1,
     description: "All premium features",
     features: ["Verified Badge", "Video Support"]
   }
