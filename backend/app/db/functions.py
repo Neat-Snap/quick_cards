@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Union, Any
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.exc import NoResultFound
 
+from datetime import datetime, timedelta
 from app.db.session import db
 from app.db.models import User, Contact, Project, Skill, CustomLink, PremiumFeature
 
@@ -741,3 +742,24 @@ def create_premium_feature(name: str, description: str, tier_required: int) -> D
         logger.error(f"Database error while creating premium feature: {str(e)}")
         db.session.rollback()
         raise
+
+def update_user_premium_status(user_id, tier):
+    """Update user's premium status"""
+    try:
+        # Get current user data
+        user_data = get_user(user_id)
+        if not user_data:
+            logger.error(f"User not found for ID: {user_id}")
+            return False
+        
+        # Update premium tier and expiration (30 days from now)
+        user_data["premium_tier"] = tier
+        user_data["premium_expires_at"] = datetime.now() + timedelta(days=30)
+        
+        # Save updated user data
+        set_user(user_data)
+        logger.info(f"Updated premium status for user {user_id} to tier {tier}")
+        return True
+    except Exception as e:
+        logger.error(f"Error updating premium status: {e}")
+        return False
