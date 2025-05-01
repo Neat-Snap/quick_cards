@@ -22,6 +22,8 @@ import { SkillSelector } from "./SkillSelector";
 import { FeaturedUsers } from "./FeaturedUsers";
 import { BusinessCardPreview } from "@/components/business-card-preview";
 import { toast } from "@/components/ui/use-toast";
+import { UserProfileView } from "@/components/user-profile/UserProfileView";
+
 
 export function ExploreSection() {
   // State management
@@ -284,27 +286,14 @@ export function ExploreSection() {
       )}
       
       {/* User Detail View */}
-      {selectedUser && (
-        <div className="space-y-4">
-          <Button 
-            variant="ghost" 
-            className="flex items-center gap-1" 
-            onClick={backToResults}
-          >
-            <ChevronRight className="h-4 w-4 rotate-180" />
-            Back to results
-          </Button>
-          
-          {loadingUserDetails ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-              <p className="text-sm text-muted-foreground">Loading user profile...</p>
-            </div>
-          ) : (
-            <BusinessCardPreview user={selectedUser} />
-          )}
-        </div>
-      )}
+        {selectedUser && (
+        <UserProfileView 
+            userId={selectedUser.id} 
+            initialData={selectedUser} 
+            onBack={backToResults}
+            showBackButton={true}
+        />
+        )}
     </div>
   );
 }
