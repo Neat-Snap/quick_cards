@@ -58,7 +58,7 @@ export function ExploreSection() {
         const token = localStorage.getItem('authToken');
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
         const offset = reset ? 0 : recommendationOffset;
-        const limit = 3;
+        const limit = 10;
         
         const response = await fetch(`${API_URL}/v1/users?limit=${limit}&offset=${offset}`, {
           method: 'GET',
