@@ -15,6 +15,7 @@ import { Search, CreditCard, Star, Edit, X } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/components/ui/use-toast";
+import { ExploreSection } from "@/components/explore/ExploreSection";
 import { 
   User, 
   Contact, 
@@ -333,85 +334,7 @@ export default function Home() {
           
           {activeTab === "explore" && (
             <div className="p-4">
-              <h1 className="text-2xl font-bold mb-4">Explore</h1>
-              
-              {selectedUser ? (
-                // User Card View
-                <div className="space-y-4">
-                  <Button 
-                    variant="outline" 
-                    onClick={backToSearch}
-                    className="mb-2"
-                  >
-                    Back to Search
-                  </Button>
-                  
-                  <BusinessCardPreview user={selectedUser} />
-                </div>
-              ) : (
-                // Search Interface
-                <>
-                  <div className="rounded-lg border p-4 mb-4">
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Input 
-                        type="text" 
-                        placeholder="Search by name, username..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                      />
-                      <Button onClick={handleSearch} disabled={isSearching}>
-                        {isSearching ? "Searching..." : "Search"}
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <p className="text-sm text-muted-foreground">Filter by:</p>
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="outline">Skills</Button>
-                        <Button variant="outline">Projects</Button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Search Results */}
-                  {searchResults.length > 0 ? (
-                    <div className="space-y-4">
-                      <h2 className="text-lg font-semibold">Results</h2>
-                      {searchResults.map(user => (
-                        <div 
-                          key={user.id} 
-                          className="p-3 border rounded-md flex items-center justify-between hover:bg-muted/30 cursor-pointer"
-                          onClick={() => viewUserCard(user)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                              {user.avatar_url ? (
-                                <img src={user.avatar_url} alt={user.username} className="h-full w-full object-cover" />
-                              ) : (
-                                <span>{user.first_name?.charAt(0) || ''}{user.last_name?.charAt(0) || ''}</span>
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-medium">{user.first_name} {user.last_name}</p>
-                              <p className="text-sm text-muted-foreground">@{user.username}</p>
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="sm">View</Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : searchQuery && !isSearching ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      <p>No users found matching "{searchQuery}"</p>
-                    </div>
-                  ) : (
-                    <div className="text-center text-muted-foreground py-8">
-                      <p>Search for other users' cards</p>
-                    </div>
-                  )}
-                </>
-              )}
+              <ExploreSection />
             </div>
           )}
           
