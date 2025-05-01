@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { User, Contact, Project, Skill, CustomLink } from "@/lib/api";
 import { BusinessCardPreview } from "@/components/business-card-preview";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
 interface UserProfileViewProps {
@@ -12,6 +12,7 @@ interface UserProfileViewProps {
   onBack?: () => void;
   showBackButton?: boolean;
   loadImmediately?: boolean;
+  fullScreen?: boolean;
 }
 
 export function UserProfileView({ 
@@ -19,7 +20,8 @@ export function UserProfileView({
   initialData = null,
   onBack,
   showBackButton = true,
-  loadImmediately = true
+  loadImmediately = true,
+  fullScreen = false
 }: UserProfileViewProps) {
   const [user, setUser] = useState<User | null>(initialData);
   const [loading, setLoading] = useState(loadImmediately);
@@ -27,6 +29,8 @@ export function UserProfileView({
   
   // Load full user data with direct API call to handle different response formats
   const loadUserData = async () => {
+    // Load user data implementation (same as before)
+    // ...
     setLoading(true);
     setError(null);
     
@@ -110,7 +114,67 @@ export function UserProfileView({
       loadUserData();
     }
   };
+
+  // If fullScreen mode is enabled, render a full-screen overlay
+  if (fullScreen) {
+    return (
+      <div className="fixed inset-0 bg-background z-50 overflow-auto">
+        <div className="max-w-md mx-auto py-4 px-4">
+          {showBackButton && onBack && (
+            <Button 
+              variant="ghost" 
+              onClick={onBack} 
+              className="mb-4 -ml-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Explore
+            </Button>
+          )}
+          
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+              <p className="text-sm text-muted-foreground">Loading user profile...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 border rounded-md">
+              <p className="text-destructive mb-2">{error}</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLoadProfile}
+                className="mt-2"
+              >
+                Retry
+              </Button>
+              {initialData && (
+                <div className="mt-6 px-4">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Showing preview data instead:
+                  </p>
+                  <BusinessCardPreview user={initialData} />
+                </div>
+              )}
+            </div>
+          ) : user ? (
+            <BusinessCardPreview 
+              user={user} 
+              contacts={user.contacts as Contact[]} 
+              projects={user.projects as Project[]} 
+              skills={user.skills as Skill[]} 
+              customLinks={user.custom_links as CustomLink[]} 
+            />
+          ) : (
+            <div className="text-center py-8 border rounded-md">
+              <p className="text-muted-foreground">User profile not found</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
   
+  // Regular, non-fullscreen view (same as before)
   return (
     <div className="space-y-4">
       {/* Back button */}
