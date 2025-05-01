@@ -1,5 +1,4 @@
-// components/explore/ExploreSection.tsx - Main component for the Explore tab
-
+// components/explore/ExploreSection.tsx
 import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -45,10 +44,18 @@ export function ExploreSection() {
         : undefined;
       
       const results = await searchUsers(searchQuery, skillFilter);
-      setSearchResults(results);
+      
+      // Add debugging to check the results
+      console.log("Search results:", results);
+      
+      // Ensure results is an array - important fix!
+      const resultsArray = Array.isArray(results) ? results : [];
+      
+      setSearchResults(resultsArray);
       setActiveTab("search"); // Switch to search tab to show results
     } catch (error) {
       console.error("Error searching users:", error);
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
@@ -85,6 +92,12 @@ export function ExploreSection() {
   const backToResults = () => {
     setSelectedUser(null);
   };
+
+  // Debugging output for search results - this will help troubleshoot
+  useEffect(() => {
+    console.log("Current search results state:", searchResults);
+    console.log("Search results length:", searchResults?.length || 0);
+  }, [searchResults]);
 
   return (
     <div className="space-y-4">
@@ -140,7 +153,7 @@ export function ExploreSection() {
                   <label className="text-xs font-medium text-muted-foreground">Selected skills</label>
                   <div className="flex flex-wrap gap-1 mt-1">
                     {selectedSkills.map(skill => (
-                      <Badge key={skill.id} variant="secondary" className="flex items-center gap-1">
+                      <Badge key={skill.id || Math.random()} variant="secondary" className="flex items-center gap-1">
                         {skill.name}
                         <Button 
                           variant="ghost" 
@@ -181,7 +194,7 @@ export function ExploreSection() {
           </TabsContent>
           
           <TabsContent value="search" className="mt-4">
-            {searchResults.length > 0 ? (
+            {searchResults && searchResults.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {searchResults.map(user => (
                   <ExploreUserCard 
