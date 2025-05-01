@@ -43,14 +43,36 @@ export function ExploreSection() {
         ? selectedSkills.map(s => s.name).join(",") 
         : undefined;
       
-      const results = await searchUsers(searchQuery, skillFilter);
+      // Make direct API request to ensure we get the raw response
+      const token = localStorage.getItem('authToken');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+      let endpoint = `/v1/users?q=${encodeURIComponent(searchQuery)}&limit=10&offset=0`;
+      if (skillFilter) {
+        endpoint += `&skill=${encodeURIComponent(skillFilter)}`;
+      }
       
-      // Add debugging to check the results
-      console.log("Search results:", results);
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        credentials: 'include',
+      });
       
-      // Ensure results is an array - important fix!
-      const resultsArray = Array.isArray(results) ? results : [];
+      if (!response.ok) {
+        throw new Error(`Search failed with status ${response.status}`);
+      }
       
+      // Get the raw JSON response
+      const data = await response.json();
+      console.log("Raw API response:", data);
+      
+      // Process the response - it should be an array directly
+      const resultsArray = Array.isArray(data) ? data : [];
+      
+      console.log("Processed search results:", resultsArray);
       setSearchResults(resultsArray);
       setActiveTab("search"); // Switch to search tab to show results
     } catch (error) {
