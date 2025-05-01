@@ -1,87 +1,85 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, DateTime, Float, Table, BigInteger
 from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
-from app.db.session import db
+Base = declarative_base()
 
-# Association table for skills
-user_skill = db.Table(
+user_skill = Table(
     "user_skill",
-    db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
-    db.Column("skill_id", db.Integer, db.ForeignKey("skills.id"))
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("skill_id", Integer, ForeignKey("skills.id"))
 )
 
-class User(db.Model):
+class User(Base):
     __tablename__ = "users"
 
-    id = db.Column(db.BigInteger, primary_key=True, index=True)
-    username = db.Column(db.String, index=True)
-    name = db.Column(db.String)
-    created_at = db.Column(db.DateTime, server_default=func.now())
-    updated_at = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
+    id = Column(BigInteger, primary_key=True, index=True)
+    username = Column(String, index=True)
+    name = Column(String)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    reffed_by = db.Column(db.Integer, nullable=True)
-    referrals = db.Column(db.Integer, default=0)
+    reffed_by = Column(Integer, nullable=True)
+    referrals = Column(Integer, default=0)
     
-    # Premium status
-    premium_tier = db.Column(db.Integer, default=0)  # 0=Free, 1=Basic, 2=Premium, 3=Ultimate
-    premium_expires_at = db.Column(db.DateTime, nullable=True)
+    premium_tier = Column(Integer, default=0)  # 0=Free, 1=Basic, 2=Premium, 3=Ultimate
+    premium_expires_at = Column(DateTime, nullable=True)
     
-    # Card settings
-    avatar_url = db.Column(db.String, nullable=True)
-    background_type = db.Column(db.String, default="color")  # color, gradient, image
-    background_value = db.Column(db.String, default="#FFFFFF")  # color code, gradient info, or image URL
-    description = db.Column(db.Text, nullable=True)
-    badge = db.Column(db.String, nullable=True)
+    avatar_url = Column(String, nullable=True)
+    background_type = Column(String, default="color")  # color, gradient, image
+    background_value = Column(String, default="#FFFFFF")  # color code, gradient info, or image URL
+    description = Column(Text, nullable=True)
+    badge = Column(String, nullable=True)
     
-    # Relationships
-    contacts = db.relationship("Contact", back_populates="user", cascade="all, delete-orphan")
-    projects = db.relationship("Project", back_populates="user", cascade="all, delete-orphan")
-    skills = db.relationship("Skill", secondary=user_skill, back_populates="users")
-    custom_links = db.relationship("CustomLink", back_populates="user", cascade="all, delete-orphan")
+    contacts = relationship("Contact", back_populates="user", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
+    skills = relationship("Skill", secondary=user_skill, back_populates="users")
+    custom_links = relationship("CustomLink", back_populates="user", cascade="all, delete-orphan")
 
 
-class Contact(db.Model):
+class Contact(Base):
     __tablename__ = "contacts"
     
-    id = db.Column(db.Integer, primary_key=True, index=True)
-    user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"))
-    type = db.Column(db.String)  # phone, email, etc.
-    value = db.Column(db.String)
-    is_public = db.Column(db.Boolean, default=True)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("users.id"))
+    type = Column(String)  # phone, email, etc.
+    value = Column(String)
+    is_public = Column(Boolean, default=True)
     
-    user = db.relationship("User", back_populates="contacts")
+    user = relationship("User", back_populates="contacts")
 
 
-class Project(db.Model):
+class Project(Base):
     __tablename__ = "projects"
     
-    id = db.Column(db.Integer, primary_key=True, index=True)
-    user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"))
-    name = db.Column(db.String)
-    description = db.Column(db.Text, nullable=True)
-    avatar_url = db.Column(db.String, nullable=True)
-    role = db.Column(db.String, nullable=True)
-    url = db.Column(db.String, nullable=True)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("users.id"))
+    name = Column(String)
+    description = Column(Text, nullable=True)
+    avatar_url = Column(String, nullable=True)
+    role = Column(String, nullable=True)
+    url = Column(String, nullable=True)
     
-    user = db.relationship("User", back_populates="projects")
+    user = relationship("User", back_populates="projects")
 
 
-class Skill(db.Model):
+class Skill(Base):
     __tablename__ = "skills"
     
-    id = db.Column(db.Integer, primary_key=True, index=True)
-    name = db.Column(db.String, unique=True)
-    description = db.Column(db.Text, nullable=True)
-    image_url = db.Column(db.String, nullable=True)
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True)
+    description = Column(Text, nullable=True)
+    image_url = Column(String, nullable=True)
     is_predefined = Column(Boolean, default=False)
     
-    users = db.relationship("User", secondary=user_skill, back_populates="skills")
+    users = relationship("User", secondary=user_skill, back_populates="skills")
 
     def __repr__(self):
         return f"<Skill(id={self.id}, name='{self.name}')>"
     
     def to_dict(self):
-        """Convert model to dictionary"""
         return {
             "id": self.id,
             "name": self.name,
@@ -92,21 +90,21 @@ class Skill(db.Model):
         }
 
 
-class CustomLink(db.Model):
+class CustomLink(Base):
     __tablename__ = "custom_links"
     
-    id = db.Column(db.Integer, primary_key=True, index=True)
-    user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"))
-    title = db.Column(db.String)
-    url = db.Column(db.String)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(BigInteger, ForeignKey("users.id"))
+    title = Column(String)
+    url = Column(String)
     
-    user = db.relationship("User", back_populates="custom_links")
+    user = relationship("User", back_populates="custom_links")
 
 
-class PremiumFeature(db.Model):
+class PremiumFeature(Base):
     __tablename__ = "premium_features"
     
-    id = db.Column(db.Integer, primary_key=True, index=True)
-    name = db.Column(db.String, unique=True)
-    description = db.Column(db.Text)
-    tier_required = db.Column(db.Integer)  # 1=Basic, 2=Premium, 3=Ultimate 
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True)
+    description = Column(Text)
+    tier_required = Column(Integer)  # 1=Basic, 2=Premium, 3=Ultimate 
