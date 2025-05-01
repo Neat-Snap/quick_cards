@@ -250,9 +250,9 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                   {premiumFeatures.map((feature, i) => {
                     const Icon = feature.icon;
                     return (
-                      <div key={i} className="flex items-center gap-2">
-                        <div className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                          <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                      <div key={i} className="flex items-center gap-3 mb-2">
+                        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                          <Icon className="h-4 w-4 text-green-600 dark:text-green-400" />
                         </div>
                         <span className="text-sm">{feature.name}</span>
                       </div>
@@ -263,7 +263,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
             </>
           ) : (
             <>
-              <Star className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
+              <Crown className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-3">Upgrade to Premium</h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
                 Get access to exclusive features to customize your business card and stand out from the crowd.
@@ -300,11 +300,11 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 <div className="space-y-3">
                   <p className="text-sm font-medium mb-2">All premium features include:</p>
                   {premiumFeatures.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <div className="flex-shrink-0 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                        <Check className="h-3 w-3 text-primary" />
+                    <div key={i} className="flex items-start gap-3">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+                        {React.createElement(feature.icon, { className: "h-5 w-5 text-purple-600 dark:text-purple-400" })}
                       </div>
-                      <div>
+                      <div className="pt-1">
                         <span className="text-sm font-medium">{feature.name}</span>
                         <p className="text-xs text-muted-foreground">{feature.description}</p>
                       </div>
