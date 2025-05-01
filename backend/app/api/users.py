@@ -174,6 +174,7 @@ def search_users():
         # Get query parameters
         q = request.args.get("q")
         skill = request.args.get("skill")
+        project = request.args.get("project")
         limit = int(request.args.get("limit", 10))
         offset = int(request.args.get("offset", 0))
         
@@ -193,6 +194,11 @@ def search_users():
         if skill:
             query = query.join(User.skills).filter(
                 Skill.name.ilike(f"%{skill}%")
+            )
+        
+        if project:
+            query = query.join(User.projects).filter(
+                Project.name.ilike(f"%{project}%")
             )
         
         # Apply pagination

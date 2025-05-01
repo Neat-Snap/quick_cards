@@ -58,8 +58,9 @@ export function ExploreSection() {
         const token = localStorage.getItem('authToken');
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
         const offset = reset ? 0 : recommendationOffset;
+        const limit = 3;
         
-        const response = await fetch(`${API_URL}/v1/users?limit=3&offset=${offset}`, {
+        const response = await fetch(`${API_URL}/v1/users?limit=${limit}&offset=${offset}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ export function ExploreSection() {
         
         // Update status for pagination
         setRecommendationOffset(offset + usersArray.length);
-        setHasMoreRecommendations(usersArray.length === 10); // If we got less than 10, we're at the end
+        setHasMoreRecommendations(usersArray.length === limit); // If we got less than 10, we're at the end
       } catch (error) {
         console.error("Error loading recommended users:", error);
         if (reset) {
@@ -139,8 +140,8 @@ export function ExploreSection() {
       }
       
       // Add skill filter
-      if (skillFilter) {
-        endpoint += `&skill=${encodeURIComponent(skillFilter)}`;
+      if (projectQuery.trim()) {
+        endpoint += `&project=${encodeURIComponent(projectQuery.trim())}`;
       }
       
       // Add project filter
