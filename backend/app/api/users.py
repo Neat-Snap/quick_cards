@@ -178,7 +178,7 @@ def search_users():
         offset = int(request.args.get("offset", 0))
         
         # Start query construction
-        query = db.session.query(User).filter(User.is_active == True)
+        query = db.session.query(User)
         
         # Apply name/username filter if provided
         if q:
