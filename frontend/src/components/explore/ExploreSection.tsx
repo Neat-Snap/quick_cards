@@ -44,7 +44,7 @@ export function ExploreSection() {
       const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
       
-      const response = await fetch(`${API_URL}/v1/users?limit=10&offset=0`, {
+      const response = await fetch(`${API_URL}/v1/users?limit=2&offset=0`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
