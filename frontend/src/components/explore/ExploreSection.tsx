@@ -19,6 +19,7 @@ import { SkillSelector } from "./SkillSelector";
 import { UserProfileView } from "@/components/user-profile/UserProfileView";
 import { toast } from "@/components/ui/use-toast";
 
+
 export function ExploreSection() {
   // State management
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,11 +49,22 @@ export function ExploreSection() {
       !selectedUser && 
       containerRef.current
     ) {
-      const container = containerRef.current;
-      const scrollPosition = window.innerHeight + window.scrollY;
-      const scrollThreshold = container.offsetTop + container.offsetHeight - 200;
+      // Calculate distance from bottom
+      const scrollTop = (document.documentElement && document.documentElement.scrollTop) || document.body.scrollTop;
+      const scrollHeight = (document.documentElement && document.documentElement.scrollHeight) || document.body.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight || window.innerHeight;
+      const scrolledToBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 300;
       
-      if (scrollPosition >= scrollThreshold) {
+      console.log("Scroll check:", { 
+        scrolledToBottom,
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+        distance: scrollHeight - scrollTop - clientHeight
+      });
+      
+      if (scrolledToBottom) {
+        console.log("Reached bottom, loading more recommendations");
         loadMoreRecommendations();
       }
     }
@@ -64,11 +76,22 @@ export function ExploreSection() {
     selectedUser
   ]);
   
-  // Add scroll event listener
   useEffect(() => {
     window.addEventListener("scroll", checkScroll);
     return () => window.removeEventListener("scroll", checkScroll);
   }, [checkScroll]);
+  
+  // Function to load more recommendations
+  const loadMoreRecommendations = () => {
+    if (loadingMoreRecommendations || !hasMoreRecommendations) {
+      console.log("Skipping load more: already loading or no more results");
+      return;
+    }
+    
+    console.log("Loading more recommendations from offset:", recommendationOffset);
+    setLoadingMoreRecommendations(true);
+    loadRecommendedUsers(false);
+  };
   
   // Load recommended users on mount
   useEffect(() => {
@@ -80,12 +103,16 @@ export function ExploreSection() {
     if (reset) {
       setLoadingRecommendations(true);
       setRecommendationOffset(0);
+    } else {
+      setLoadingMoreRecommendations(true);
     }
     
     try {
       const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
       const offset = reset ? 0 : recommendationOffset;
+      
+      console.log(`Fetching users with offset ${offset} and limit 10`);
       
       const response = await fetch(`${API_URL}/v1/users?limit=2&offset=${offset}`, {
         method: 'GET',
@@ -106,16 +133,32 @@ export function ExploreSection() {
       
       // Set recommended users
       const usersArray = Array.isArray(data) ? data : [];
+      console.log(`Received ${usersArray.length} users from API`);
       
       if (reset) {
         setRecommendedUsers(usersArray);
       } else {
-        setRecommendedUsers(prev => [...prev, ...usersArray]);
+        // Only add users that aren't already in the list (avoid duplicates)
+        const existingIds = new Set(recommendedUsers.map(user => user.id));
+        const newUsers = usersArray.filter(user => !existingIds.has(user.id));
+        console.log(`Adding ${newUsers.length} new users (filtered out ${usersArray.length - newUsers.length} duplicates)`);
+        
+        if (newUsers.length > 0) {
+          setRecommendedUsers(prev => [...prev, ...newUsers]);
+        }
       }
       
-      // Update status for pagination
-      setRecommendationOffset(offset + usersArray.length);
-      setHasMoreRecommendations(usersArray.length === 10); // If we got less than 10, we're at the end
+      // Update offset for next load (important!)
+      const newOffset = offset + 10;
+      setRecommendationOffset(newOffset);
+      console.log(`Updated offset to ${newOffset}`);
+      
+      // Update if we have more results to load
+      // If we received fewer than 10 results, we've reached the end
+      const moreResults = usersArray.length === 10;
+      console.log(`Has more recommendations: ${moreResults}`);
+      setHasMoreRecommendations(moreResults);
+      
     } catch (error) {
       console.error("Error loading recommended users:", error);
       if (reset) {
@@ -133,14 +176,6 @@ export function ExploreSection() {
         setLoadingMoreRecommendations(false);
       }
     }
-  };
-  
-  // Function to load more recommendations
-  const loadMoreRecommendations = () => {
-    if (loadingMoreRecommendations || !hasMoreRecommendations) return;
-    
-    setLoadingMoreRecommendations(true);
-    loadRecommendedUsers(false);
   };
   
   // Handle search with direct API call
