@@ -13,13 +13,15 @@ import {
   Code, 
   Briefcase, 
   ChevronRight, 
-  Sparkles 
+  Sparkles,
+  Loader2
 } from "lucide-react";
-import { User, Skill, searchUsers } from "@/lib/api";
+import { User, Skill, searchUsers, getUserById } from "@/lib/api";
 import { ExploreUserCard } from "./ExploreUserCard";
 import { SkillSelector } from "./SkillSelector";
 import { FeaturedUsers } from "./FeaturedUsers";
 import { BusinessCardPreview } from "@/components/business-card-preview";
+import { toast } from "@/components/ui/use-toast";
 
 export function ExploreSection() {
   // State management
@@ -30,8 +32,9 @@ export function ExploreSection() {
   const [isSearching, setIsSearching] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [loadingUserDetails, setLoadingUserDetails] = useState(false);
   
-  // Handle search
+  // Handle search with direct API call
   const handleSearch = async () => {
     if (!searchQuery.trim() && selectedSkills.length === 0) return;
     
@@ -78,8 +81,46 @@ export function ExploreSection() {
     } catch (error) {
       console.error("Error searching users:", error);
       setSearchResults([]);
+      toast({
+        title: "Search Error",
+        description: "Failed to search for users. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSearching(false);
+    }
+  };
+  
+  // Function to load full user data by ID
+  const loadFullUserData = async (userId: string | number) => {
+    setLoadingUserDetails(true);
+    
+    try {
+      const response = await getUserById(userId.toString());
+      
+      if (!response.success) {
+        throw new Error(response.error || "Failed to load user details");
+      }
+      
+      console.log("Full user data loaded:", response.user);
+      
+      // Update selected user with complete data
+      if (response.user) {
+        setSelectedUser(response.user);
+      } else {
+        // If no user in response, keep the preview data
+        console.warn("No user data in response, keeping preview data");
+      }
+    } catch (error) {
+      console.error("Error loading full user data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load complete user profile. Showing preview data instead.",
+        variant: "destructive",
+      });
+      // We don't reset selectedUser here so the preview data is still shown
+    } finally {
+      setLoadingUserDetails(false);
     }
   };
   
@@ -106,20 +147,18 @@ export function ExploreSection() {
   };
   
   // View user card
-  const viewUserCard = (user: User) => {
+  const viewUserCard = async (user: User) => {
+    // First set the user with preview data so UI can show something immediately
     setSelectedUser(user);
+    
+    // Then load the full user data
+    await loadFullUserData(user.id);
   };
   
   // Back to search results
   const backToResults = () => {
     setSelectedUser(null);
   };
-
-  // Debugging output for search results - this will help troubleshoot
-  useEffect(() => {
-    console.log("Current search results state:", searchResults);
-    console.log("Search results length:", searchResults?.length || 0);
-  }, [searchResults]);
 
   return (
     <div className="space-y-4">
@@ -147,7 +186,12 @@ export function ExploreSection() {
             <Filter className="h-4 w-4" />
           </Button>
           <Button onClick={handleSearch} disabled={isSearching}>
-            {isSearching ? "Searching..." : "Search"}
+            {isSearching ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Searching...
+              </>
+            ) : "Search"}
           </Button>
         </div>
         
@@ -251,7 +295,14 @@ export function ExploreSection() {
             Back to results
           </Button>
           
-          <BusinessCardPreview user={selectedUser} />
+          {loadingUserDetails ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+              <p className="text-sm text-muted-foreground">Loading user profile...</p>
+            </div>
+          ) : (
+            <BusinessCardPreview user={selectedUser} />
+          )}
         </div>
       )}
     </div>
