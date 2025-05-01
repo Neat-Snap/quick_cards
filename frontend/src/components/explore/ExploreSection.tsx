@@ -87,7 +87,7 @@ export function ExploreSection() {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
       const offset = reset ? 0 : recommendationOffset;
       
-      const response = await fetch(`${API_URL}/v1/users?limit=10&offset=${offset}`, {
+      const response = await fetch(`${API_URL}/v1/users?limit=2&offset=${offset}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
