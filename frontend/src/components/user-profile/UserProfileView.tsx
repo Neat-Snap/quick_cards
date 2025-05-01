@@ -1,6 +1,6 @@
 // components/user-profile/UserProfileView.tsx
 import { useState, useEffect } from "react";
-import { User, Contact, Project, Skill, CustomLink, getUserById } from "@/lib/api";
+import { User, Contact, Project, Skill, CustomLink } from "@/lib/api";
 import { BusinessCardPreview } from "@/components/business-card-preview";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Loader2 } from "lucide-react";
@@ -25,31 +25,63 @@ export function UserProfileView({
   const [loading, setLoading] = useState(loadImmediately);
   const [error, setError] = useState<string | null>(null);
   
-  // Load full user data
+  // Load full user data with direct API call to handle different response formats
   const loadUserData = async () => {
     setLoading(true);
     setError(null);
     
     try {
       console.log("Loading full user data for ID:", userId);
-      const response = await getUserById(userId.toString());
       
-      if (!response.success) {
-        throw new Error(response.error || "Failed to load user profile");
+      // Make direct API request to ensure we properly handle the response format
+      const token = localStorage.getItem('authToken');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+      
+      const response = await fetch(`${API_URL}/v1/users/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load user profile: ${response.status}`);
       }
       
-      // Check if user data is in the response
-      if (response.user) {
-        console.log("User data loaded successfully:", response.user);
-        setUser(response.user);
+      // Parse the raw JSON response
+      const data = await response.json();
+      console.log("Raw user profile API response:", data);
+      
+      // Handle different response formats
+      let userData: User | null = null;
+      
+      // Case 1: Response is the user object directly
+      if (data && typeof data === 'object' && 'id' in data) {
+        userData = data as User;
+      } 
+      // Case 2: Response has a 'user' property
+      else if (data && typeof data === 'object' && 'user' in data) {
+        userData = data.user as User;
+      }
+      // Case 3: Response is an array with a single user (unlikely but possible)
+      else if (Array.isArray(data) && data.length > 0) {
+        userData = data[0] as User;
+      }
+      
+      if (userData) {
+        console.log("User data extracted successfully:", userData);
+        setUser(userData);
       } else {
-        // If there's no user in the response but it was "successful"
-        console.warn("API returned success but no user data");
-        setError("User data not found");
+        // Couldn't extract user data
+        console.warn("Could not extract user data from API response:", data);
+        setError("Invalid user data format from server");
         
         // Keep initial data if we have it
-        if (!initialData) {
-          setUser(null);
+        if (initialData) {
+          setUser(initialData);
         }
       }
     } catch (error) {
@@ -57,8 +89,8 @@ export function UserProfileView({
       setError(error instanceof Error ? error.message : "Failed to load user profile");
       
       // Keep initial data if we have it, since something is better than nothing
-      if (!initialData) {
-        setUser(null);
+      if (initialData) {
+        setUser(initialData);
       }
     } finally {
       setLoading(false);
