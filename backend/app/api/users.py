@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/users")
-async def create_user_endpoint(user: UserResponse):
-    data = await Request.json()
+async def create_user_endpoint(request: Request, user: UserResponse):
+    data = await request.json()
 
     if not data or not data.get("id"):
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
@@ -78,12 +78,12 @@ async def get_current_user(context: AuthContext = Depends(get_auth_context)):
 
 
 @router.patch("/users/me")
-async def update_user(context: AuthContext = Depends(get_auth_context)):
+async def update_user(request: Request, context: AuthContext = Depends(get_auth_context)):
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    data = await Request.json()
+    data = await request.json()
     if not data:
         return JSONResponse(status_code=400, content={"error": "No data provided"})
     
@@ -222,12 +222,12 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
     
     
 @router.post("/users/me/contacts")
-async def create_contact_endpoint(context: AuthContext = Depends(get_auth_context)):
+async def create_contact_endpoint(request: Request, context: AuthContext = Depends(get_auth_context)):
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    data = await Request.json()
+    data = await request.json()
     if not data or "type" not in data or "value" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
@@ -250,12 +250,12 @@ async def create_contact_endpoint(context: AuthContext = Depends(get_auth_contex
     
     
 @router.patch("/users/me/contacts/{contact_id}")
-async def update_contact(contact_id: int, context: AuthContext = Depends(get_auth_context)):
+async def update_contact(contact_id: int, request: Request, context: AuthContext = Depends(get_auth_context)):
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    data = await Request.json()
+    data = await request.json()
     if not data:
         return JSONResponse(status_code=400, content={"error": "No data provided"})
     
@@ -313,12 +313,12 @@ async def delete_contact(contact_id: int, context: AuthContext = Depends(get_aut
     
 
 @router.post("/users/me/projects")
-async def create_project_endpoint(context: AuthContext = Depends(get_auth_context)):
+async def create_project_endpoint(request: Request, context: AuthContext = Depends(get_auth_context)):
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    data = await Request.json()
+    data = await request.json()
     if not data or "name" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
@@ -338,7 +338,7 @@ async def create_project_endpoint(context: AuthContext = Depends(get_auth_contex
 
 
 @router.patch("/users/me/projects/{project_id}")
-async def update_project_endpoint(project_id: int, context: AuthContext = Depends(get_auth_context)):
+async def update_project_endpoint(project_id: int, request: Request, context: AuthContext = Depends(get_auth_context)):
     user_id, error = check_context(context)
     if not user_id or error:
         return error
@@ -347,7 +347,7 @@ async def update_project_endpoint(project_id: int, context: AuthContext = Depend
     if not project or project.get("user_id") != user_id:
         return JSONResponse(status_code=404, content={"error": "Project not found"})
     
-    data = await Request.json()
+    data = await request.json()
     if not data:
         return JSONResponse(status_code=400, content={"error": "No data provided"})
     
@@ -527,7 +527,7 @@ async def get_skills_endpoint(q: str = None):
 
 
 @router.post("/skills")
-async def create_skill_endpoint(context: AuthContext = Depends(get_auth_context)):
+async def create_skill_endpoint(request: Request, context: AuthContext = Depends(get_auth_context)):
     """Create a new custom skill"""
     user_id, error = check_context(context)
     if not user_id or error:
@@ -538,7 +538,7 @@ async def create_skill_endpoint(context: AuthContext = Depends(get_auth_context)
     if user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for skills"})
     
-    data = await Request.json()
+    data = await request.json()
     if not data or "name" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
