@@ -4,7 +4,6 @@ from app.db.models import PremiumFeature, User, Contact, Project, Skill, CustomL
 from app.db.init_data import PREMIUM_FEATURES
 from app.db.functions import (
     # Helper functions
-    commit_with_error_handling,
     
     # User functions
     get_user,
@@ -42,7 +41,10 @@ from app.db.functions import (
     get_premium_feature_by_id,
     get_premium_features_by_tier,
     set_premium_feature,
-    create_premium_feature
+    create_premium_feature,
+    
+    # Premium functions
+    update_user_premium_status
 )
 
 # Define __all__ to expose all functions
@@ -50,7 +52,6 @@ __all__ = [
     # Database session objects
     'get_db_session',
     # Helper functions
-    'commit_with_error_handling',
     
     # User functions
     'get_user',

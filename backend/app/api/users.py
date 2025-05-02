@@ -3,6 +3,7 @@ import logging
 from datetime import datetime, timedelta
 from app.core.search import get_skill_search
 from app.db.models import User, Contact, Project, Skill, CustomLink, user_skill
+from app.schemas import UserResponse
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
@@ -11,7 +12,8 @@ images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files',
 
 from app.core.search import get_skill_search
 from app.middleware import *
-from fastapi import Depends, APIRouter, Request, JSONResponse, File, UploadFile, Form
+from fastapi import Depends, APIRouter, Request, File, UploadFile, Form
+from fastapi.responses import JSONResponse
 
 from app.db import *
 
@@ -25,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/users")
-async def create_user_endpoint(user: User):
+async def create_user_endpoint(user: UserResponse):
     data = Request.json()
 
     if not data or not data.get("id"):

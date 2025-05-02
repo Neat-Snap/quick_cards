@@ -1,26 +1,50 @@
-from flask import Blueprint, jsonify, request, current_app, g
-from flask_jwt_extended import create_access_token, decode_token
+from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
+from jose import jwt, JWTError
 import logging
 
 # Import all database functions from app.db package
 from app.db import get_user, create_user, set_user
 from app.core.telegram_auth import validate_telegram_data, extract_user_info
+from app.core.config import settings
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Create blueprint for auth routes
-auth_bp = Blueprint("auth", __name__, url_prefix="/v1/auth")
+# Create router for auth routes
+router = APIRouter(
+    prefix="/v1/auth",
+    tags=["auth"]
+)
 
-@auth_bp.route("/auth_health", methods=["GET"])
-def auth_health():
+# JWT Security setup
+security = HTTPBearer()
+
+def create_access_token(identity: str):
+    """Create a JWT access token"""
+    from datetime import timedelta, datetime
+    expires_delta = timedelta(days=settings.ACCESS_TOKEN_EXPIRE_DAYS)
+    expire = datetime.utcnow() + expires_delta
+    to_encode = {"sub": identity, "exp": expire}
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    return encoded_jwt
+
+def decode_token(token: str):
+    """Decode a JWT token"""
+    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+
+@router.get("/auth_health")
+async def auth_health():
     """
     Health check endpoint for the auth service
     """
-    return jsonify({"status": "ok"})
+    return JSONResponse(status_code=200, content={"status": "ok"})
 
-@auth_bp.route("/init", methods=["POST"])
-def initialize_from_telegram():
+
+@router.post("/init")
+async def initialize_from_telegram(request: Request):
     """
     Authenticate user from Telegram Mini App initialization data
     """
@@ -28,39 +52,41 @@ def initialize_from_telegram():
     
     try:
         # Check if middleware already processed telegram data
-        if hasattr(g, 'telegram_user') and g.telegram_user:
-            telegram_id = g.telegram_user.get('telegram_id')
-            user_info = g.telegram_user
+        telegram_user = getattr(request.state, 'telegram_user', None)
+        
+        if telegram_user:
+            telegram_id = telegram_user.get('telegram_id')
+            user_info = telegram_user
             logger.info(f"Using telegram_user from middleware: {telegram_id}")
         else:
             # Get initData from request if middleware didn't process it
-            data = request.json
+            data = await request.json()
             init_data = data.get('initData') if data else None
             
             if not init_data:
-                return jsonify({
-                    "success": False,
-                    "error": "No initData provided"
-                }), 400
+                return JSONResponse(
+                    status_code=400,
+                    content={"success": False, "error": "No initData provided"}
+                )
                 
             # Validate the data
             is_valid, data_dict, error_message = validate_telegram_data(init_data)
             
             if not is_valid:
-                return jsonify({
-                    "success": False,
-                    "error": f"Invalid initData: {error_message}"
-                }), 400
+                return JSONResponse(
+                    status_code=400,
+                    content={"success": False, "error": f"Invalid initData: {error_message}"}
+                )
                 
             # Extract user info
             user_info = extract_user_info(data_dict)
             telegram_id = user_info.get('telegram_id')
             
             if not telegram_id:
-                return jsonify({
-                    "success": False,
-                    "error": "Could not extract Telegram user ID"
-                }), 400
+                return JSONResponse(
+                    status_code=400,
+                    content={"success": False, "error": "Could not extract Telegram user ID"}
+                )
         
         # Get or create user
         is_new_user = False
@@ -84,17 +110,17 @@ def initialize_from_telegram():
             )
             
             if not success:
-                return jsonify({
-                    "success": False,
-                    "error": "Failed to create user"
-                }), 500
+                return JSONResponse(
+                    status_code=500,
+                    content={"success": False, "error": "Failed to create user"}
+                )
                 
             user_data = get_user(user_id)
             if not user_data:
-                return jsonify({
-                    "success": False,
-                    "error": "User created but could not be retrieved"
-                }), 500
+                return JSONResponse(
+                    status_code=500,
+                    content={"success": False, "error": "User created but could not be retrieved"}
+                )
                 
             logger.info(f"New user created with ID: {user_id}")
         
@@ -102,46 +128,49 @@ def initialize_from_telegram():
         token = create_access_token(identity=str(user_id))
         
         # Format user data according to frontend expectations
-        return jsonify({
-            "success": True,
-            "token": token,
-            "user": {
-                "id": user_id,
-                "username": user_data.get("username", ""),
-                "first_name": user_info.get('first_name', ''),
-                "last_name": user_info.get('last_name', ''),
-                "avatar_url": user_data.get("avatar_url", ""),
-                "background_color": user_data.get("background_value", "#f0f0f0") if user_data.get("background_type", "") == "color" else "#f0f0f0",
-                "description": user_data.get("description", ""),
-                "badge": user_data.get("badge", "New User"),
-                "is_premium": user_data.get("premium_tier", 0) > 0
-            },
-            "is_new_user": is_new_user
-        })
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "token": token,
+                "user": {
+                    "id": user_id,
+                    "username": user_data.get("username", ""),
+                    "first_name": user_info.get('first_name', ''),
+                    "last_name": user_info.get('last_name', ''),
+                    "avatar_url": user_data.get("avatar_url", ""),
+                    "background_color": user_data.get("background_value", "#f0f0f0") if user_data.get("background_type", "") == "color" else "#f0f0f0",
+                    "description": user_data.get("description", ""),
+                    "badge": user_data.get("badge", "New User"),
+                    "is_premium": user_data.get("premium_tier", 0) > 0
+                },
+                "is_new_user": is_new_user
+            }
+        )
     except Exception as e:
         logger.error(f"Error in auth_init: {e}", exc_info=True)
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )
 
 
-@auth_bp.route("/validate", methods=["POST"])
-def validate_token():
+@router.post("/validate")
+async def validate_token(request: Request):
     """
     Validate a JWT token
     """
     logger.info("Auth validate endpoint called")
     
     try:
-        data = request.json
+        data = await request.json()
         token = data.get('token') if data else None
         
         if not token:
-            return jsonify({
-                "success": False,
-                "error": "No token provided"
-            }), 400
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "error": "No token provided"}
+            )
         
         # Use JWT library to validate token
         try:
@@ -158,26 +187,24 @@ def validate_token():
             # Find the user
             user_data = get_user(user_id)
             if not user_data:
-                return jsonify({
-                    "success": False,
-                    "error": f"User not found for ID: {user_id}"
-                }), 404
+                return JSONResponse(
+                    status_code=404,
+                    content={"success": False, "error": f"User not found for ID: {user_id}"}
+                )
                 
-            return jsonify({
-                "success": True,
-                "valid": True,
-                "user_id": user_id
-            })
-        except Exception as e:
+            return JSONResponse(
+                status_code=200,
+                content={"success": True, "valid": True, "user_id": user_id}
+            )
+        except JWTError as e:
             logger.error(f"Token validation error: {str(e)}")
-            return jsonify({
-                "success": False,
-                "valid": False,
-                "error": str(e)
-            }), 401
+            return JSONResponse(
+                status_code=401,
+                content={"success": False, "valid": False, "error": str(e)}
+            )
     except Exception as e:
         logger.error(f"Error in auth_validate: {e}", exc_info=True)
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "error": str(e)}
+        )

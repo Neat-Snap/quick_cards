@@ -13,7 +13,7 @@ from app.core.telegram_auth import (
 )
 from app.db.session import get_db_session
 from app.db.models import User
-from config import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 

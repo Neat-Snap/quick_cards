@@ -2,6 +2,23 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
+class UserBase(BaseModel):
+    id: str
+    username: Optional[str] = None
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    background_type: Optional[str] = None
+    background_value: Optional[str] = None
+    description: Optional[str] = None
+    badge: Optional[str] = None
+
+class UserCreate(UserBase):
+    pass
+
+class UserResponse(UserBase):
+    class Config:
+        from_attributes = True  # This was orm_mode in Pydantic v1
+
 
 class ContactBase(BaseModel):
     type: str
