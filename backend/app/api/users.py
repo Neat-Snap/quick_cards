@@ -19,7 +19,7 @@ from app.db import *
 
 
 router = APIRouter(
-    prefix="/v1/users",
+    prefix="/v1",
     tags=["users"]
 )
 
