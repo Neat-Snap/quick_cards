@@ -2,12 +2,13 @@ from typing import List, Optional
 import logging
 from datetime import datetime, timedelta
 from app.core.search import get_skill_search
+from app.core.validations import validate_string, validate_user_data
 from app.db.models import User, Contact, Project, Skill, CustomLink, user_skill
 from app.schemas import UserResponse
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
 
 from app.core.search import get_skill_search
@@ -15,7 +16,6 @@ from app.middleware import *
 from fastapi import Depends, APIRouter, Request, File, UploadFile, Form
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-
 from app.db import *
 
 
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/users")
-async def create_user_endpoint(request: Request, user: UserResponse):
+async def user_endpoint(request: Request, user: UserResponse):
     data = await request.json()
 
     if not data or not data.get("id"):
@@ -106,8 +106,16 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
     
 
 @router.get("/users/{user_id}")
-async def get_user_endpoint(user_id: int):
+async def get_user_endpoint(user_id: int, context: AuthContext = Depends(get_auth_context)):
+    user_id, error = check_context(context)
+    if not user_id or error:
+        return error
+
     user_data = get_user(user_id)
+
+    if len(user_id) > 32 or len(user_id) < 5:
+        return JSONResponse(status_code=400, content={"error": "Invalid user ID"})
+
     if not user_data:
         return JSONResponse(status_code=404, content={"error": "User not found"})
     
@@ -134,8 +142,14 @@ async def get_user_endpoint(user_id: int):
 
 @router.get("/users")
 async def search_users(q: str = None, skill: str = None, project: str = None, limit: int = 10, offset: int = 0):
-    """Search for users by name or skill"""
     try:
+        if limit > 15:
+            limit = 15
+        
+        validation_string = q + skill + project
+        if not validate_string(validation_string):
+            return JSONResponse(status_code=400, content={"error": "Invalid search parameters"})
+
         with get_db_session() as session:
             query = session.query(User)
 
@@ -299,7 +313,6 @@ async def delete_contact(contact_id: int, context: AuthContext = Depends(get_aut
     user_id, error = check_context(context)
     if not user_id or error:
         return error
-    
     try:
         contact = get_contact_by_id(contact_id)
         if not contact or contact.get("user_id") != user_id:
@@ -370,12 +383,10 @@ async def update_project_endpoint(project_id: int, request: Request, context: Au
 
 @router.delete("/users/me/projects/{project_id}")
 async def delete_project(project_id: int, context: AuthContext = Depends(get_auth_context)):
-    """Delete a project from user profile"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    # Get project
     project = get_project_by_id(project_id)
     if not project or project.get("user_id") != user_id:
         return JSONResponse(status_code=404, content={"error": "Project not found"})
@@ -394,22 +405,18 @@ async def delete_project(project_id: int, context: AuthContext = Depends(get_aut
 
 @router.post("/users/me/skills/{skill_id}")
 async def add_skill_to_user_endpoint(skill_id: int, context: AuthContext = Depends(get_auth_context)):
-    """Add a skill to user profile"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    # Check if user has premium for skills
     user_data = get_user(user_id)
     if user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for skills"})
     
-    # Get skill
     skill = get_skill_by_id(skill_id)
     if not skill:
         return JSONResponse(status_code=404, content={"error": "Skill not found"})
     
-    # Add skill to user
     success = add_skill_to_user(user_id, skill_id)
     if not success:
         return JSONResponse(status_code=500, content={"error": "Failed to add skill to user"})
@@ -419,12 +426,10 @@ async def add_skill_to_user_endpoint(skill_id: int, context: AuthContext = Depen
 
 @router.delete("/users/me/skills/{skill_id}")
 async def remove_skill_from_user_endpoint(skill_id: int, context: AuthContext = Depends(get_auth_context)):
-    """Remove a skill from user profile"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    # Remove skill from user
     success = remove_skill_from_user(user_id, skill_id)
     if not success:
         return JSONResponse(status_code=500, content={"error": "Failed to remove skill from user"})
@@ -433,38 +438,22 @@ async def remove_skill_from_user_endpoint(skill_id: int, context: AuthContext = 
 
 
 @router.get("/skills")
-async def get_skills_endpoint(q: str = None):
-    """Get all available skills or search for skills"""
-    from datetime import datetime
-    
-    def log(message):
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] {message}")
-    
-    log(f"Received skills request with query: {q}")
-    
+async def get_skills_endpoint(q: str = None):    
     try:
+        if not validate_string(q):
+            return JSONResponse(status_code=400, content={"error": "Invalid search parameters"})
+        
         with get_db_session() as session:
             if q:
-                log("Query parameter provided, initiating skill search")
-                # If query is provided, use the skill search service
                 skill_search = get_skill_search()
                 skill_results = skill_search.search_skills(q)
-                log(f"Skill search returned {len(skill_results) if skill_results else 0} results")
-                
-                # If we have predefined skills, check if they exist in DB
                 if skill_results:
-                    log("Processing predefined skills and checking database matches")
-                    # Check which predefined skills already exist in the DB
                     existing_skills = session.query(Skill).filter(
                         Skill.name.in_([skill['name'] for skill in skill_results])
                     ).all()
-                    log(f"Found {len(existing_skills)} existing skills in database")
                     
-                    # Create a mapping for quick lookup
                     existing_map = {skill.name.lower(): skill for skill in existing_skills}
                     
-                    # Update search results with DB IDs if skills exist
                     updated_count = 0
                     for skill in skill_results:
                         skill_name_lower = skill['name'].lower()
@@ -474,15 +463,11 @@ async def get_skills_endpoint(q: str = None):
                             skill['image_url'] = db_skill.image_url or skill['image_url']
                             skill['description'] = db_skill.description or skill['description']
                             updated_count += 1
-                    log(f"Updated {updated_count} predefined skills with database information")
                     
-                    # Add DB skills to the start of results
                     db_skills = session.query(Skill).filter(
                         Skill.name.ilike(f"%{q}%")
                     ).all()
-                    log(f"Found {len(db_skills)} additional skills in database matching query")
                     
-                    # Add DB skills that weren't in our predefined results
                     added_count = 0
                     for db_skill in db_skills:
                         if not any(s.get('id') == db_skill.id for s in skill_results):
@@ -495,23 +480,14 @@ async def get_skills_endpoint(q: str = None):
                                 'score': 0.7  # Give custom skills a reasonably high score
                             })
                             added_count += 1
-                    log(f"Added {added_count} custom skills from database to results")
                     
-                    # Re-sort by score
                     skill_results.sort(key=lambda x: x.get('score', 0), reverse=True)
-                    log(f"Returning {len(skill_results)} total skills after sorting")
                     
                     return JSONResponse(status_code=200, content=skill_results)
                 
-                log("No predefined results found, falling back to database search")
-                # If no predefined results, fall back to DB search
                 skills = session.query(Skill).filter(Skill.name.ilike(f"%{q}%")).all()
-                log(f"Database search returned {len(skills)} results")
             else:
-                log("No query parameter provided, returning all skills from database")
-                # Without query, just return all skills from DB
                 skills = session.query(Skill).all()
-                log(f"Retrieved {len(skills)} total skills from database")
             
             return JSONResponse(status_code=200, content=[
                 {
@@ -524,7 +500,6 @@ async def get_skills_endpoint(q: str = None):
             ])
     except Exception as e:
         import traceback
-        log(f"Error getting skills: {str(e)}")
         print("Full traceback:")
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"error": f"Failed to get skills: {str(e)}"})
@@ -532,12 +507,10 @@ async def get_skills_endpoint(q: str = None):
 
 @router.post("/skills")
 async def create_skill_endpoint(request: Request, context: AuthContext = Depends(get_auth_context)):
-    """Create a new custom skill"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    # Check if user has premium for skills
     user_data = get_user(user_id)
     if user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for skills"})
@@ -548,19 +521,16 @@ async def create_skill_endpoint(request: Request, context: AuthContext = Depends
     
     try:
         with get_db_session() as session:
-            # Check if a similar skill already exists
             existing_skill = session.query(Skill).filter(
                 Skill.name.ilike(data['name'])
             ).first()
             
             if existing_skill:
-                # Check if the user already has this skill
                 existing_user_skill = session.query(user_skill).filter_by(
                     user_id=user_id, skill_id=existing_skill.id
                 ).first()
                 
                 if not existing_user_skill:
-                    # Add the association
                     session.execute(
                         user_skill.insert().values(
                             user_id=user_id,
@@ -581,13 +551,10 @@ async def create_skill_endpoint(request: Request, context: AuthContext = Depends
                     }
                 })
             
-            # Check if this is a predefined skill
             skill_search = get_skill_search()
             predefined_skill = skill_search.get_predefined_skill(data['name'])
             
-            # Create a new skill (either from predefined data or custom)
             if predefined_skill:
-                # Create the predefined skill in the DB
                 new_skill = Skill(
                     name=predefined_skill['name'],
                     description=predefined_skill.get('description') or data.get('description', ''),
@@ -596,7 +563,6 @@ async def create_skill_endpoint(request: Request, context: AuthContext = Depends
                 )
                 msg = "Predefined skill created and added to user"
             else:
-                # Create a new custom skill
                 new_skill = Skill(
                     name=data['name'],
                     description=data.get('description', ''),
@@ -605,11 +571,9 @@ async def create_skill_endpoint(request: Request, context: AuthContext = Depends
                 )
                 msg = "Custom skill created and added to user"
             
-            # Add the skill to database
             session.add(new_skill)
-            session.flush()  # Get the ID without committing
+            session.flush()  
             
-            # Add the skill to the user
             session.execute(
                 user_skill.insert().values(
                     user_id=user_id,
@@ -640,37 +604,29 @@ async def upload_skill_image(
     file: UploadFile = File(...),
     skill_id: Optional[int] = Form(None)
 ):
-    """Upload a skill image"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    # Check if user has premium for skills
     user_data = get_user(user_id)
     if user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for skills"})
     
-    # Check if the file has a name
     if file.filename == '':
         return JSONResponse(status_code=400, content={"error": "No file selected"})
         
-    # Check if the file is allowed
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
     if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
         return JSONResponse(status_code=400, content={"error": "File type not allowed"})
     
-    # Create the skills directory if it doesn't exist
     skills_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'files', 'skills')
     os.makedirs(skills_path, exist_ok=True)
     
-    # Generate filename based on user_id and optional skill_id
     extension = file.filename.rsplit('.', 1)[1].lower()
     
     if skill_id:
-        # If skill_id is provided, use user_id_skill_id format
         filename = f"{user_id}_{skill_id}.{extension}"
     else:
-        # If no skill_id, use user_id_timestamp format for temporary images
         import time
         timestamp = int(time.time())
         filename = f"{user_id}_{timestamp}.{extension}"
@@ -678,7 +634,6 @@ async def upload_skill_image(
     file_path = os.path.join(skills_path, filename)
     
     try:
-        # If file exists, remove it first
         if os.path.exists(file_path):
             os.remove(file_path)
             
@@ -686,7 +641,6 @@ async def upload_skill_image(
         with open(file_path, "wb") as f:
             f.write(file_content)
         
-        # Return the URL to the uploaded image
         image_url = f"/v1/files/skills/{filename}"
         
         return JSONResponse(status_code=200, content={
@@ -700,12 +654,10 @@ async def upload_skill_image(
 
 @router.delete("/users/me/links/{link_id}")
 async def delete_custom_link(link_id: int, context: AuthContext = Depends(get_auth_context)):
-    """Delete a custom link from user profile"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    # Get link
     link = get_custom_link_by_id(link_id)
     if not link or link.get("user_id") != user_id:
         return JSONResponse(status_code=404, content={"error": "Custom link not found"})

@@ -4,25 +4,20 @@ from fastapi.responses import JSONResponse
 from jose import jwt, JWTError
 import logging
 
-# Import all database functions from app.db package
 from app.db import get_user, create_user, set_user
 from app.core.telegram_auth import validate_telegram_data, extract_user_info
 from app.core.config import settings
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
-# Create router for auth routes
 router = APIRouter(
     prefix="/v1/auth",
     tags=["auth"]
 )
 
-# JWT Security setup
 security = HTTPBearer()
 
 def create_access_token(identity: str):
-    """Create a JWT access token"""
     from datetime import timedelta, datetime
     expires_delta = timedelta(days=settings.ACCESS_TOKEN_EXPIRE_DAYS)
     expire = datetime.utcnow() + expires_delta
@@ -31,27 +26,19 @@ def create_access_token(identity: str):
     return encoded_jwt
 
 def decode_token(token: str):
-    """Decode a JWT token"""
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
 @router.get("/auth_health")
 async def auth_health():
-    """
-    Health check endpoint for the auth service
-    """
     return JSONResponse(status_code=200, content={"status": "ok"})
 
 
 @router.post("/init")
 async def initialize_from_telegram(request: Request):
-    """
-    Authenticate user from Telegram Mini App initialization data
-    """
     logger.info("Auth init endpoint called")
     
     try:
-        # Check if middleware already processed telegram data
         telegram_user = getattr(request.state, 'telegram_user', None)
         
         if telegram_user:
@@ -59,7 +46,6 @@ async def initialize_from_telegram(request: Request):
             user_info = telegram_user
             logger.info(f"Using telegram_user from middleware: {telegram_id}")
         else:
-            # Get initData from request if middleware didn't process it
             data = await request.json()
             init_data = data.get('initData') if data else None
             
@@ -69,7 +55,6 @@ async def initialize_from_telegram(request: Request):
                     content={"success": False, "error": "No initData provided"}
                 )
                 
-            # Validate the data
             is_valid, data_dict, error_message = validate_telegram_data(init_data)
             
             if not is_valid:
@@ -78,7 +63,6 @@ async def initialize_from_telegram(request: Request):
                     content={"success": False, "error": f"Invalid initData: {error_message}"}
                 )
                 
-            # Extract user info
             user_info = extract_user_info(data_dict)
             telegram_id = user_info.get('telegram_id')
             
@@ -88,16 +72,14 @@ async def initialize_from_telegram(request: Request):
                     content={"success": False, "error": "Could not extract Telegram user ID"}
                 )
         
-        # Get or create user
         is_new_user = False
-        user_id = str(telegram_id)  # Use the telegram_id as the user ID
+        user_id = str(telegram_id)
         user_data = get_user(user_id)
         
         if not user_data:
             is_new_user = True
             logger.info(f"Creating new user with id: {user_id}")
             
-            # Create new user with proper field mapping
             success = create_user(
                 user_id=user_id,
                 username=user_info.get('username', ''),
@@ -124,10 +106,8 @@ async def initialize_from_telegram(request: Request):
                 
             logger.info(f"New user created with ID: {user_id}")
         
-        # Create real JWT token
         token = create_access_token(identity=str(user_id))
         
-        # Format user data according to frontend expectations
         return JSONResponse(
             status_code=200,
             content={
@@ -157,9 +137,6 @@ async def initialize_from_telegram(request: Request):
 
 @router.post("/validate")
 async def validate_token(request: Request):
-    """
-    Validate a JWT token
-    """
     logger.info("Auth validate endpoint called")
     
     try:
@@ -172,19 +149,15 @@ async def validate_token(request: Request):
                 content={"success": False, "error": "No token provided"}
             )
         
-        # Use JWT library to validate token
         try:
-            # Log the token (be careful with this in production)
             logger.debug(f"Validating token: {token[:10]}...")
             
             decoded = decode_token(token)
             
-            # Log the decoded content for debugging
             logger.debug(f"Decoded token: {decoded}")
             
             user_id = decoded['sub']  # 'sub' is the JWT subject (user id)
             
-            # Find the user
             user_data = get_user(user_id)
             if not user_data:
                 return JSONResponse(
