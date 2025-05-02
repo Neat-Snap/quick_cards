@@ -27,12 +27,12 @@ def create_access_token(identity: str):
     expires_delta = timedelta(days=settings.ACCESS_TOKEN_EXPIRE_DAYS)
     expire = datetime.utcnow() + expires_delta
     to_encode = {"sub": identity, "exp": expire}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 def decode_token(token: str):
     """Decode a JWT token"""
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
 @router.get("/auth_health")
