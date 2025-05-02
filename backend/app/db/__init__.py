@@ -1,8 +1,6 @@
 import logging
-from sqlalchemy.orm import Session
-
-from app.db.session import db, Base, engine
-from app.db.models import PremiumFeature
+from app.db.session import get_db_session
+from app.db.models import PremiumFeature, User, Contact, Project, Skill, CustomLink
 from app.db.init_data import PREMIUM_FEATURES
 from app.db.functions import (
     # Helper functions
@@ -50,8 +48,7 @@ from app.db.functions import (
 # Define __all__ to expose all functions
 __all__ = [
     # Database session objects
-    'db', 'Base', 'engine',
-    
+    'get_db_session',
     # Helper functions
     'commit_with_error_handling',
     
