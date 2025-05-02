@@ -57,9 +57,9 @@ async def get_premium_tiers():
 
 
 @router.post("/premium/successful_payment")
-async def successful_payment():
+async def successful_payment(request: Request):
     """Handle successful payment"""
-    data = await Request.json()
+    data = await request.json()
     if not data or "user_id" not in data or "tier" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
 
@@ -72,9 +72,9 @@ async def successful_payment():
 
 
 @router.post("/premium/check_payment")
-async def check_payment():
+async def check_payment(request: Request):
     """Check if a payment is approved"""
-    data = await Request.json()
+    data = await request.json()
     if not data or "user_id" not in data or "tier" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
@@ -120,13 +120,13 @@ async def check_payment():
 
 
 @router.post("/premium/link")
-async def generate_payment_link(context: AuthContext = Depends(get_auth_context)):
+async def generate_payment_link(request: Request, context: AuthContext = Depends(get_auth_context)):
     """Generate a payment link for a premium tier"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    data = await Request.json()
+    data = await request.json()
     if not data or "tier" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
