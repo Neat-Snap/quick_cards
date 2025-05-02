@@ -7,22 +7,17 @@ from app.constants import PREMIUM_TIERS
 import telebot
 from app.core.config import settings
 from telebot.types import LabeledPrice
-
-# Import all database functions from app.db package
 from app.db import (
     get_user, 
     set_user,
     get_premium_features_by_tier
 )
-
-# Import the authentication context
 from app.middleware import *
 
 logger = logging.getLogger(__name__)
 
 bot = telebot.TeleBot(settings.TELEGRAM_BOT_TOKEN)
 
-# Create router for premium routes
 router = APIRouter(
     prefix="/v1",
     tags=["premium"]
@@ -30,7 +25,6 @@ router = APIRouter(
 
 APPROVED_PAYMENTS = []
 
-# Utility functions
 def find_tier_price(tier_number):
     for tier_item in PREMIUM_TIERS:
         if tier_item["tier"] == tier_number:
@@ -44,27 +38,30 @@ def get_tier_name(tier_level):
 
 @router.get("/premium/features")
 async def get_premium_features():
-    """Get all premium features"""
-    # Get all features for the highest tier (3) to include all features
     features = get_premium_features_by_tier(3)
     return JSONResponse(status_code=200, content=features)
 
 
 @router.get("/premium/tiers")
 async def get_premium_tiers():
-    """Get all premium tiers with their features"""
     return JSONResponse(status_code=200, content=PREMIUM_TIERS)
 
 
 @router.post("/premium/successful_payment")
 async def successful_payment(request: Request):
-    """Handle successful payment"""
     data = await request.json()
-    if not data or "user_id" not in data or "tier" not in data:
+    if not data or "user_id" not in data or "tier" not in data or "security_code" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
 
     user_id = data["user_id"]
     tier = data["tier"]
+    security_code = data["security_code"]
+
+    logger.info(f"Received successful payment for user {user_id} and tier {tier}")
+    logger.info(f"Security code: {security_code}")
+
+    if security_code != settings.SECURITY_CODE:
+        return JSONResponse(status_code=400, content={"error": "Missing required fields"})
 
     APPROVED_PAYMENTS.append((user_id, tier))
 
@@ -73,7 +70,6 @@ async def successful_payment(request: Request):
 
 @router.post("/premium/check_payment")
 async def check_payment(request: Request):
-    """Check if a payment is approved"""
     data = await request.json()
     if not data or "user_id" not in data or "tier" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
@@ -81,12 +77,10 @@ async def check_payment(request: Request):
     user_id = data["user_id"]
     tier = data["tier"]
     
-    # Check if payment exists in approved payments
     logger.info(f"Checking payment for user {user_id} and tier {tier}")
     logger.info(f"APPROVED_PAYMENTS: {APPROVED_PAYMENTS}")
     payment_approved = (user_id, tier) in APPROVED_PAYMENTS
     
-    # If payment is approved in memory, remove it
     if payment_approved:
         APPROVED_PAYMENTS.remove((user_id, tier))
         return JSONResponse(status_code=200, content={
@@ -100,10 +94,8 @@ async def check_payment(request: Request):
             }
         })
     
-    # If not in memory, check the user's current premium status
     user_data = get_user(user_id)
     if user_data and user_data.get("premium_tier", 0) >= tier:
-        # User already has this tier or higher
         return JSONResponse(status_code=200, content={
             "success": True,
             "message": "User already has this premium tier",
@@ -121,7 +113,6 @@ async def check_payment(request: Request):
 
 @router.post("/premium/link")
 async def generate_payment_link(request: Request, context: AuthContext = Depends(get_auth_context)):
-    """Generate a payment link for a premium tier"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
@@ -148,12 +139,10 @@ async def generate_payment_link(request: Request, context: AuthContext = Depends
 
 @router.get("/premium/status")
 async def get_premium_status(context: AuthContext = Depends(get_auth_context)):
-    """Get user's premium status"""
     user_id, error = check_context(context)
     if not user_id or error:
         return error
     
-    # Get user data from db function
     user_data = get_user(user_id)
     if not user_data:
         return JSONResponse(status_code=404, content={"error": "User not found"})
