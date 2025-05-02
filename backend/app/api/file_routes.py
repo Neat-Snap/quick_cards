@@ -1,24 +1,29 @@
-from flask import Blueprint, send_from_directory, current_app, jsonify
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 import os
 import logging
 
 logger = logging.getLogger(__name__)
 
+router = APIRouter(
+    prefix="/v1/files",
+    tags=["files"]
+)
 
-files_bp = Blueprint("files", __name__, url_prefix="/v1/files")
-
-@files_bp.route("/<path:file_path>", methods=["GET"])
-def get_file(file_path):
-    """Serve files from the files directory"""
-    # Sanitize file path to prevent directory traversal attacks
+@router.get("/{file_path:path}")
+async def get_file(file_path: str):
     safe_path = os.path.normpath(file_path).lstrip('/')
     
-    # Determine the base files directory
     files_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'files')
     
+    full_path = os.path.join(files_dir, safe_path)
+    
     try:
-        # Use Flask's send_from_directory to safely serve the file
-        return send_from_directory(files_dir, safe_path)
+        if not os.path.exists(full_path) or not os.path.isfile(full_path):
+            logger.error(f"File not found: {safe_path}")
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        return FileResponse(full_path)
     except Exception as e:
         logger.error(f"Error serving file {safe_path}: {e}")
-        return jsonify({"error": "File not found"}), 404
+        raise HTTPException(status_code=404, detail="File not found")
