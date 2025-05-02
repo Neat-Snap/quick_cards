@@ -99,8 +99,10 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
             user_data[field] = data[field]
     
     set_user(user_data)
+
+    json_compatible_data = jsonable_encoder(user_data)
     
-    return JSONResponse(status_code=200, content=user_data)
+    return JSONResponse(status_code=200, content=json_compatible_data)
     
 
 @router.get("/users/{user_id}")
@@ -126,7 +128,8 @@ async def get_user_endpoint(user_id: int):
         "custom_links": user_links
     })
     
-    return JSONResponse(status_code=200, content=public_user_data)
+    json_compatible_data = jsonable_encoder(public_user_data)
+    return JSONResponse(status_code=200, content=json_compatible_data)
 
 
 @router.get("/users")
@@ -170,7 +173,8 @@ async def search_users(q: str = None, skill: str = None, project: str = None, li
                 }
                 result.append(user_data)
 
-            return JSONResponse(status_code=200, content=result)
+            json_compatible_data = jsonable_encoder(result)
+            return JSONResponse(status_code=200, content=json_compatible_data)
     except Exception as e:
         logger.error(f"Error searching users: {str(e)}")
         return JSONResponse(status_code=500, content={"error": f"Failed to search users: {str(e)}"})
