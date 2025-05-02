@@ -53,7 +53,7 @@ def handle_help(message):
     keyboard = InlineKeyboardMarkup()
     webapp_btn = InlineKeyboardButton(
         text="Open Business Card",
-        web_app=WebAppInfo(url=config.APP_URL)
+        web_app=WebAppInfo(url=settings.APP_URL)
     )
     keyboard.add(webapp_btn)
     
