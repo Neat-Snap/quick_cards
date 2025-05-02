@@ -122,8 +122,8 @@ async def check_payment():
 @router.post("/premium/link")
 async def generate_payment_link(context: AuthContext = Depends(get_auth_context)):
     """Generate a payment link for a premium tier"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     data = Request.json()
@@ -138,7 +138,7 @@ async def generate_payment_link(context: AuthContext = Depends(get_auth_context)
         description=f"Premium tier {tier} - 1",
         title=f"Premium tier {tier}",
         currency="XTR",
-        payload=f"premium_{user.id}_{tier}",
+        payload=f"premium_{user_id}_{tier}",
         provider_token=None,
         prices=[LabeledPrice(label="Label", amount=find_tier_price(tier))]
     )
@@ -149,12 +149,12 @@ async def generate_payment_link(context: AuthContext = Depends(get_auth_context)
 @router.get("/premium/status")
 async def get_premium_status(context: AuthContext = Depends(get_auth_context)):
     """Get user's premium status"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     # Get user data from db function
-    user_data = get_user(user.id)
+    user_data = get_user(user_id)
     if not user_data:
         return JSONResponse(status_code=404, content={"error": "User not found"})
     
