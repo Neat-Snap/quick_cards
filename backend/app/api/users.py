@@ -133,12 +133,12 @@ async def get_user_endpoint(user_id: int):
 async def search_users(q: str = None, skill: str = None, project: str = None, limit: int = 10, offset: int = 0):
     """Search for users by name or skill"""
     try:
-        with get_db_session() as db:
-            query = db.session.query(User)
+        with get_db_session() as session:
+            query = session.query(User)
 
             if q:
                 query = query.filter(
-                    db.or_(
+                    session.or_(
                         User.name.ilike(f"%{q}%"),
                         User.username.ilike(f"%{q}%")
                     )
@@ -301,11 +301,11 @@ async def delete_contact(contact_id: int, context: AuthContext = Depends(get_aut
         if not contact or contact.get("user_id") != user_id:
             return JSONResponse(status_code=404, content={"error": "Contact not found"})
         
-        with get_db_session() as db:
-            contact_obj = db.session.query(Contact).get(contact_id)
+        with get_db_session() as session:
+            contact_obj = session.query(Contact).get(contact_id)
             if contact_obj:
-                db.session.delete(contact_obj)
-                db.session.commit()
+                session.delete(contact_obj)
+                session.commit()
         return JSONResponse(status_code=204, content={})
     except Exception as e:
         logger.error(f"Error deleting contact: {str(e)}")
@@ -377,11 +377,11 @@ async def delete_project(project_id: int, context: AuthContext = Depends(get_aut
         return JSONResponse(status_code=404, content={"error": "Project not found"})
     
     try:
-        with get_db_session() as db:
-            project_obj = db.session.query(Project).get(project_id)
+        with get_db_session() as session:
+            project_obj = session.query(Project).get(project_id)
             if project_obj:
-                db.session.delete(project_obj)
-                db.session.commit()
+                session.delete(project_obj)
+                session.commit()
         return JSONResponse(status_code=204, content={})
     except Exception as e:
         logger.error(f"Error deleting project: {str(e)}")
@@ -440,7 +440,7 @@ async def get_skills_endpoint(q: str = None):
     log(f"Received skills request with query: {q}")
     
     try:
-        with get_db_session() as db:
+        with get_db_session() as session:
             if q:
                 log("Query parameter provided, initiating skill search")
                 # If query is provided, use the skill search service
@@ -452,7 +452,7 @@ async def get_skills_endpoint(q: str = None):
                 if skill_results:
                     log("Processing predefined skills and checking database matches")
                     # Check which predefined skills already exist in the DB
-                    existing_skills = db.session.query(Skill).filter(
+                    existing_skills = session.query(Skill).filter(
                         Skill.name.in_([skill['name'] for skill in skill_results])
                     ).all()
                     log(f"Found {len(existing_skills)} existing skills in database")
@@ -473,7 +473,7 @@ async def get_skills_endpoint(q: str = None):
                     log(f"Updated {updated_count} predefined skills with database information")
                     
                     # Add DB skills to the start of results
-                    db_skills = db.session.query(Skill).filter(
+                    db_skills = session.query(Skill).filter(
                         Skill.name.ilike(f"%{q}%")
                     ).all()
                     log(f"Found {len(db_skills)} additional skills in database matching query")
@@ -501,12 +501,12 @@ async def get_skills_endpoint(q: str = None):
                 
                 log("No predefined results found, falling back to database search")
                 # If no predefined results, fall back to DB search
-                skills = db.session.query(Skill).filter(Skill.name.ilike(f"%{q}%")).all()
+                skills = session.query(Skill).filter(Skill.name.ilike(f"%{q}%")).all()
                 log(f"Database search returned {len(skills)} results")
             else:
                 log("No query parameter provided, returning all skills from database")
                 # Without query, just return all skills from DB
-                skills = db.session.query(Skill).all()
+                skills = session.query(Skill).all()
                 log(f"Retrieved {len(skills)} total skills from database")
             
             return JSONResponse(status_code=200, content=[
@@ -543,27 +543,27 @@ async def create_skill_endpoint(context: AuthContext = Depends(get_auth_context)
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
     try:
-        with get_db_session() as db:
+        with get_db_session() as session:
             # Check if a similar skill already exists
-            existing_skill = db.session.query(Skill).filter(
+            existing_skill = session.query(Skill).filter(
                 Skill.name.ilike(data['name'])
             ).first()
             
             if existing_skill:
                 # Check if the user already has this skill
-                existing_user_skill = db.session.query(user_skill).filter_by(
+                existing_user_skill = session.query(user_skill).filter_by(
                     user_id=user_id, skill_id=existing_skill.id
                 ).first()
                 
                 if not existing_user_skill:
                     # Add the association
-                    db.session.execute(
+                    session.execute(
                         user_skill.insert().values(
                             user_id=user_id,
                             skill_id=existing_skill.id
                         )
                     )
-                    db.session.commit()
+                    session.commit()
                 
                 return JSONResponse(status_code=200, content={
                     "success": True,
@@ -602,17 +602,17 @@ async def create_skill_endpoint(context: AuthContext = Depends(get_auth_context)
                 msg = "Custom skill created and added to user"
             
             # Add the skill to database
-            db.session.add(new_skill)
-            db.session.flush()  # Get the ID without committing
+            session.add(new_skill)
+            session.flush()  # Get the ID without committing
             
             # Add the skill to the user
-            db.session.execute(
+            session.execute(
                 user_skill.insert().values(
                     user_id=user_id,
                     skill_id=new_skill.id
                 )
             )
-            db.session.commit()
+            session.commit()
             
             return JSONResponse(status_code=201, content={
                 "success": True,
@@ -707,11 +707,11 @@ async def delete_custom_link(link_id: int, context: AuthContext = Depends(get_au
         return JSONResponse(status_code=404, content={"error": "Custom link not found"})
     
     try:
-        with get_db_session() as db:
-            link_obj = db.session.query(CustomLink).get(link_id)
+        with get_db_session() as session:
+            link_obj = session.query(CustomLink).get(link_id)
             if link_obj:
-                db.session.delete(link_obj)
-                db.session.commit()
+                session.delete(link_obj)
+                session.commit()
         return JSONResponse(status_code=204, content={})
     except Exception as e:
         logger.error(f"Error deleting custom link: {str(e)}")
