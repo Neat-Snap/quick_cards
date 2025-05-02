@@ -16,7 +16,7 @@ class Settings:
     
     SECRET_KEY: str = "95d3763fb5bca12c56d527d7d3d6a6d8147cda13ed87e012bd1728fdc21b47fc"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 day
+    ACCESS_TOKEN_EXPIRE_DAYS: int = 1
     
     TELEGRAM_BOT_TOKEN: str = "7762206500:AAGvP48wGoOpkK4aetC3FFFBceLTT1e9Ylo"
     
