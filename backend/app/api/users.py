@@ -14,6 +14,7 @@ from app.core.search import get_skill_search
 from app.middleware import *
 from fastapi import Depends, APIRouter, Request, File, UploadFile, Form
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 from app.db import *
 
@@ -71,7 +72,9 @@ async def get_current_user(context: AuthContext = Depends(get_auth_context)):
         "custom_links": user_links
     }
 
-    return JSONResponse(status_code=200, content=full_user_data)
+    json_compatible_data = jsonable_encoder(full_user_data)
+
+    return JSONResponse(status_code=200, content=json_compatible_data)
 
 
 @router.patch("/users/me")
