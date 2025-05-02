@@ -50,18 +50,18 @@ async def create_user_endpoint(user: UserResponse):
 
 @router.get("/users/me")
 async def get_current_user(context: AuthContext = Depends(get_auth_context)):
-    current_user, error = check_context(context)
-    if not current_user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
-    user_data = get_user(context.current_user.id)
+    user_data = get_user(user_id)
     if not user_data:
         return JSONResponse(status_code=404, content={"error": "User not found"})
     
-    user_contacts = get_contacts(context.current_user.id)
-    user_projects = get_projects(context.current_user.id)
-    user_skills = get_skills(context.current_user.id)
-    user_links = get_custom_links(context.current_user.id)
+    user_contacts = get_contacts(user_id)
+    user_projects = get_projects(user_id)
+    user_skills = get_skills(user_id)
+    user_links = get_custom_links(user_id)
 
     full_user_data = {
         **user_data,
@@ -76,15 +76,15 @@ async def get_current_user(context: AuthContext = Depends(get_auth_context)):
 
 @router.patch("/users/me")
 async def update_user(context: AuthContext = Depends(get_auth_context)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     data = Request.json()
     if not data:
         return JSONResponse(status_code=400, content={"error": "No data provided"})
     
-    user_data = get_user(user.id)
+    user_data = get_user(user_id)
     if not user_data:
         return JSONResponse(status_code=404, content={"error": "User not found"})
     
@@ -175,8 +175,8 @@ async def search_users(q: str = None, skill: str = None, project: str = None, li
 
 @router.post("/users/me/avatar")
 async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: UploadFile = File(...)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     if not file:
@@ -192,7 +192,7 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
     os.makedirs(images_path, exist_ok=True)
 
     extension = file.filename.rsplit('.', 1)[1].lower()
-    filename = f"{user.id}.{extension}"
+    filename = f"{user_id}.{extension}"
     file_path = os.path.join(images_path, filename)
 
     try:
@@ -203,7 +203,7 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
         with open(file_path, "wb") as f:
             f.write(file_content)
 
-        user_data = get_user(user.id)
+        user_data = get_user(user_id)
         if not user_data:
             return JSONResponse(status_code=404, content={"error": "User not found"})
             
@@ -220,22 +220,22 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
     
 @router.post("/users/me/contacts")
 async def create_contact_endpoint(context: AuthContext = Depends(get_auth_context)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     data = Request.json()
     if not data or "type" not in data or "value" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
-    user_contacts = get_contacts(user.id)
-    user_data = get_user(user.id)
+    user_contacts = get_contacts(user_id)
+    user_data = get_user(user_id)
     if len(user_contacts) >= 3 and user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for more than 3 contacts"})
     
     try:
         contact_data = create_contact(
-            user_id=user.id,
+            user_id=user_id,
             contact_type=data["type"],
             value=data["value"],
             is_public=data.get("is_public", True)
@@ -248,8 +248,8 @@ async def create_contact_endpoint(context: AuthContext = Depends(get_auth_contex
     
 @router.patch("/users/me/contacts/{contact_id}")
 async def update_contact(contact_id: int, context: AuthContext = Depends(get_auth_context)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     data = Request.json()
@@ -257,7 +257,7 @@ async def update_contact(contact_id: int, context: AuthContext = Depends(get_aut
         return JSONResponse(status_code=400, content={"error": "No data provided"})
     
     contact = get_contact_by_id(contact_id)
-    if not contact or contact.get("user_id") != user.id:
+    if not contact or contact.get("user_id") != user_id:
         return JSONResponse(status_code=404, content={"error": "Contact not found"})
 
     updateable_fields = ["type", "value", "is_public"]
@@ -275,12 +275,12 @@ async def update_contact(contact_id: int, context: AuthContext = Depends(get_aut
     
 @router.get("/users/me/contacts")
 async def get_user_contacts(context: AuthContext = Depends(get_auth_context)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     try:
-        user_contacts = get_contacts(user.id)
+        user_contacts = get_contacts(user_id)
         return JSONResponse(status_code=200, content=user_contacts)
     except Exception as e:
         logger.error(f"Error getting contacts: {str(e)}")
@@ -289,13 +289,13 @@ async def get_user_contacts(context: AuthContext = Depends(get_auth_context)):
 
 @router.delete("/users/me/contacts/{contact_id}")
 async def delete_contact(contact_id: int, context: AuthContext = Depends(get_auth_context)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     try:
         contact = get_contact_by_id(contact_id)
-        if not contact or contact.get("user_id") != user.id:
+        if not contact or contact.get("user_id") != user_id:
             return JSONResponse(status_code=404, content={"error": "Contact not found"})
         
         with get_db_session() as db:
@@ -311,8 +311,8 @@ async def delete_contact(contact_id: int, context: AuthContext = Depends(get_aut
 
 @router.post("/users/me/projects")
 async def create_project_endpoint(context: AuthContext = Depends(get_auth_context)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     data = Request.json()
@@ -321,7 +321,7 @@ async def create_project_endpoint(context: AuthContext = Depends(get_auth_contex
     
     try:
         project_data = create_project(
-            user_id=user.id,
+            user_id=user_id,
             name=data["name"],
             description=data.get("description"),
             avatar_url=data.get("avatar_url"),
@@ -336,12 +336,12 @@ async def create_project_endpoint(context: AuthContext = Depends(get_auth_contex
 
 @router.patch("/users/me/projects/{project_id}")
 async def update_project_endpoint(project_id: int, context: AuthContext = Depends(get_auth_context)):
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     project = get_project_by_id(project_id)
-    if not project or project.get("user_id") != user.id:
+    if not project or project.get("user_id") != user_id:
         return JSONResponse(status_code=404, content={"error": "Project not found"})
     
     data = Request.json()
@@ -364,13 +364,13 @@ async def update_project_endpoint(project_id: int, context: AuthContext = Depend
 @router.delete("/users/me/projects/{project_id}")
 async def delete_project(project_id: int, context: AuthContext = Depends(get_auth_context)):
     """Delete a project from user profile"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     # Get project
     project = get_project_by_id(project_id)
-    if not project or project.get("user_id") != user.id:
+    if not project or project.get("user_id") != user_id:
         return JSONResponse(status_code=404, content={"error": "Project not found"})
     
     try:
@@ -388,12 +388,12 @@ async def delete_project(project_id: int, context: AuthContext = Depends(get_aut
 @router.post("/users/me/skills/{skill_id}")
 async def add_skill_to_user_endpoint(skill_id: int, context: AuthContext = Depends(get_auth_context)):
     """Add a skill to user profile"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     # Check if user has premium for skills
-    user_data = get_user(user.id)
+    user_data = get_user(user_id)
     if user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for skills"})
     
@@ -403,7 +403,7 @@ async def add_skill_to_user_endpoint(skill_id: int, context: AuthContext = Depen
         return JSONResponse(status_code=404, content={"error": "Skill not found"})
     
     # Add skill to user
-    success = add_skill_to_user(user.id, skill_id)
+    success = add_skill_to_user(user_id, skill_id)
     if not success:
         return JSONResponse(status_code=500, content={"error": "Failed to add skill to user"})
     
@@ -413,12 +413,12 @@ async def add_skill_to_user_endpoint(skill_id: int, context: AuthContext = Depen
 @router.delete("/users/me/skills/{skill_id}")
 async def remove_skill_from_user_endpoint(skill_id: int, context: AuthContext = Depends(get_auth_context)):
     """Remove a skill from user profile"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     # Remove skill from user
-    success = remove_skill_from_user(user.id, skill_id)
+    success = remove_skill_from_user(user_id, skill_id)
     if not success:
         return JSONResponse(status_code=500, content={"error": "Failed to remove skill from user"})
     
@@ -526,12 +526,12 @@ async def get_skills_endpoint(q: str = None):
 @router.post("/skills")
 async def create_skill_endpoint(context: AuthContext = Depends(get_auth_context)):
     """Create a new custom skill"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     # Check if user has premium for skills
-    user_data = get_user(user.id)
+    user_data = get_user(user_id)
     if user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for skills"})
     
@@ -549,14 +549,14 @@ async def create_skill_endpoint(context: AuthContext = Depends(get_auth_context)
             if existing_skill:
                 # Check if the user already has this skill
                 existing_user_skill = db.session.query(user_skill).filter_by(
-                    user_id=user.id, skill_id=existing_skill.id
+                    user_id=user_id, skill_id=existing_skill.id
                 ).first()
                 
                 if not existing_user_skill:
                     # Add the association
                     db.session.execute(
                         user_skill.insert().values(
-                            user_id=user.id,
+                            user_id=user_id,
                             skill_id=existing_skill.id
                         )
                     )
@@ -605,7 +605,7 @@ async def create_skill_endpoint(context: AuthContext = Depends(get_auth_context)
             # Add the skill to the user
             db.session.execute(
                 user_skill.insert().values(
-                    user_id=user.id,
+                    user_id=user_id,
                     skill_id=new_skill.id
                 )
             )
@@ -634,12 +634,12 @@ async def upload_skill_image(
     skill_id: Optional[int] = Form(None)
 ):
     """Upload a skill image"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     # Check if user has premium for skills
-    user_data = get_user(user.id)
+    user_data = get_user(user_id)
     if user_data.get("premium_tier", 0) == 0:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for skills"})
     
@@ -661,12 +661,12 @@ async def upload_skill_image(
     
     if skill_id:
         # If skill_id is provided, use user_id_skill_id format
-        filename = f"{user.id}_{skill_id}.{extension}"
+        filename = f"{user_id}_{skill_id}.{extension}"
     else:
         # If no skill_id, use user_id_timestamp format for temporary images
         import time
         timestamp = int(time.time())
-        filename = f"{user.id}_{timestamp}.{extension}"
+        filename = f"{user_id}_{timestamp}.{extension}"
     
     file_path = os.path.join(skills_path, filename)
     
@@ -694,13 +694,13 @@ async def upload_skill_image(
 @router.delete("/users/me/links/{link_id}")
 async def delete_custom_link(link_id: int, context: AuthContext = Depends(get_auth_context)):
     """Delete a custom link from user profile"""
-    user, error = check_context(context)
-    if not user or error:
+    user_id, error = check_context(context)
+    if not user_id or error:
         return error
     
     # Get link
     link = get_custom_link_by_id(link_id)
-    if not link or link.get("user_id") != user.id:
+    if not link or link.get("user_id") != user_id:
         return JSONResponse(status_code=404, content={"error": "Custom link not found"})
     
     try:

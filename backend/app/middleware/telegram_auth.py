@@ -21,7 +21,7 @@ SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 
 class AuthContext:
-    current_user: Optional[User] = None
+    current_user_id: Optional[int] = None
     telegram_data: Optional[dict] = None
     telegram_user: Optional[dict] = None
     telegram_auth_error: Optional[str] = None
@@ -41,7 +41,7 @@ async def get_auth_context(request: Request) -> AuthContext:
             with get_db_session() as session:
                 user = session.query(User).get(user_id)
                 if user:
-                    context.current_user = user
+                    context.current_user_id = user.id
                     logger.debug(f"Authenticated via JWT: {user_id}")
                     return context
                 else:
@@ -75,7 +75,7 @@ async def get_auth_context(request: Request) -> AuthContext:
         with get_db_session() as session:
             user = session.query(User).filter_by(id=telegram_id).first()
             if user:
-                context.current_user = user
+                context.current_user_id = user.id
                 logger.debug(f"User authenticated via Telegram: {telegram_id}")
             else:
                 logger.debug(f"Telegram user {telegram_id} not found in DB")
@@ -87,8 +87,8 @@ def check_context(context: AuthContext):
     if context.telegram_auth_error:
         return None, HTTPException(status_code=401, detail=context.telegram_auth_error)
     
-    if not context.current_user:
+    if not context.current_user_id:
         return None, HTTPException(status_code=401, detail="User not found")
 
-    return context.current_user, None
+    return context.current_user_id, None
 
