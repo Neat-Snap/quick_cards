@@ -1,13 +1,9 @@
 import logging
-from sqlalchemy import inspect
+from app.db.session import get_db_session
+from app.db.models import PremiumFeature
 
-from app.db.session import db, Base, engine
-from app.db.models import PremiumFeature, User, Contact, Project, Skill, CustomLink
-
-# Initialize logging
 logger = logging.getLogger(__name__)
 
-# Premium features list (moved here to avoid circular imports)
 PREMIUM_FEATURES = [
     {"name": "Custom Background Image", "description": "Upload a custom background image for your card", "tier_required": 1},
     {"name": "Custom Badge", "description": "Add a custom badge next to your name", "tier_required": 1},
@@ -20,14 +16,19 @@ PREMIUM_FEATURES = [
 ]
 
 def initialize_premium_features():
-    """Initialize premium features in the database"""
     logger.info("Initializing premium features")
-    
-    # Add premium features if they don't exist
-    for feature in PREMIUM_FEATURES:
-        existing = PremiumFeature.query.filter_by(name=feature["name"]).first()
-        if not existing:
-            db.session.add(PremiumFeature(**feature))
-    
-    db.session.commit()
-    logger.info("Premium features initialized") 
+
+    with get_db_session() as session:
+        existing_features = session.query(PremiumFeature.name).all()
+        existing_names = [name for (name,) in existing_features]
+
+        features_added = 0
+        for feature in PREMIUM_FEATURES:
+            if feature["name"] not in existing_names:
+                session.add(PremiumFeature(**feature))
+                features_added += 1
+
+        if features_added > 0:
+            logger.info(f"Added {features_added} premium features")
+        else:
+            logger.info("No new premium features to add")

@@ -1,0 +1,109 @@
+import re
+from datetime import datetime
+
+ALLOWED_PREMIUM_TIERS = {0, 1, 2, 3}
+ALLOWED_BACKGROUND_TYPES = {"color", "gradient", "image"}
+ALLOWED_CONTACT_TYPES = {"phone", "email", "telegram", "linkedin", "github"}
+
+def validate_string(string: str) -> bool:
+    if not isinstance(string, str):
+        return False
+    if any(c in string for c in ['"', '/', '\\', ';', '|', '`', '$', '!', '=', '+', '-']):
+        return False
+    return True
+
+# def validate_url(url: str, max_len: int = 255) -> bool:
+#     if not isinstance(url, str) or len(url) > max_len:
+#         return False
+#     parts = urlparse(url)
+#     return parts.scheme in {"http", "https"} and bool(parts.netloc)
+
+def validate_date_iso(s: str) -> bool:
+    """
+    Должен быть ISO-формат, допустим ISO8601 без зоны.
+    """
+    if not isinstance(s, str):
+        return False
+    try:
+        datetime.fromisoformat(s)
+        return True
+    except ValueError:
+        return False
+
+def validate_user_data(user_data: dict) -> bool:
+    uid = user_data.get("id")
+    if not isinstance(uid, int) or uid < 0:
+        return False
+
+    username = user_data.get("username")
+    if username is not None:
+        if not isinstance(username, str) or len(username) > 100 or not validate_string(username):
+            return False
+
+    name = user_data.get("name")
+    if not isinstance(name, str) or not (1 < len(name) <= 100) or not validate_string(name):
+        return False
+
+    badge = user_data.get("badge")
+    if badge is not None:
+        if not isinstance(badge, str) or not (1 < len(badge) <= 20) or not validate_string(badge):
+            return False
+
+    tier = user_data.get("premium_tier", 0)
+    if tier not in ALLOWED_PREMIUM_TIERS:
+        return False
+
+    btype = user_data.get("background_type", "color")
+    if btype not in ALLOWED_BACKGROUND_TYPES:
+        return False
+
+    bval = user_data.get("background_value", "")
+    if not isinstance(bval, str) or len(bval) > 255:
+        return False
+    if btype == "color" and not re.fullmatch(r"^#(?:[0-9A-Fa-f]{6})$", bval):
+        return False
+
+    desc = user_data.get("description")
+    if desc is not None:
+        if not isinstance(desc, str) or len(desc) > 1000 or not validate_string(desc):
+            return False
+
+    contacts = user_data.get("contacts", [])
+    if not isinstance(contacts, list):
+        return False
+    for c in contacts:
+        if not isinstance(c, dict):
+            return False
+        ctype = c.get("type")
+        if ctype not in ALLOWED_CONTACT_TYPES:
+            return False
+        is_pub = c.get("is_public")
+        if not isinstance(is_pub, bool):
+            return False
+
+    projects = user_data.get("projects", [])
+    if not isinstance(projects, list):
+        return False
+    for p in projects:
+        if not isinstance(p, dict):
+            return False
+        pname = p.get("name")
+        if not isinstance(pname, str) or not (1 <= len(pname) <= 100) or not validate_string(pname):
+            return False
+        pdesc = p.get("description")
+        if pdesc is not None and (not isinstance(pdesc, str) or len(pdesc) > 1000 or not validate_string(pdesc)):
+            return False
+        prole = p.get("role")
+        if prole is not None and (not isinstance(prole, str) or len(prole) > 100 or not validate_string(prole)):
+            return False
+
+    links = user_data.get("custom_links", [])
+    if not isinstance(links, list):
+        return False
+    for l in links:
+        title = l.get("title")
+        url = l.get("url")
+        if not isinstance(title, str) or not (1 <= len(title) <= 100) or not validate_string(title):
+            return False
+
+    return True

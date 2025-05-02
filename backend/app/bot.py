@@ -53,7 +53,7 @@ def handle_help(message):
     keyboard = InlineKeyboardMarkup()
     webapp_btn = InlineKeyboardButton(
         text="Open Business Card",
-        web_app=WebAppInfo(url=config.APP_URL)
+        web_app=WebAppInfo(url=settings.APP_URL)
     )
     keyboard.add(webapp_btn)
     
@@ -94,7 +94,7 @@ def process_successful_payment(message):
             tier = int(payload_parts[2])
             charge_id = message.successful_payment.telegram_payment_charge_id
             
-            requests.post(f"{settings.APP_URL}/api/v1/premium/successful_payment", json={"user_id": user_id, "tier": tier})
+            requests.post(f"{settings.APP_URL}/api/v1/premium/successful_payment", json={"user_id": user_id, "tier": tier, "security_code": settings.SECURITY_CODE})
             
             # Update user's premium status directly
             with app.app_context():
