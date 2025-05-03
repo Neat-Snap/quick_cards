@@ -12,7 +12,7 @@ interface Props {
 }
 
 
-const DURATION = 0.3;
+const DURATION = 0.1;
 
 export default function AnimatedProjectDetailFullscreen({ project, onBack }: Props) {
   return (
