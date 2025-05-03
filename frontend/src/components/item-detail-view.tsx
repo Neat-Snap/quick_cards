@@ -8,7 +8,7 @@ import { Contact, Project, Skill } from "@/lib/api";
 import { X, Mail, Phone, MessageCircle, ExternalLink, ArrowLeft } from "lucide-react";
 import { getSkillIconUrl } from "@/lib/SkillIconHelper";
 import ProjectDetailFullscreen from "@/components/ProjectDetailFullscreen";
-
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ItemDetailViewProps {
   type: 'contact' | 'project' | 'skill';
@@ -93,18 +93,39 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
     return (
       <>
         <CardHeader className="pb-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-3 bg-primary/10 rounded-full">
+          <motion.div 
+            className="flex items-center gap-3 mb-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <motion.div 
+              className="p-3 bg-primary/10 rounded-full"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+            >
               {getContactIcon(contact.type)}
-            </div>
+            </motion.div>
             <CardTitle className="capitalize">{contact.type}</CardTitle>
-          </div>
-          <CardDescription>
-            {contact.value}
-          </CardDescription>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <CardDescription>
+              {contact.value}
+            </CardDescription>
+          </motion.div>
         </CardHeader>
         <CardContent className="pb-2">
-          <div className="py-2">
+          <motion.div 
+            className="py-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
             <p className="text-sm text-muted-foreground">
               {contact.type === 'email' && 'Click the button below to send an email.'}
               {contact.type === 'phone' && 'Click the button below to copy this number.'}
@@ -113,15 +134,22 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
               {!['email', 'phone', 'telegram', 'website'].includes(contact.type.toLowerCase()) && 
                 'Click the button below to copy this information.'}
             </p>
-          </div>
+          </motion.div>
         </CardContent>
         <CardFooter>
-          <Button 
-            className="w-full" 
-            onClick={contactButton.action}
+          <motion.div 
+            className="w-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, type: "spring" }}
           >
-            {contactButton.text}
-          </Button>
+            <Button 
+              className="w-full" 
+              onClick={contactButton.action}
+            >
+              {contactButton.text}
+            </Button>
+          </motion.div>
         </CardFooter>
       </>
     );
@@ -133,14 +161,25 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
     return (
       <>
         <CardHeader>
-          <CardTitle>{project.name}</CardTitle>
-          {project.role && (
-            <CardDescription>{project.role}</CardDescription>
-          )}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <CardTitle>{project.name}</CardTitle>
+            {project.role && (
+              <CardDescription>{project.role}</CardDescription>
+            )}
+          </motion.div>
         </CardHeader>
         <CardContent>
           {project.avatar_url && (
-            <div className="mb-4 flex justify-center">
+            <motion.div 
+              className="mb-4 flex justify-center"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.3, type: "spring" }}
+            >
               <div className="w-24 h-24 rounded-md overflow-hidden bg-muted">
                 <img 
                   src={project.avatar_url} 
@@ -148,28 +187,40 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
                   className="w-full h-full object-cover"
                 />
               </div>
-            </div>
+            </motion.div>
           )}
           
           {project.description && (
-            <div className="mb-4">
+            <motion.div 
+              className="mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               <h3 className="text-sm font-medium mb-2">Description</h3>
               <div className="max-h-[200px] overflow-y-auto rounded-md bg-muted/10 p-3">
                 <p className="text-sm text-muted-foreground">{project.description}</p>
               </div>
-            </div>
+            </motion.div>
           )}
         </CardContent>
         {project.url && (
           <CardFooter>
-            <Button 
-              className="w-full" 
-              variant="outline"
-              onClick={() => window.open(project.url, '_blank')}
+            <motion.div 
+              className="w-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
             >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Visit Project
-            </Button>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => window.open(project.url, '_blank')}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Visit Project
+              </Button>
+            </motion.div>
           </CardFooter>
         )}
       </>
@@ -186,10 +237,21 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
     return (
       <>
         <CardHeader>
-          <CardTitle>{skill.name}</CardTitle>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <CardTitle>{skill.name}</CardTitle>
+          </motion.div>
         </CardHeader>
         <CardContent>
-          <div className="mb-4 flex justify-center">
+          <motion.div 
+            className="mb-4 flex justify-center"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: "spring" }}
+          >
             <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
               {iconUrl ? (
                 <img 
@@ -207,55 +269,98 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
                 <span className="text-xl font-medium">{skill.name.substring(0, 2).toUpperCase()}</span>
               )}
             </div>
-          </div>
+          </motion.div>
           
           {skill.description && (
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
               <h3 className="text-sm font-medium mb-2">Description</h3>
               <p className="text-sm text-muted-foreground">{skill.description}</p>
-            </div>
+            </motion.div>
           )}
         </CardContent>
       </>
     );
   };
 
+  // Main render with animations
   return (
-    <div className="fixed inset-0 bg-background/90 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 backdrop-blur-sm" onClick={onClose}></div>
-      
-      <Card className="w-full max-w-md mx-auto z-10">
-        <div className="absolute top-2 right-2">
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+    <AnimatePresence>
+      <motion.div 
+        className="fixed inset-0 bg-background/90 z-50 flex items-center justify-center p-4 pb-24 overflow-y-auto"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div 
+          className="absolute inset-0 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          onClick={onClose}
+        ></motion.div>
         
-        <div className="pt-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="flex items-center gap-1 ml-4 mt-2"
-            onClick={onClose}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
-        
-        {/* Render the appropriate content based on type */}
-        {type === 'project' ? (
-          <ProjectDetailFullscreen 
-            project={data as Project} 
-            onBack={onClose} 
-          />
-        ) : (
-          <>
-            {type === 'contact' && renderContactDetail()}
-            {type === 'skill' && renderSkillDetail()}
-          </>
-        )}
-      </Card>
-    </div>
+        <motion.div
+          className="w-full max-w-md mx-auto z-10"
+          initial={{ scale: 0.9, y: 30, opacity: 0 }}
+          animate={{ scale: 1, y: 0, opacity: 1 }}
+          exit={{ scale: 0.9, y: 30, opacity: 0 }}
+          transition={{ 
+            type: "spring",
+            damping: 25,
+            stiffness: 300
+          }}
+        >
+          <Card className="w-full">
+            <div className="absolute top-2 right-2">
+              <motion.div
+                initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                transition={{ delay: 0.3, type: "spring" }}
+              >
+                <Button variant="ghost" size="icon" onClick={onClose}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </motion.div>
+            </div>
+            
+            <div className="pt-2">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-1 ml-4 mt-2"
+                  onClick={onClose}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Button>
+              </motion.div>
+            </div>
+            
+            {/* Render the appropriate content based on type */}
+            {type === 'project' ? (
+              <ProjectDetailFullscreen 
+                project={data as Project} 
+                onBack={onClose} 
+              />
+            ) : (
+              <>
+                {type === 'contact' && renderContactDetail()}
+                {type === 'skill' && renderSkillDetail()}
+              </>
+            )}
+          </Card>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

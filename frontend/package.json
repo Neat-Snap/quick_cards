@@ -30,6 +30,7 @@
     "tailwind-merge": "^1.14.0",
     "tailwindcss-animate": "^1.0.7",
     "@radix-ui/react-toast": "^1.1.5",
+    "framer-motion": "^12.9.4",
     "simple-icons": "^9.19.0"
   },
   "devDependencies": {
