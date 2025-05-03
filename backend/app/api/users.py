@@ -111,8 +111,8 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
 
 @router.get("/users/{user_id}")
 async def get_user_endpoint(user_id: int, context: AuthContext = Depends(get_auth_context)):
-    user_id, error = check_context(context)
-    if not user_id or error:
+    auth_uid, error = check_context(context)
+    if not auth_uid or error:
         return error
 
     user_data = get_user(user_id)

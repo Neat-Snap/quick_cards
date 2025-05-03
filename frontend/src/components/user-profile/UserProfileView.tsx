@@ -1,10 +1,12 @@
-// components/user-profile/UserProfileView.tsx
+"use client";
+
 import { useState, useEffect } from "react";
 import { User, Contact, Project, Skill, CustomLink } from "@/lib/api";
 import { BusinessCardPreview } from "@/components/business-card-preview";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { motion } from "framer-motion";
 
 interface UserProfileViewProps {
   userId: string | number;
@@ -29,8 +31,6 @@ export function UserProfileView({
   
   // Load full user data with direct API call to handle different response formats
   const loadUserData = async () => {
-    // Load user data implementation (same as before)
-    // ...
     setLoading(true);
     setError(null);
     
@@ -119,16 +119,22 @@ export function UserProfileView({
   if (fullScreen) {
     return (
       <div className="fixed inset-0 bg-background z-50 overflow-auto">
-        <div className="max-w-md mx-auto py-4 px-4">
+        <div className="max-w-md mx-auto py-4 px-4 pb-28"> {/* Added extra bottom padding (pb-28) */}
           {showBackButton && onBack && (
-            <Button 
-              variant="ghost" 
-              onClick={onBack} 
-              className="mb-4 -ml-2"
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Explore
-            </Button>
+              <Button 
+                variant="ghost" 
+                onClick={onBack} 
+                className="mb-4 -ml-2"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Explore
+              </Button>
+            </motion.div>
           )}
           
           {loading ? (
@@ -157,13 +163,19 @@ export function UserProfileView({
               )}
             </div>
           ) : user ? (
-            <BusinessCardPreview 
-              user={user} 
-              contacts={user.contacts as Contact[]} 
-              projects={user.projects as Project[]} 
-              skills={user.skills as Skill[]} 
-              customLinks={user.custom_links as CustomLink[]} 
-            />
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.4, type: "spring" }}
+            >
+              <BusinessCardPreview 
+                user={user} 
+                contacts={user.contacts as Contact[]} 
+                projects={user.projects as Project[]} 
+                skills={user.skills as Skill[]} 
+                customLinks={user.custom_links as CustomLink[]} 
+              />
+            </motion.div>
           ) : (
             <div className="text-center py-8 border rounded-md">
               <p className="text-muted-foreground">User profile not found</p>
@@ -174,9 +186,9 @@ export function UserProfileView({
     );
   }
   
-  // Regular, non-fullscreen view (same as before)
+  // Regular, non-fullscreen view with bottom padding
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20"> {/* Added bottom padding */}
       {/* Back button */}
       {showBackButton && onBack && (
         <Button 
