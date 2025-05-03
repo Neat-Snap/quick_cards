@@ -2,7 +2,7 @@ from typing import List, Optional
 import logging
 from datetime import datetime, timedelta
 from app.core.search import get_skill_search
-from app.core.validations import validate_string, validate_user_data
+from app.core.validations import validate_string, validate_user_data, validate_contact, validate_project
 from app.db.models import User, Contact, Project, Skill, CustomLink, user_skill
 from app.schemas import UserResponse
 import sys
@@ -253,6 +253,10 @@ async def create_contact_endpoint(request: Request, context: AuthContext = Depen
     if not data or "type" not in data or "value" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
+    is_valid, validation_error = validate_contact(data)
+    if not is_valid:
+        return JSONResponse(status_code=400, content={"error": validation_error or "Invalid contact data"})
+    
     user_contacts = get_contacts(user_id)
     user_data = get_user(user_id)
     if len(user_contacts) >= 3 and user_data.get("premium_tier", 0) == 0:
@@ -289,6 +293,10 @@ async def update_contact(contact_id: int, request: Request, context: AuthContext
     for field in updateable_fields:
         if field in data:
             contact[field] = data[field]
+    
+    is_valid, validation_error = validate_contact(contact)
+    if not is_valid:
+        return JSONResponse(status_code=400, content={"error": validation_error or "Invalid contact data"})
     
     try:
         updated_contact = set_contact_data(contact)
@@ -343,6 +351,10 @@ async def create_project_endpoint(request: Request, context: AuthContext = Depen
     if not data or "name" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
+    is_valid, validation_error = validate_project(data)
+    if not is_valid:
+        return JSONResponse(status_code=400, content={"error": validation_error or "Invalid project data"})
+    
     try:
         project_data = create_project(
             user_id=user_id,
@@ -376,6 +388,10 @@ async def update_project_endpoint(project_id: int, request: Request, context: Au
     for field in updateable_fields:
         if field in data:
             project[field] = data[field]
+    
+    is_valid, validation_error = validate_project(project)
+    if not is_valid:
+        return JSONResponse(status_code=400, content={"error": validation_error or "Invalid project data"})
     
     try:
         updated_project = set_project(project)

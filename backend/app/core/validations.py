@@ -3,7 +3,7 @@ from datetime import datetime
 
 ALLOWED_PREMIUM_TIERS = {0, 1, 2, 3}
 ALLOWED_BACKGROUND_TYPES = {"color", "gradient", "image"}
-ALLOWED_CONTACT_TYPES = {"phone", "email", "telegram", "linkedin", "github"}
+ALLOWED_CONTACT_TYPES = {"phone", "email", "telegram", "website"}
 
 def validate_string(string: str) -> bool:
     if not isinstance(string, str):
@@ -12,16 +12,8 @@ def validate_string(string: str) -> bool:
         return False
     return True
 
-# def validate_url(url: str, max_len: int = 255) -> bool:
-#     if not isinstance(url, str) or len(url) > max_len:
-#         return False
-#     parts = urlparse(url)
-#     return parts.scheme in {"http", "https"} and bool(parts.netloc)
 
 def validate_date_iso(s: str) -> bool:
-    """
-    Должен быть ISO-формат, допустим ISO8601 без зоны.
-    """
     if not isinstance(s, str):
         return False
     try:
@@ -107,3 +99,63 @@ def validate_user_data(user_data: dict) -> bool:
             return False
 
     return True
+
+
+
+def validate_contact(contact_data):
+    if not isinstance(contact_data, dict):
+        return False, "Contact data must be a dictionary"
+
+    ctype = contact_data.get("type")
+    value = contact_data.get("value")
+
+    if ctype not in ALLOWED_CONTACT_TYPES:
+        return False, "Invalid contact type"
+
+    if not isinstance(value, str) or not value:
+        return False, "Contact value must be a non-empty string"
+
+    if ctype == "phone":
+        if not re.fullmatch(r"^\+?\d{7,16}$", value):
+            return False, "Invalid phone number format"
+    elif ctype == "email":
+        if not re.fullmatch(r"^[^@]+@[^@]+\.[^@]+$", value) or len(value) > 100:
+            return False, "Invalid email format"
+    elif ctype == "telegram":
+        if not re.fullmatch(r"^[a-zA-Z0-9_]{5,32}$", value):
+             False, "Invalid Telegram username"
+    elif ctype == "linkedin":
+        if not value.startswith("https://www.linkedin.com/") or len(value) > 255:
+            return False, "Invalid LinkedIn URL"
+    elif ctype == "github":
+        if not re.fullmatch(r"^(?!-)[a-zA-Z0-9-]{1,39}(?<!-)$", value):
+            return False, "Invalid GitHub username"
+    elif ctype == "website":
+        if not re.fullmatch(r"^https?://[^\s/$.?#].[^\s]*$", value) or len(value) > 255:
+            return False, "Invalid website URL"
+
+    is_public = contact_data.get("is_public")
+    if not isinstance(is_public, bool):
+        return False, "is_public must be a boolean"
+
+    return True, None
+
+def validate_project(project_data):
+    if not isinstance(project_data, dict):
+        return False, "Project data must be a dictionary"
+
+    name = project_data.get("name")
+    if not isinstance(name, str) or not (1 <= len(name) <= 100) or not validate_string(name):
+        return False, "Invalid project name"
+
+    description = project_data.get("description")
+    if description is not None:
+        if not isinstance(description, str) or len(description) > 1000 or not validate_string(description):
+            return False, "Invalid project description"
+
+    role = project_data.get("role")
+    if role is not None:
+        if not isinstance(role, str) or len(role) > 100 or not validate_string(role):
+            return False, "Invalid project role"
+
+    return True, None
