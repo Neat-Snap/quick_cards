@@ -9,12 +9,18 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { User, updateUserProfile, getPremiumStatus } from "@/lib/api";
+import { Info, AlertCircle } from "lucide-react";
 
 interface BackgroundFormProps {
   user: User | null;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
+
+// Validation constants from backend
+const ALLOWED_BACKGROUND_TYPES = ["color", "gradient", "image"];
+const MAX_BACKGROUND_VALUE_LENGTH = 255;
+const HEX_COLOR_REGEX = /^#(?:[0-9A-Fa-f]{6})$/;
 
 // Predefined colors
 const COLORS = [
@@ -58,6 +64,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   const [customBackgroundPreview, setCustomBackgroundPreview] = useState<string | null>(
     backgroundType === "image" ? (user?.background_value || null) : null
   );
+  const [backgroundValueError, setBackgroundValueError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   
@@ -74,6 +81,37 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     }
     return null;
   }
+  
+  // Validate background value
+  useEffect(() => {
+    // Clear previous error
+    setBackgroundValueError(null);
+    
+    if (backgroundType === "color") {
+      // Validate hex color
+      if (!HEX_COLOR_REGEX.test(selectedColor)) {
+        setBackgroundValueError("Invalid color format. Must be a valid hex color (e.g., #RRGGBB)");
+      }
+    } else if (backgroundType === "gradient") {
+      // For gradients, validate that both colors are valid hex
+      if (!HEX_COLOR_REGEX.test(selectedColor) || !HEX_COLOR_REGEX.test(gradientEndColor)) {
+        setBackgroundValueError("Invalid gradient colors. Both must be valid hex colors");
+      }
+      
+      // Check if the gradient string would exceed max length
+      const gradientString = `linear-gradient(135deg, ${selectedColor}, ${gradientEndColor})`;
+      if (gradientString.length > MAX_BACKGROUND_VALUE_LENGTH) {
+        setBackgroundValueError(`Gradient value exceeds maximum length of ${MAX_BACKGROUND_VALUE_LENGTH} characters`);
+      }
+    } else if (backgroundType === "image") {
+      // For images, check if we have a custom background preview
+      if (!customBackgroundPreview) {
+        setBackgroundValueError("Please select an image for the background");
+      } else if (customBackgroundPreview.length > MAX_BACKGROUND_VALUE_LENGTH) {
+        setBackgroundValueError(`Image URL exceeds maximum length of ${MAX_BACKGROUND_VALUE_LENGTH} characters`);
+      }
+    }
+  }, [backgroundType, selectedColor, gradientEndColor, customBackgroundPreview]);
   
   // Check premium status on mount
   useEffect(() => {
@@ -120,6 +158,16 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     e.preventDefault();
     
     if (!user) return;
+    
+    // Check if there are validation errors
+    if (backgroundValueError) {
+      toast({
+        title: "Validation Error",
+        description: backgroundValueError,
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
@@ -192,6 +240,12 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         </div>
         <Separator />
         
+        {/* Current Background Type Indicator */}
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Info className="h-3 w-3" />
+          <span>Current background type: <span className="font-medium capitalize">{backgroundType}</span></span>
+        </div>
+        
         {/* Color Selection */}
         <div className="space-y-4">
           <Label>Select Background Color</Label>
@@ -213,17 +267,34 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
               />
             ))}
           </div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Info className="h-3 w-3" />
+            <span>Colors must be in hex format (e.g., #RRGGBB)</span>
+          </div>
         </div>
         
         {/* Background Preview */}
-        <div 
-          className="h-24 w-full rounded-md overflow-hidden border"
-          style={
-            backgroundType === "image" && customBackgroundPreview
-              ? { backgroundImage: `url(${customBackgroundPreview})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-              : getGradientStyle()
-          }
-        />
+        <div className="space-y-2">
+          <Label>Background Preview</Label>
+          <div 
+            className="h-24 w-full rounded-md overflow-hidden border"
+            style={
+              backgroundType === "image" && customBackgroundPreview
+                ? { backgroundImage: `url(${customBackgroundPreview})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : getGradientStyle()
+            }
+          />
+          {backgroundValueError && (
+            <div className="flex items-center gap-2 text-xs text-destructive">
+              <AlertCircle className="h-3 w-3" />
+              <span>{backgroundValueError}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Info className="h-3 w-3" />
+            <span>Background value must be under {MAX_BACKGROUND_VALUE_LENGTH} characters</span>
+          </div>
+        </div>
         
         {/* Gradient Toggle */}
         <div className="flex items-center space-x-2">
@@ -279,6 +350,14 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
               Choose File
             </Button>
           </div>
+          {customBackgroundPreview && (
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-muted-foreground truncate" style={{ maxWidth: "300px" }}>
+                {customBackgroundPreview.substring(0, 50)}
+                {customBackgroundPreview.length > 50 ? "..." : ""}
+              </span>
+            </div>
+          )}
           {!isPremium && (
             <p className="text-xs text-muted-foreground">
               Custom background photos are available with Premium
@@ -291,7 +370,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         <Button 
           type="submit"
           className="w-full"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !!backgroundValueError}
         >
           {isSubmitting ? "Saving..." : "Save"}
         </Button>

@@ -9,9 +9,23 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Project, getUserProjects, createProject, updateProject, deleteProject, getPremiumStatus, getCurrentUser, fileToDataUrl } from "@/lib/api";
-import { Trash2, Edit, X, Save, Plus, Check, Image, Link, User, ExternalLink } from "lucide-react";
+import { Trash2, Edit, X, Save, Plus, Check, Image, Link, User, ExternalLink, Info, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+
+// Validation constants from backend
+const MAX_NAME_LENGTH = 100;
+const MIN_NAME_LENGTH = 1;
+const MAX_DESCRIPTION_LENGTH = 1000;
+const MAX_ROLE_LENGTH = 100;
+const MAX_URL_LENGTH = 255;
+const DISALLOWED_CHARS = ['"', '/', '\\', ';', '|', '`', '$', '!', '=', '+', '-'];
+const URL_REGEX = /^https?:\/\/[^\s\/$.?#].[^\s]*$/;
+
+// Helper function to check for disallowed characters
+const containsDisallowedChars = (value: string): boolean => {
+  return DISALLOWED_CHARS.some(char => value.includes(char));
+};
 
 interface ProjectsFormProps {
   userId: string | number;
@@ -41,9 +55,13 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   
   // Project form state
   const [projectName, setProjectName] = useState("");
+  const [projectNameError, setProjectNameError] = useState<string | null>(null);
   const [projectDescription, setProjectDescription] = useState("");
+  const [projectDescriptionError, setProjectDescriptionError] = useState<string | null>(null);
   const [projectRole, setProjectRole] = useState("");
+  const [projectRoleError, setProjectRoleError] = useState<string | null>(null);
   const [projectUrl, setProjectUrl] = useState("");
+  const [projectUrlError, setProjectUrlError] = useState<string | null>(null);
   const [projectAvatar, setProjectAvatar] = useState<File | null>(null);
   const [projectAvatarUrl, setProjectAvatarUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,6 +73,59 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   useEffect(() => {
     loadProjects();
   }, [userId]);
+
+  // Validate inputs on change
+  useEffect(() => {
+    // Validate project name
+    if (projectName.length > 0 && projectName.length < MIN_NAME_LENGTH) {
+      setProjectNameError(`Project name must be at least ${MIN_NAME_LENGTH} character`);
+    } else if (projectName.length > MAX_NAME_LENGTH) {
+      setProjectNameError(`Project name must be ${MAX_NAME_LENGTH} characters or less`);
+    } else if (containsDisallowedChars(projectName)) {
+      setProjectNameError(`Project name contains disallowed characters: ${DISALLOWED_CHARS.join(' ')}`);
+    } else {
+      setProjectNameError(null);
+    }
+
+    // Validate project description
+    if (projectDescription) {
+      if (projectDescription.length > MAX_DESCRIPTION_LENGTH) {
+        setProjectDescriptionError(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or less`);
+      } else if (containsDisallowedChars(projectDescription)) {
+        setProjectDescriptionError(`Description contains disallowed characters: ${DISALLOWED_CHARS.join(' ')}`);
+      } else {
+        setProjectDescriptionError(null);
+      }
+    } else {
+      setProjectDescriptionError(null);
+    }
+
+    // Validate project role
+    if (projectRole) {
+      if (projectRole.length > MAX_ROLE_LENGTH) {
+        setProjectRoleError(`Role must be ${MAX_ROLE_LENGTH} characters or less`);
+      } else if (containsDisallowedChars(projectRole)) {
+        setProjectRoleError(`Role contains disallowed characters: ${DISALLOWED_CHARS.join(' ')}`);
+      } else {
+        setProjectRoleError(null);
+      }
+    } else {
+      setProjectRoleError(null);
+    }
+
+    // Validate project URL
+    if (projectUrl) {
+      if (projectUrl.length > MAX_URL_LENGTH) {
+        setProjectUrlError(`URL must be ${MAX_URL_LENGTH} characters or less`);
+      } else if (!URL_REGEX.test(projectUrl)) {
+        setProjectUrlError("URL must begin with http:// or https://");
+      } else {
+        setProjectUrlError(null);
+      }
+    } else {
+      setProjectUrlError(null);
+    }
+  }, [projectName, projectDescription, projectRole, projectUrl]);
 
   // Function to load projects - reused throughout the component
   const loadProjects = async () => {
@@ -130,6 +201,10 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setProjectAvatarUrl("");
     setIsEditMode(false);
     setEditingProjectId(null);
+    setProjectNameError(null);
+    setProjectDescriptionError(null);
+    setProjectRoleError(null);
+    setProjectUrlError(null);
     
     // Add animation class to form
     if (formRef.current) {
@@ -164,6 +239,12 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setProjectAvatarUrl(project.avatar_url || "");
     setIsEditMode(true);
     setEditingProjectId(project.id);
+    
+    // Clear validation errors
+    setProjectNameError(null);
+    setProjectDescriptionError(null);
+    setProjectRoleError(null);
+    setProjectUrlError(null);
     
     // Close detail view if open
     if (detailView) {
@@ -211,6 +292,16 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   // Handle form submission (create or update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check for validation errors
+    if (projectNameError || projectDescriptionError || projectRoleError || projectUrlError) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors before submitting",
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Validate input
     if (!projectName.trim()) {
@@ -668,52 +759,119 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
               </div>
               
               <div className="grid grid-cols-1 gap-3">
-                <Label htmlFor="project-name">Project Name *</Label>
+                <div className="flex items-baseline justify-between">
+                  <Label htmlFor="project-name">Project Name*</Label>
+                  <span className={`text-xs ${projectName.length > MAX_NAME_LENGTH ? "text-destructive" : "text-muted-foreground"}`}>
+                    {projectName.length}/{MAX_NAME_LENGTH}
+                  </span>
+                </div>
                 <Input
                   id="project-name"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="Enter project name"
                   required
+                  className={projectNameError ? "border-destructive" : ""}
+                  maxLength={MAX_NAME_LENGTH}
                 />
+                {projectNameError && (
+                  <div className="flex items-center gap-2 text-xs text-destructive">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>{projectNameError}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Info className="h-3 w-3" />
+                  <span>Name must be between {MIN_NAME_LENGTH}-{MAX_NAME_LENGTH} characters without special characters</span>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 gap-3">
-                <Label htmlFor="project-role">Your Role</Label>
+                <div className="flex items-baseline justify-between">
+                  <Label htmlFor="project-role">Your Role</Label>
+                  <span className={`text-xs ${projectRole.length > MAX_ROLE_LENGTH ? "text-destructive" : "text-muted-foreground"}`}>
+                    {projectRole.length}/{MAX_ROLE_LENGTH}
+                  </span>
+                </div>
                 <Input
                   id="project-role"
                   value={projectRole}
                   onChange={(e) => setProjectRole(e.target.value)}
                   placeholder="e.g., Lead Developer, Project Manager"
+                  className={projectRoleError ? "border-destructive" : ""}
+                  maxLength={MAX_ROLE_LENGTH}
                 />
+                {projectRoleError && (
+                  <div className="flex items-center gap-2 text-xs text-destructive">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>{projectRoleError}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Info className="h-3 w-3" />
+                  <span>Role must be under {MAX_ROLE_LENGTH} characters without special characters</span>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 gap-3">
-                <Label htmlFor="project-description">Description</Label>
+                <div className="flex items-baseline justify-between">
+                  <Label htmlFor="project-description">Description</Label>
+                  <span className={`text-xs ${projectDescription.length > MAX_DESCRIPTION_LENGTH ? "text-destructive" : "text-muted-foreground"}`}>
+                    {projectDescription.length}/{MAX_DESCRIPTION_LENGTH}
+                  </span>
+                </div>
                 <Textarea
                   id="project-description"
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
                   placeholder="Brief description of this project"
-                  className="min-h-[80px]"
+                  className={`min-h-[80px] ${projectDescriptionError ? "border-destructive" : ""}`}
+                  maxLength={MAX_DESCRIPTION_LENGTH}
                 />
+                {projectDescriptionError && (
+                  <div className="flex items-center gap-2 text-xs text-destructive">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>{projectDescriptionError}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Info className="h-3 w-3" />
+                  <span>Description must be under {MAX_DESCRIPTION_LENGTH} characters without special characters</span>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 gap-3">
-                <Label htmlFor="project-url">Project URL</Label>
+                <div className="flex items-baseline justify-between">
+                  <Label htmlFor="project-url">Project URL</Label>
+                  <span className={`text-xs ${projectUrl.length > MAX_URL_LENGTH ? "text-destructive" : "text-muted-foreground"}`}>
+                    {projectUrl.length}/{MAX_URL_LENGTH}
+                  </span>
+                </div>
                 <Input
                   id="project-url"
                   value={projectUrl}
                   onChange={(e) => setProjectUrl(e.target.value)}
                   placeholder="https://example.com"
+                  className={projectUrlError ? "border-destructive" : ""}
+                  maxLength={MAX_URL_LENGTH}
                 />
+                {projectUrlError && (
+                  <div className="flex items-center gap-2 text-xs text-destructive">
+                    <AlertCircle className="h-3 w-3" />
+                    <span>{projectUrlError}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Info className="h-3 w-3" />
+                  <span>URL must start with http:// or https:// and be under {MAX_URL_LENGTH} characters</span>
+                </div>
               </div>
               
               <div className="pt-2">
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !!projectNameError || !!projectDescriptionError || !!projectRoleError || !!projectUrlError || !projectName.trim()}
                 >
                   {isSubmitting ? (
                     isEditMode ? "Updating..." : "Adding..."
@@ -741,8 +899,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
             Back
           </Button>
         </div>
-
-        
       </div>
 
       {/* Render project detail view if active */}

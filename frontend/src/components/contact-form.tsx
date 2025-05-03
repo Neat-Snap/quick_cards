@@ -10,7 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/use-toast";
 import { Contact, getUserContacts, createContact, deleteContact, getPremiumStatus } from "@/lib/api";
-import { Trash2, Edit, X, Save, Plus, Check } from "lucide-react";
+import { Trash2, Edit, X, Save, Plus, Check, AlertCircle, Info } from "lucide-react";
+
+// Validation constants from backend
+const ALLOWED_CONTACT_TYPES = ["email", "phone", "telegram", "website"];
+const MAX_VALUE_LENGTH = 255;
+const PHONE_REGEX = /^\+?\d{7,16}$/;
+const EMAIL_REGEX = /^[^@]+@[^@]+\.[^@]+$/;
+const TELEGRAM_REGEX = /^[a-zA-Z0-9_]{5,32}$/;
+const WEBSITE_REGEX = /^https?:\/\/[^\s\/$.?#].[^\s]*$/;
 
 interface ContactFormProps {
   userId: string | number;
@@ -34,6 +42,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   // Contact form state
   const [contactType, setContactType] = useState("email");
   const [contactValue, setContactValue] = useState("");
+  const [contactValueError, setContactValueError] = useState<string | null>(null);
   const [contactPublic, setContactPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -44,6 +53,56 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   useEffect(() => {
     loadContacts();
   }, [userId]);
+
+  // Validate contact value on change
+  useEffect(() => {
+    validateContactValue();
+  }, [contactType, contactValue]);
+
+  // Function to validate contact value based on type
+  const validateContactValue = () => {
+    if (!contactValue.trim()) {
+      setContactValueError(null);
+      return;
+    }
+
+    switch (contactType) {
+      case "phone":
+        if (!PHONE_REGEX.test(contactValue)) {
+          setContactValueError("Invalid phone format. Must be 7-16 digits with optional + prefix");
+        } else {
+          setContactValueError(null);
+        }
+        break;
+      case "email":
+        if (!EMAIL_REGEX.test(contactValue) || contactValue.length > 100) {
+          setContactValueError("Invalid email format");
+        } else {
+          setContactValueError(null);
+        }
+        break;
+      case "telegram":
+        if (!TELEGRAM_REGEX.test(contactValue)) {
+          setContactValueError("Invalid Telegram username. Must be 5-32 characters (letters, numbers, underscore)");
+        } else {
+          setContactValueError(null);
+        }
+        break;
+      case "website":
+        if (!WEBSITE_REGEX.test(contactValue) || contactValue.length > MAX_VALUE_LENGTH) {
+          setContactValueError("Invalid website URL. Must start with http:// or https://");
+        } else {
+          setContactValueError(null);
+        }
+        break;
+      default:
+        if (contactValue.length > MAX_VALUE_LENGTH) {
+          setContactValueError(`Value must be ${MAX_VALUE_LENGTH} characters or less`);
+        } else {
+          setContactValueError(null);
+        }
+    }
+  };
 
   // Function to load contacts - reused throughout the component
   const loadContacts = async () => {
@@ -89,6 +148,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setContactPublic(true);
     setIsEditMode(false);
     setEditingContactId(null);
+    setContactValueError(null);
     
     // Add animation class to form
     if (formRef.current) {
@@ -108,6 +168,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setContactPublic(contact.is_public);
     setIsEditMode(true);
     setEditingContactId(contact.id);
+    setContactValueError(null);
     
     // Add focus animation
     if (formRef.current) {
@@ -134,6 +195,16 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       toast({
         title: "Validation Error",
         description: "Please provide both type and value for the contact",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for validation errors
+    if (contactValueError) {
+      toast({
+        title: "Validation Error",
+        description: contactValueError,
         variant: "destructive",
       });
       return;
@@ -288,9 +359,25 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       case "telegram":
         return "@username";
       case "website":
-        return "https://youwebsite.com";
+        return "https://yourwebsite.com";
       default:
         return "Enter contact value";
+    }
+  };
+
+  // Get format hint based on contact type
+  const getFormatHint = (type: string) => {
+    switch (type) {
+      case "email":
+        return "Format: username@domain.com (max 100 chars)";
+      case "phone":
+        return "Format: +XXXXXXXXXXXX (7-16 digits with optional + prefix)";
+      case "telegram":
+        return "Format: 5-32 characters (letters, numbers, underscore)";
+      case "website":
+        return "Format: https://example.com";
+      default:
+        return "";
     }
   };
 
@@ -426,7 +513,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
             </div>
             
             <div className="grid grid-cols-1 gap-3">
-              <Label htmlFor="contactType">Contact Type</Label>
+              <Label htmlFor="contactType">Contact Type*</Label>
               <Select 
                 value={contactType} 
                 onValueChange={setContactType}
@@ -439,19 +526,35 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
                   <SelectItem value="phone">Phone</SelectItem>
                   <SelectItem value="telegram">Telegram</SelectItem>
                   <SelectItem value="website">Website</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="grid grid-cols-1 gap-3">
-              <Label htmlFor="contactValue">Value</Label>
+              <div className="flex items-baseline justify-between">
+                <Label htmlFor="contactValue">Value*</Label>
+                <span className={`text-xs ${contactValue.length > MAX_VALUE_LENGTH ? "text-destructive" : "text-muted-foreground"}`}>
+                  {contactValue.length}/{MAX_VALUE_LENGTH}
+                </span>
+              </div>
               <Input
                 id="contactValue"
                 value={contactValue}
                 onChange={(e) => setContactValue(e.target.value)}
                 placeholder={getPlaceholder(contactType)}
+                className={contactValueError ? "border-destructive" : ""}
+                maxLength={MAX_VALUE_LENGTH}
               />
+              {contactValueError && (
+                <div className="flex items-center gap-2 text-xs text-destructive">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{contactValueError}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Info className="h-3 w-3" />
+                <span>{getFormatHint(contactType)}</span>
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">
@@ -467,7 +570,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
               <Button 
                 type="submit" 
                 className="w-full"
-                disabled={isSubmitting || (!isPremium && !isEditMode && contacts.length >= 3)}
+                disabled={isSubmitting || !!contactValueError || !contactValue.trim() || (!isPremium && !isEditMode && contacts.length >= 3)}
               >
                 {isSubmitting ? (
                   isEditMode ? "Updating..." : "Adding..."
@@ -500,10 +603,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
             Back
           </Button>
         </div>
-
-        {/* <div className="flex justify-end gap-2">
-          
-        </div> */}
       </div>
     </>
   );
