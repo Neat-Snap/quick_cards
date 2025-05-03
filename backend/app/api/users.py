@@ -117,7 +117,7 @@ async def get_user_endpoint(user_id: int, context: AuthContext = Depends(get_aut
 
     user_data = get_user(user_id)
 
-    if len(user_id) > 32 or len(user_id) < 5:
+    if len(str(user_id)) > 32 or len(str(user_id)) < 5:
         return JSONResponse(status_code=400, content={"error": "Invalid user ID"})
 
     if not user_data:
