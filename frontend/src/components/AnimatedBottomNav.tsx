@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef } from "react";
 import { CreditCard, Search, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,10 +30,10 @@ export function AnimatedBottomNav({
   
   return (
     <div 
-      className="fixed bottom-4 left-4 right-4 h-16 bg-background/60 backdrop-blur-lg border border-white/20 rounded-xl flex items-center justify-around shadow-lg z-50"
+      className="fixed bottom-0 left-0 right-0 h-16 bg-background/80 backdrop-blur-lg border-t border-white/10 flex items-center justify-around z-50"
       ref={navRef}
       style={{
-        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+        boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.05)",
       }}
     >
       {items.map((item, index) => (
@@ -42,31 +42,22 @@ export function AnimatedBottomNav({
           ref={el => { itemRefs.current[index] = el; }}
           className={cn(
             "flex flex-col items-center justify-center p-2 relative transition-all duration-300",
-            "rounded-lg w-full max-w-[80px] h-full",
+            "w-full h-full",
             activeTab === item.id 
               ? "text-primary" 
               : "text-muted-foreground"
           )}
           onClick={() => onChange(item.id)}
-          style={{
-            backdropFilter: activeTab === item.id ? "blur(8px)" : "none",
-            background: activeTab === item.id ? "rgba(255, 255, 255, 0.05)" : "transparent",
-          }}
         >
-          {/* Glass effect for active item */}
-          {activeTab === item.id && (
-            <div className="absolute inset-0 rounded-lg bg-primary/5 border border-primary/20 -z-10"></div>
-          )}
-          
           <div className={cn(
             "transition-all duration-300 relative",
-            activeTab === item.id ? "scale-125" : "scale-100",
+            activeTab === item.id ? "scale-125 brightness-125" : "scale-100"
           )}>
             {item.icon}
             
             {/* Subtle glow for active icon */}
             {activeTab === item.id && (
-              <div className="absolute inset-0 bg-primary/20 blur-md rounded-full -z-10"></div>
+              <div className="absolute inset-0 bg-primary/10 blur-md rounded-full -z-10"></div>
             )}
           </div>
           <span className={cn(
