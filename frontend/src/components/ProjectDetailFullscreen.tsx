@@ -11,6 +11,9 @@ interface Props {
   onBack: () => void;
 }
 
+
+const DURATION = 0.3;
+
 export default function AnimatedProjectDetailFullscreen({ project, onBack }: Props) {
   return (
     <div className="fixed inset-0 bg-background z-50 overflow-y-auto p-4 pb-28">
@@ -18,7 +21,7 @@ export default function AnimatedProjectDetailFullscreen({ project, onBack }: Pro
         <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: DURATION }}
         >
           <Button 
             variant="ghost" 
@@ -35,7 +38,7 @@ export default function AnimatedProjectDetailFullscreen({ project, onBack }: Pro
           className="text-2xl font-bold mb-5"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
+          transition={{ delay: 0.1, duration: DURATION }}
         >
           {project.name}
         </motion.h1>
@@ -45,7 +48,7 @@ export default function AnimatedProjectDetailFullscreen({ project, onBack }: Pro
             className="text-sm text-muted-foreground mb-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
+            transition={{ delay: 0.2, duration: DURATION }}
           >
             {project.role}
           </motion.p>
@@ -71,7 +74,7 @@ export default function AnimatedProjectDetailFullscreen({ project, onBack }: Pro
             className="mb-6 whitespace-pre-line"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.3 }}
+            transition={{ delay: 0.4, duration: DURATION }}
           >
             <h2 className="text-lg font-semibold mb-2">Description</h2>
             <p className="text-sm text-muted-foreground">{project.description}</p>
@@ -82,7 +85,7 @@ export default function AnimatedProjectDetailFullscreen({ project, onBack }: Pro
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.3 }}
+            transition={{ delay: 0.5, duration: DURATION }}
           >
             <Button 
               variant="outline" 
