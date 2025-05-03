@@ -1,6 +1,5 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { BusinessCardPreview } from "@/components/business-card-preview";
 import { ProfileForm } from "@/components/profile-form";
 import { BackgroundForm } from "@/components/background-form";
@@ -9,14 +8,15 @@ import { ProjectsForm } from "@/components/projects-form";
 import { SkillsForm } from "@/components/skills-form";
 import { PremiumFeatures } from "@/components/premium-features";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { Search, CreditCard, Star, Edit, X } from "lucide-react";
+import { Edit } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/components/ui/use-toast";
 import { ExploreSection } from "@/components/explore/ExploreSection";
 import { AnimatedBottomNav } from "@/components/AnimatedBottomNav";
+import { AnimatedForm } from "@/components/AnimatedForm";
+import { motion } from "framer-motion";
 import { 
   User, 
   Contact, 
@@ -27,9 +27,29 @@ import {
   getUserContacts,
   getUserProjects,
   getUserSkills,
-  getUserLinks,
-  searchUsers
+  getUserLinks
 } from "@/lib/api";
+
+// Animation variants for content transitions
+const contentVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { 
+      duration: 0.3,
+      ease: "easeOut" 
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    y: 20,
+    transition: { 
+      duration: 0.2,
+      ease: "easeIn" 
+    }
+  }
+};
 
 export default function Home() {
   const { user, refreshUser } = useAuth();
@@ -45,12 +65,6 @@ export default function Home() {
   
   // Animation states
   const [pageTransition, setPageTransition] = useState(false);
-  
-  // Search states
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -175,43 +189,24 @@ export default function Home() {
     }
   };
   
-  // Handle search
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
-    setIsSearching(true);
-    
-    try {
-      const results = await searchUsers(searchQuery);
-      setSearchResults(results);
-    } catch (error) {
-      console.error("Error searching users:", error);
-      toast({
-        title: "Search Error",
-        description: "Failed to search users",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSearching(false);
-    }
-  };
-  
-  // View user card
-  const viewUserCard = (user: User) => {
-    setSelectedUser(user);
-  };
-  
-  // Back to search results
-  const backToSearch = () => {
-    setSelectedUser(null);
-  };
-
   // Debug function to check contacts data
   const debugInfo = () => {
     console.log("Current contacts:", contacts);
     console.log("Current projects:", projects);
     console.log("Current skills:", skills);
     console.log("Current links:", customLinks);
+  };
+  
+  // Get form title based on edit section
+  const getFormTitle = () => {
+    switch(editSection) {
+      case "profile": return "Edit Profile";
+      case "background": return "Edit Background";
+      case "contact": return "Edit Contact Info";
+      case "projects": return "Edit Projects";
+      case "skills": return "Edit Skills";
+      default: return "";
+    }
   };
   
   return (
@@ -223,14 +218,34 @@ export default function Home() {
           >
             {activeTab === "card" && (
               <div className="p-4">
-                <h1 className="text-2xl font-bold mb-4">
+                <motion.h1 
+                  className="text-2xl font-bold mb-4"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
                   {userData ? `${userData.name}'s Card` : 'Your Card'}
-                </h1>
+                </motion.h1>
                 
-                {editSection === null ? (
-                  <div className="space-y-6">
-                    {/* Preview Mode */}
-                    <div className="mb-6 relative">
+                <motion.div
+                  variants={contentVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="space-y-6"
+                >
+                  {/* Preview section */}
+                  <div className="mb-6 relative">
+                    <motion.div
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ 
+                        duration: 0.5,
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 25
+                      }}
+                    >
                       <BusinessCardPreview 
                         user={userData} 
                         contacts={contacts}
@@ -238,122 +253,173 @@ export default function Home() {
                         skills={skills}
                         customLinks={customLinks}
                       />
-                      
-                      {/* Edit Buttons for each section */}
-                      <div className="grid grid-cols-2 gap-3 mt-4">
-                        <Button 
-                          variant="outline" 
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => setEditSection("profile")}
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit Profile
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => setEditSection("background")}
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit Background
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => {
-                            setEditSection("contact");
-                            // Debug log
-                            debugInfo();
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit Contact Info
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="flex items-center justify-center gap-2"
-                          onClick={() => setEditSection("projects")}
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit Projects
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="flex items-center justify-center gap-2 col-span-2"
-                          onClick={() => setEditSection("skills")}
-                        >
-                          <Edit className="h-4 w-4" />
-                          Edit Skills
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* Edit Mode */}
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-semibold">
-                        {editSection === "profile" && "Edit Profile"}
-                        {editSection === "background" && "Edit Background"}
-                        {editSection === "contact" && "Edit Contact Info"}
-                        {editSection === "projects" && "Edit Projects"}
-                        {editSection === "skills" && "Edit Skills"}
-                      </h2>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setEditSection(null)}
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
-                    </div>
+                    </motion.div>
                     
-                    {/* Render only the specific section of the form based on editSection */}
-                    <Card>
-                      <CardContent className="p-4 pt-6">
-                        {editSection === "profile" && userData && (
-                          <ProfileForm 
-                            user={userData}
-                            onSuccess={handleEditSuccess}
-                            onCancel={() => setEditSection(null)}
-                          />
-                        )}
+                    {/* Edit Buttons - Only shown when not editing */}
+                    {!editSection && (
+                      <motion.div 
+                        className="grid grid-cols-2 gap-3 mt-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          delay: 0.3,
+                          staggerChildren: 0.1,
+                          delayChildren: 0.3
+                        }}
+                      >
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.3 }}
+                        >
+                          <Button 
+                            variant="outline" 
+                            className="flex items-center justify-center gap-2 w-full"
+                            onClick={() => setEditSection("profile")}
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit Profile
+                          </Button>
+                        </motion.div>
                         
-                        {editSection === "background" && userData && (
-                          <BackgroundForm 
-                            user={userData}
-                            onSuccess={handleEditSuccess}
-                            onCancel={() => setEditSection(null)}
-                          />
-                        )}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.4 }}
+                        >
+                          <Button 
+                            variant="outline" 
+                            className="flex items-center justify-center gap-2 w-full"
+                            onClick={() => setEditSection("background")}
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit Background
+                          </Button>
+                        </motion.div>
                         
-                        {editSection === "contact" && userData && (
-                          <ContactForm 
-                            userId={userData.id}
-                            onSuccess={handleEditSuccess}
-                            onCancel={() => setEditSection(null)}
-                          />
-                        )}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.5 }}
+                        >
+                          <Button 
+                            variant="outline" 
+                            className="flex items-center justify-center gap-2 w-full"
+                            onClick={() => {
+                              setEditSection("contact");
+                              debugInfo();
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit Contact Info
+                          </Button>
+                        </motion.div>
                         
-                        {editSection === "projects" && userData && (
-                          <ProjectsForm 
-                            userId={userData.id}
-                            onSuccess={handleEditSuccess}
-                            onCancel={() => setEditSection(null)}
-                          />
-                        )}
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.6 }}
+                        >
+                          <Button 
+                            variant="outline" 
+                            className="flex items-center justify-center gap-2 w-full"
+                            onClick={() => setEditSection("projects")}
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit Projects
+                          </Button>
+                        </motion.div>
                         
-                        {editSection === "skills" && userData && (
-                          <SkillsForm 
-                            userId={userData.id}
-                            onSuccess={handleEditSuccess}
-                            onCancel={() => setEditSection(null)}
-                          />
-                        )}
-                      </CardContent>
-                    </Card>
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: 0.7 }}
+                          className="col-span-2"
+                        >
+                          <Button 
+                            variant="outline" 
+                            className="flex items-center justify-center gap-2 w-full"
+                            onClick={() => setEditSection("skills")}
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit Skills
+                          </Button>
+                        </motion.div>
+                      </motion.div>
+                    )}
                   </div>
-                )}
+                </motion.div>
+                
+                {/* Animated Form Section */}
+                <AnimatedForm 
+                  isOpen={editSection === "profile"}
+                  onClose={() => setEditSection(null)}
+                  title="Edit Profile"
+                >
+                  {userData && (
+                    <ProfileForm 
+                      user={userData}
+                      onSuccess={handleEditSuccess}
+                      onCancel={() => setEditSection(null)}
+                    />
+                  )}
+                </AnimatedForm>
+                
+                <AnimatedForm 
+                  isOpen={editSection === "background"}
+                  onClose={() => setEditSection(null)}
+                  title="Edit Background"
+                >
+                  {userData && (
+                    <BackgroundForm 
+                      user={userData}
+                      onSuccess={handleEditSuccess}
+                      onCancel={() => setEditSection(null)}
+                    />
+                  )}
+                </AnimatedForm>
+                
+                <AnimatedForm 
+                  isOpen={editSection === "contact"}
+                  onClose={() => setEditSection(null)}
+                  title="Edit Contact Info"
+                >
+                  {userData && (
+                    <ContactForm 
+                      userId={userData.id}
+                      onSuccess={handleEditSuccess}
+                      onCancel={() => setEditSection(null)}
+                    />
+                  )}
+                </AnimatedForm>
+                
+                <AnimatedForm 
+                  isOpen={editSection === "projects"}
+                  onClose={() => setEditSection(null)}
+                  title="Edit Projects"
+                >
+                  {userData && (
+                    <ProjectsForm 
+                      userId={userData.id}
+                      onSuccess={handleEditSuccess}
+                      onCancel={() => setEditSection(null)}
+                    />
+                  )}
+                </AnimatedForm>
+                
+                <AnimatedForm 
+                  isOpen={editSection === "skills"}
+                  onClose={() => setEditSection(null)}
+                  title="Edit Skills"
+                >
+                  {userData && (
+                    <SkillsForm 
+                      userId={userData.id}
+                      onSuccess={handleEditSuccess}
+                      onCancel={() => setEditSection(null)}
+                    />
+                  )}
+                </AnimatedForm>
               </div>
             )}
             
@@ -365,21 +431,34 @@ export default function Home() {
             
             {activeTab === "premium" && (
               <div className="p-4">
-                <h1 className="text-2xl font-bold mb-4">Premium Features</h1>
-                <PremiumFeatures 
-                  user={userData} 
-                  onSubscribed={() => {
-                    // Refresh user data after subscription
-                    refreshUser();
-                    loadUserData();
-                  }}
-                />
+                <motion.h1 
+                  className="text-2xl font-bold mb-4"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  Premium Features
+                </motion.h1>
+                <motion.div
+                  variants={contentVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <PremiumFeatures 
+                    user={userData} 
+                    onSubscribed={() => {
+                      // Refresh user data after subscription
+                      refreshUser();
+                      loadUserData();
+                    }}
+                  />
+                </motion.div>
               </div>
             )}
           </div>
         </div>
         
-        {/* Use the new AnimatedBottomNav component */}
+        {/* Use the AnimatedBottomNav component */}
         <AnimatedBottomNav 
           activeTab={activeTab} 
           onChange={handleTabChange} 
