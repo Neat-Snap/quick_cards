@@ -42,6 +42,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   // Contact form state
   const [contactType, setContactType] = useState("email");
   const [contactValue, setContactValue] = useState("");
+  const [displayValue, setDisplayValue] = useState(""); // For displaying without prefix
   const [contactValueError, setContactValueError] = useState<string | null>(null);
   const [contactPublic, setContactPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,6 +55,55 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     loadContacts();
   }, [userId]);
 
+  // Handle contact type change
+  useEffect(() => {
+    // When contact type changes, reset values and apply prefixes
+    setDisplayValue("");
+    
+    if (contactType === "website") {
+      setContactValue("https://");
+    } else if (contactType === "telegram") {
+      setContactValue("@");
+    } else {
+      setContactValue("");
+    }
+  }, [contactType]);
+  
+  // Handle display value change
+  useEffect(() => {
+    if (contactType === "website") {
+      // For website, preserve https:// prefix
+      if (displayValue) {
+        setContactValue(`https://${displayValue}`);
+      } else {
+        setContactValue("https://");
+      }
+    } else if (contactType === "telegram") {
+      // For telegram, preserve @ prefix
+      if (displayValue) {
+        setContactValue(`@${displayValue}`);
+      } else {
+        setContactValue("@");
+      }
+    } else {
+      // For other types, display value and contact value are the same
+      setContactValue(displayValue);
+    }
+  }, [displayValue, contactType]);
+
+  // Set initial display value when editing
+  useEffect(() => {
+    if (isEditMode && contactValue) {
+      if (contactType === "website" && contactValue.startsWith("https://")) {
+        setDisplayValue(contactValue.substring(8));
+      } else if (contactType === "telegram" && contactValue.startsWith("@")) {
+        setDisplayValue(contactValue.substring(1));
+      } else {
+        setDisplayValue(contactValue);
+      }
+    }
+  }, [isEditMode, contactValue, contactType]);
+
   // Validate contact value on change
   useEffect(() => {
     validateContactValue();
@@ -61,6 +111,37 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
 
   // Function to validate contact value based on type
   const validateContactValue = () => {
+    if (contactType === "website") {
+      if (!displayValue.trim()) {
+        setContactValueError(null);
+        return;
+      }
+      
+      // For website, check the full value with https://
+      if (!WEBSITE_REGEX.test(contactValue) || contactValue.length > MAX_VALUE_LENGTH) {
+        setContactValueError("Invalid website URL format");
+      } else {
+        setContactValueError(null);
+      }
+      return;
+    }
+    
+    if (contactType === "telegram") {
+      if (!displayValue.trim()) {
+        setContactValueError(null);
+        return;
+      }
+      
+      // For telegram, check without @ prefix since we add it automatically
+      if (!TELEGRAM_REGEX.test(contactValue)) {
+        setContactValueError("Invalid Telegram username. Must be 5-32 characters (letters, numbers, underscore)");
+      } else {
+        setContactValueError(null);
+      }
+      return;
+    }
+    
+    // For other types
     if (!contactValue.trim()) {
       setContactValueError(null);
       return;
@@ -77,20 +158,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       case "email":
         if (!EMAIL_REGEX.test(contactValue) || contactValue.length > 100) {
           setContactValueError("Invalid email format");
-        } else {
-          setContactValueError(null);
-        }
-        break;
-      case "telegram":
-        if (!TELEGRAM_REGEX.test(contactValue)) {
-          setContactValueError("Invalid Telegram username. Must be 5-32 characters (letters, numbers, underscore)");
-        } else {
-          setContactValueError(null);
-        }
-        break;
-      case "website":
-        if (!WEBSITE_REGEX.test(contactValue) || contactValue.length > MAX_VALUE_LENGTH) {
-          setContactValueError("Invalid website URL. Must start with http:// or https://");
         } else {
           setContactValueError(null);
         }
@@ -164,11 +231,22 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   // Start editing a contact
   const startEditing = (contact: Contact) => {
     setContactType(contact.type);
-    setContactValue(contact.value);
     setContactPublic(contact.is_public);
     setIsEditMode(true);
     setEditingContactId(contact.id);
     setContactValueError(null);
+    
+    // Set the contact value and handle prefixed types
+    if (contact.type === "website" && contact.value.startsWith("https://")) {
+      setContactValue(contact.value);
+      setDisplayValue(contact.value.substring(8)); // Remove https:// for display
+    } else if (contact.type === "telegram" && contact.value.startsWith("@")) {
+      setContactValue(contact.value);
+      setDisplayValue(contact.value.substring(1)); // Remove @ for display
+    } else {
+      setContactValue(contact.value);
+      setDisplayValue(contact.value);
+    }
     
     // Add focus animation
     if (formRef.current) {
@@ -357,9 +435,9 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       case "phone":
         return "+1 (123) 456-7890";
       case "telegram":
-        return "@username";
+        return "username"; // Without @ as it's in the prefix
       case "website":
-        return "https://yourwebsite.com";
+        return "example.com"; // Without https:// as it's in the prefix
       default:
         return "Enter contact value";
     }
@@ -375,7 +453,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       case "telegram":
         return "Format: 5-32 characters (letters, numbers, underscore)";
       case "website":
-        return "Format: https://example.com";
+        return "Enter domain without https:// prefix";
       default:
         return "";
     }
@@ -537,14 +615,46 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
                   {contactValue.length}/{MAX_VALUE_LENGTH}
                 </span>
               </div>
-              <Input
-                id="contactValue"
-                value={contactValue}
-                onChange={(e) => setContactValue(e.target.value)}
-                placeholder={getPlaceholder(contactType)}
-                className={contactValueError ? "border-destructive" : ""}
-                maxLength={MAX_VALUE_LENGTH}
-              />
+              
+              {contactType === "website" ? (
+                <div className="flex rounded-md overflow-hidden">
+                  <div className="bg-muted px-3 py-2 text-sm flex items-center border-y border-l rounded-l-md">
+                    https://
+                  </div>
+                  <Input
+                    id="contactValue"
+                    value={displayValue}
+                    onChange={(e) => setDisplayValue(e.target.value)}
+                    placeholder="example.com"
+                    className={`rounded-l-none ${contactValueError ? "border-destructive" : ""}`}
+                    maxLength={MAX_VALUE_LENGTH - 8} // Account for "https://" prefix
+                  />
+                </div>
+              ) : contactType === "telegram" ? (
+                <div className="flex rounded-md overflow-hidden">
+                  <div className="bg-muted px-3 py-2 text-sm flex items-center border-y border-l rounded-l-md">
+                    @
+                  </div>
+                  <Input
+                    id="contactValue"
+                    value={displayValue}
+                    onChange={(e) => setDisplayValue(e.target.value)}
+                    placeholder="username"
+                    className={`rounded-l-none ${contactValueError ? "border-destructive" : ""}`}
+                    maxLength={MAX_VALUE_LENGTH - 1} // Account for "@" prefix
+                  />
+                </div>
+              ) : (
+                <Input
+                  id="contactValue"
+                  value={contactValue}
+                  onChange={(e) => setContactValue(e.target.value)}
+                  placeholder={getPlaceholder(contactType)}
+                  className={contactValueError ? "border-destructive" : ""}
+                  maxLength={MAX_VALUE_LENGTH}
+                />
+              )}
+              
               {contactValueError && (
                 <div className="flex items-center gap-2 text-xs text-destructive">
                   <AlertCircle className="h-3 w-3" />

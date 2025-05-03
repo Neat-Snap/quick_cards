@@ -60,7 +60,8 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   const [projectDescriptionError, setProjectDescriptionError] = useState<string | null>(null);
   const [projectRole, setProjectRole] = useState("");
   const [projectRoleError, setProjectRoleError] = useState<string | null>(null);
-  const [projectUrl, setProjectUrl] = useState("");
+  const [projectUrl, setProjectUrl] = useState("https://");
+  const [displayUrl, setDisplayUrl] = useState("");
   const [projectUrlError, setProjectUrlError] = useState<string | null>(null);
   const [projectAvatar, setProjectAvatar] = useState<File | null>(null);
   const [projectAvatarUrl, setProjectAvatarUrl] = useState("");
@@ -73,6 +74,15 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   useEffect(() => {
     loadProjects();
   }, [userId]);
+
+  // Handle display URL changes
+  useEffect(() => {
+    if (displayUrl) {
+      setProjectUrl(`https://${displayUrl}`);
+    } else {
+      setProjectUrl("https://");
+    }
+  }, [displayUrl]);
 
   // Validate inputs on change
   useEffect(() => {
@@ -113,12 +123,12 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       setProjectRoleError(null);
     }
 
-    // Validate project URL
-    if (projectUrl) {
+    // Validate project URL (only if user has entered something beyond https://)
+    if (projectUrl && projectUrl !== "https://") {
       if (projectUrl.length > MAX_URL_LENGTH) {
         setProjectUrlError(`URL must be ${MAX_URL_LENGTH} characters or less`);
       } else if (!URL_REGEX.test(projectUrl)) {
-        setProjectUrlError("URL must begin with http:// or https://");
+        setProjectUrlError("Invalid URL format");
       } else {
         setProjectUrlError(null);
       }
@@ -196,7 +206,8 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setProjectName("");
     setProjectDescription("");
     setProjectRole("");
-    setProjectUrl("");
+    setProjectUrl("https://");
+    setDisplayUrl("");
     setProjectAvatar(null);
     setProjectAvatarUrl("");
     setIsEditMode(false);
@@ -235,10 +246,26 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setProjectName(project.name);
     setProjectDescription(project.description || "");
     setProjectRole(project.role || "");
-    setProjectUrl(project.url || "");
     setProjectAvatarUrl(project.avatar_url || "");
     setIsEditMode(true);
     setEditingProjectId(project.id);
+    
+    // Handle URL with https:// prefix
+    if (project.url) {
+      if (project.url.startsWith("https://")) {
+        setProjectUrl(project.url);
+        setDisplayUrl(project.url.substring(8)); // Remove https:// for display
+      } else if (project.url.startsWith("http://")) {
+        setProjectUrl("https://" + project.url.substring(7)); // Convert http:// to https://
+        setDisplayUrl(project.url.substring(7)); // Remove http:// for display
+      } else {
+        setProjectUrl("https://" + project.url);
+        setDisplayUrl(project.url);
+      }
+    } else {
+      setProjectUrl("https://");
+      setDisplayUrl("");
+    }
     
     // Clear validation errors
     setProjectNameError(null);
@@ -847,14 +874,19 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
                     {projectUrl.length}/{MAX_URL_LENGTH}
                   </span>
                 </div>
-                <Input
-                  id="project-url"
-                  value={projectUrl}
-                  onChange={(e) => setProjectUrl(e.target.value)}
-                  placeholder="https://example.com"
-                  className={projectUrlError ? "border-destructive" : ""}
-                  maxLength={MAX_URL_LENGTH}
-                />
+                <div className="flex rounded-md overflow-hidden">
+                  <div className="bg-muted px-3 py-2 text-sm flex items-center border-y border-l rounded-l-md">
+                    https://
+                  </div>
+                  <Input
+                    id="project-url"
+                    value={displayUrl}
+                    onChange={(e) => setDisplayUrl(e.target.value)}
+                    placeholder="example.com"
+                    className={`rounded-l-none ${projectUrlError ? "border-destructive" : ""}`}
+                    maxLength={MAX_URL_LENGTH - 8} // Account for "https://" prefix
+                  />
+                </div>
                 {projectUrlError && (
                   <div className="flex items-center gap-2 text-xs text-destructive">
                     <AlertCircle className="h-3 w-3" />
@@ -863,7 +895,7 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
                 )}
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Info className="h-3 w-3" />
-                  <span>URL must start with http:// or https:// and be under {MAX_URL_LENGTH} characters</span>
+                  <span>Enter domain without https:// prefix (max {MAX_URL_LENGTH - 8} characters)</span>
                 </div>
               </div>
               

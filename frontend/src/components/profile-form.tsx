@@ -47,7 +47,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
   // Validate inputs on change
   useEffect(() => {
     // Validate name
-    if (name.length > 0 && name.length <= MIN_NAME_LENGTH) {
+    if (name.length > 0 && name.length < MIN_NAME_LENGTH) {
       setNameError(`Name must be longer than ${MIN_NAME_LENGTH} characters`);
     } else if (name.length > MAX_NAME_LENGTH) {
       setNameError(`Name must be ${MAX_NAME_LENGTH} characters or less`);
@@ -67,7 +67,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
     }
     
     // Validate badge
-    if (badge.length > 0 && badge.length <= MIN_BADGE_LENGTH && badge.length > 0) {
+    if (badge.length > 0 && badge.length < MIN_BADGE_LENGTH && badge.length > 0) {
       setBadgeError(`Badge must be longer than ${MIN_BADGE_LENGTH} characters`);
     } else if (badge.length > MAX_BADGE_LENGTH) {
       setBadgeError(`Badge must be ${MAX_BADGE_LENGTH} characters or less`);
