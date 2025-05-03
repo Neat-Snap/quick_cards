@@ -105,7 +105,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
               className="p-3 bg-primary/10 rounded-full"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
+              transition={{ delay: 0.1, type: "spring" }}
             >
               {getContactIcon(contact.type)}
             </motion.div>
@@ -114,7 +114,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.2 }}
           >
             <CardDescription>
               {contact.value}
@@ -126,7 +126,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
             className="py-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
           >
             <p className="text-sm text-muted-foreground">
               {contact.type === 'email' && 'Click the button below to send an email.'}
@@ -143,7 +143,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
             className="w-full"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, type: "spring" }}
+            transition={{ delay: 0.4, type: "spring" }}
           >
             <Button 
               className="w-full" 
