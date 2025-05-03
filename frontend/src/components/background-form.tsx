@@ -24,6 +24,7 @@ const HEX_COLOR_REGEX = /^#(?:[0-9A-Fa-f]{6})$/;
 
 // Predefined colors
 const COLORS = [
+  // Original colors
   "#2563eb", // blue
   "#16a34a", // green
   "#9333ea", // purple
@@ -32,6 +33,16 @@ const COLORS = [
   "#0f172a", // slate
   "#1e293b", // slate-800
   "#334155", // slate-700
+  
+  // Additional colors
+  "#0891b2", // cyan
+  "#0284c7", // light blue
+  "#0e7490", // teal
+  "#14b8a6", // teal-light
+  "#f97316", // orange
+  "#db2777", // pink
+  "#6d28d9", // indigo
+  "#713f12", // amber-brown
 ];
 
 export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProps) {
