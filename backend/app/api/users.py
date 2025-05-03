@@ -98,9 +98,9 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
         if field in data:
             user_data[field] = data[field]
 
-    is_valid = validate_user_data(user_data)
+    is_valid, error = validate_user_data(user_data)
     if not is_valid:
-        return JSONResponse(status_code=400, content={"error": "Invalid user data"})
+        return JSONResponse(status_code=400, content={"error": error or "Invalid user data"})
     
     set_user(user_data)
 
