@@ -150,7 +150,10 @@ async def search_users(q: str = None, skill: str = None, project: str = None, li
         if limit > 15:
             limit = 15
         
-        validation_string = str(q) + str(skill) + str(project)
+        activated_parameters = [i for i in [q, skill, project] if i is not None]
+        validation_string = ""
+        for i in activated_parameters:
+            validation_string += i
         if not validate_string(validation_string):
             return JSONResponse(status_code=400, content={"error": "Invalid search parameters"})
 

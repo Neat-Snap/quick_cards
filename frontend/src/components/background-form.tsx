@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { User, updateUserProfile, getPremiumStatus } from "@/lib/api";
-import { Info, AlertCircle } from "lucide-react";
+import { Info, AlertCircle, Lock } from "lucide-react";
 
 interface BackgroundFormProps {
   user: User | null;
@@ -103,6 +103,11 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
       if (gradientString.length > MAX_BACKGROUND_VALUE_LENGTH) {
         setBackgroundValueError(`Gradient value exceeds maximum length of ${MAX_BACKGROUND_VALUE_LENGTH} characters`);
       }
+      
+      // Ensure user has premium for gradients
+      if (!isPremium) {
+        setBackgroundValueError("Premium subscription required for gradient backgrounds");
+      }
     } else if (backgroundType === "image") {
       // For images, check if we have a custom background preview
       if (!customBackgroundPreview) {
@@ -110,8 +115,13 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
       } else if (customBackgroundPreview.length > MAX_BACKGROUND_VALUE_LENGTH) {
         setBackgroundValueError(`Image URL exceeds maximum length of ${MAX_BACKGROUND_VALUE_LENGTH} characters`);
       }
+      
+      // Ensure user has premium for custom backgrounds
+      if (!isPremium) {
+        setBackgroundValueError("Premium subscription required for custom background images");
+      }
     }
-  }, [backgroundType, selectedColor, gradientEndColor, customBackgroundPreview]);
+  }, [backgroundType, selectedColor, gradientEndColor, customBackgroundPreview, isPremium]);
   
   // Check premium status on mount
   useEffect(() => {
@@ -130,6 +140,18 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   
   // Handle toggling gradient
   useEffect(() => {
+    // If toggling gradient but user is not premium, show toast and reset
+    if (useGradient && !isPremium) {
+      toast({
+        title: "Premium Feature",
+        description: "Gradient backgrounds are available with Premium",
+        variant: "default",
+      });
+      setUseGradient(false);
+      setBackgroundType("color");
+      return;
+    }
+    
     if (useGradient) {
       setBackgroundType("gradient");
     } else if (customBackground || customBackgroundPreview) {
@@ -137,7 +159,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     } else {
       setBackgroundType("color");
     }
-  }, [useGradient, customBackground, customBackgroundPreview]);
+  }, [useGradient, customBackground, customBackgroundPreview, isPremium]);
   
   // Handle custom background file selection
   const handleBackgroundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,6 +197,10 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
       let backgroundValue = selectedColor;
       
       if (backgroundType === "gradient") {
+        // Check if user has premium for gradients
+        if (!isPremium) {
+          throw new Error("Premium subscription required for gradient backgrounds");
+        }
         backgroundValue = `linear-gradient(135deg, ${selectedColor}, ${gradientEndColor})`;
       } else if (backgroundType === "image") {
         // For image, we'd typically upload it first, but for now we'll just use the preview URL
@@ -240,12 +266,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         </div>
         <Separator />
         
-        {/* Current Background Type Indicator */}
-        {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Info className="h-3 w-3" />
-          <span>Current background type: <span className="font-medium capitalize">{backgroundType}</span></span>
-        </div> */}
-        
         {/* Color Selection */}
         <div className="space-y-4">
           <Label>Select Background Color</Label>
@@ -267,10 +287,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
               />
             ))}
           </div>
-          {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Info className="h-3 w-3" />
-            <span>Colors must be in hex format (e.g., #RRGGBB)</span>
-          </div> */}
         </div>
         
         {/* Background Preview */}
@@ -290,78 +306,92 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
               <span>{backgroundValueError}</span>
             </div>
           )}
-          {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Info className="h-3 w-3" />
-            <span>Background value must be under {MAX_BACKGROUND_VALUE_LENGTH} characters</span>
-          </div> */}
         </div>
         
-        {/* Gradient Toggle */}
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="gradient"
-            checked={useGradient}
-            onCheckedChange={setUseGradient}
-          />
-          <Label htmlFor="gradient">Use Gradient</Label>
-        </div>
-        
-        {/* Gradient End Color (only show if gradient is enabled) */}
-        {useGradient && (
-          <div className="grid grid-cols-1 gap-3">
-            <Label htmlFor="gradientEndColor">Gradient End Color</Label>
-            <div className="flex flex-wrap gap-3">
-              {COLORS.map((color) => (
-                <Button
-                  key={`end-${color}`}
-                  type="button"
-                  variant="outline"
-                  className={`h-10 w-10 p-0 rounded-full cursor-pointer ${gradientEndColor === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                  style={{ backgroundColor: color }}
-                  onClick={() => setGradientEndColor(color)}
-                  aria-label={`Select ${color} as gradient end color`}
-                />
-              ))}
-            </div>
+        {/* Premium Features Section */}
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center">
+            <Label className="font-medium">Premium Features</Label>
+            {!isPremium && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
           </div>
-        )}
-        
-        {/* Custom Background Image */}
-        <div className="grid grid-cols-1 gap-3">
-          <Label htmlFor="customBackground">
-            Upload Custom Photo {!isPremium && "(Premium)"}
-          </Label>
-          <div className="flex items-center gap-2">
-            <Input 
-              id="customBackground" 
-              type="file" 
-              className="hidden" 
-              accept="image/*"
-              onChange={handleBackgroundChange}
+          
+          {/* Gradient Toggle */}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="gradient"
+              checked={useGradient}
+              onCheckedChange={setUseGradient}
               disabled={!isPremium}
             />
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => document.getElementById("customBackground")?.click()}
-              disabled={!isPremium}
-            >
-              Choose File
-            </Button>
+            <Label htmlFor="gradient" className={!isPremium ? "text-muted-foreground" : ""}>
+              Use Gradient
+              {!isPremium && <span className="ml-2 text-xs">(Premium)</span>}
+            </Label>
           </div>
-          {customBackgroundPreview && (
-            <div className="flex items-center gap-1 text-xs">
-              <span className="text-muted-foreground truncate" style={{ maxWidth: "300px" }}>
-                {customBackgroundPreview.substring(0, 50)}
-                {customBackgroundPreview.length > 50 ? "..." : ""}
-              </span>
+          
+          {/* Gradient End Color (only show if gradient is enabled and premium) */}
+          {useGradient && isPremium && (
+            <div className="grid grid-cols-1 gap-3">
+              <Label htmlFor="gradientEndColor">Gradient End Color</Label>
+              <div className="flex flex-wrap gap-3">
+                {COLORS.map((color) => (
+                  <Button
+                    key={`end-${color}`}
+                    type="button"
+                    variant="outline"
+                    className={`h-10 w-10 p-0 rounded-full cursor-pointer ${gradientEndColor === color ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setGradientEndColor(color)}
+                    aria-label={`Select ${color} as gradient end color`}
+                  />
+                ))}
+              </div>
             </div>
           )}
+          
+          {/* Custom Background Image */}
+          <div className="grid grid-cols-1 gap-3">
+            <Label htmlFor="customBackground" className={!isPremium ? "text-muted-foreground" : ""}>
+              Upload Custom Photo
+              {!isPremium && <span className="ml-2 text-xs">(Premium)</span>}
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input 
+                id="customBackground" 
+                type="file" 
+                className="hidden" 
+                accept="image/*"
+                onChange={handleBackgroundChange}
+                disabled={!isPremium}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => document.getElementById("customBackground")?.click()}
+                disabled={!isPremium}
+              >
+                Choose File
+              </Button>
+            </div>
+            {customBackgroundPreview && (
+              <div className="flex items-center gap-1 text-xs">
+                <span className="text-muted-foreground truncate" style={{ maxWidth: "300px" }}>
+                  {customBackgroundPreview.substring(0, 50)}
+                  {customBackgroundPreview.length > 50 ? "..." : ""}
+                </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Premium upgrade message */}
           {!isPremium && (
-            <p className="text-xs text-muted-foreground">
-              Custom background photos are available with Premium
-            </p>
+            <div className="pt-1">
+              <p className="text-sm text-muted-foreground flex items-center gap-2">
+                <Info className="h-4 w-4" />
+                Upgrade to Premium for gradients and custom backgrounds
+              </p>
+            </div>
           )}
         </div>
       </div>
