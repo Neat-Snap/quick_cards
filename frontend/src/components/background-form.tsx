@@ -241,10 +241,10 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         <Separator />
         
         {/* Current Background Type Indicator */}
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Info className="h-3 w-3" />
           <span>Current background type: <span className="font-medium capitalize">{backgroundType}</span></span>
-        </div>
+        </div> */}
         
         {/* Color Selection */}
         <div className="space-y-4">
@@ -267,10 +267,10 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
               />
             ))}
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Info className="h-3 w-3" />
             <span>Colors must be in hex format (e.g., #RRGGBB)</span>
-          </div>
+          </div> */}
         </div>
         
         {/* Background Preview */}
@@ -290,10 +290,10 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
               <span>{backgroundValueError}</span>
             </div>
           )}
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Info className="h-3 w-3" />
             <span>Background value must be under {MAX_BACKGROUND_VALUE_LENGTH} characters</span>
-          </div>
+          </div> */}
         </div>
         
         {/* Gradient Toggle */}

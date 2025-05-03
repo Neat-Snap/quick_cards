@@ -258,7 +258,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
             )}
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Info className="h-3 w-3" />
-              <span>Name must be between {MIN_NAME_LENGTH}-{MAX_NAME_LENGTH} characters without special characters</span>
+              <span>{MIN_NAME_LENGTH}-{MAX_NAME_LENGTH} regular characters</span>
             </div>
           </div>
           
@@ -285,7 +285,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
             )}
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Info className="h-3 w-3" />
-              <span>Description must be under {MAX_DESCRIPTION_LENGTH} characters without special characters</span>
+              <span>Under {MAX_DESCRIPTION_LENGTH} regular characters</span>
             </div>
           </div>
           
@@ -313,7 +313,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
             )}
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Info className="h-3 w-3" />
-              <span>Badge must be between {MIN_BADGE_LENGTH}-{MAX_BADGE_LENGTH} characters without special characters</span>
+              <span>{MIN_BADGE_LENGTH}-{MAX_BADGE_LENGTH} regular characters</span>
             </div>
             {!isPremium && user?.badge === "" && (
               <p className="text-xs text-muted-foreground">
