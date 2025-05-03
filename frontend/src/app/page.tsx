@@ -16,6 +16,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/components/ui/use-toast";
 import { ExploreSection } from "@/components/explore/ExploreSection";
+import { AnimatedBottomNav } from "@/components/AnimatedBottomNav";
 import { 
   User, 
   Contact, 
@@ -42,6 +43,9 @@ export default function Home() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
   
+  // Animation states
+  const [pageTransition, setPageTransition] = useState(false);
+  
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -58,6 +62,24 @@ export default function Home() {
       loadUserData();
     }
   }, [user]);
+
+  // Handle tab changes with animation
+  const handleTabChange = (tabId: string) => {
+    if (tabId === activeTab) return;
+    
+    // Start exit animation
+    setPageTransition(true);
+    
+    // Change tab after a short delay for animation
+    setTimeout(() => {
+      setActiveTab(tabId);
+      
+      // Reset animation state
+      setTimeout(() => {
+        setPageTransition(false);
+      }, 50);
+    }, 200);
+  };
 
   // Function to load user data (contacts, projects, skills, links)
   const loadUserData = async () => {
@@ -196,195 +218,172 @@ export default function Home() {
     <ProtectedRoute>
       <main className="flex min-h-screen flex-col items-center pb-16">
         <div className="w-full max-w-md flex-1 overflow-y-auto">
-          {activeTab === "card" && (
-            <div className="p-4">
-              <h1 className="text-2xl font-bold mb-4">
-                {userData ? `${userData.name}'s Card` : 'Your Card'}
-              </h1>
-              
-              {editSection === null ? (
-                <div className="space-y-6">
-                  {/* Preview Mode */}
-                  <div className="mb-6 relative">
-                    <BusinessCardPreview 
-                      user={userData} 
-                      contacts={contacts}
-                      projects={projects}
-                      skills={skills}
-                      customLinks={customLinks}
-                    />
-                    
-                    {/* Edit Buttons for each section */}
-                    <div className="grid grid-cols-2 gap-3 mt-4">
-                      <Button 
-                        variant="outline" 
-                        className="flex items-center justify-center gap-2"
-                        onClick={() => setEditSection("profile")}
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit Profile
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex items-center justify-center gap-2"
-                        onClick={() => setEditSection("background")}
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit Background
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex items-center justify-center gap-2"
-                        onClick={() => {
-                          setEditSection("contact");
-                          // Debug log
-                          debugInfo();
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit Contact Info
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex items-center justify-center gap-2"
-                        onClick={() => setEditSection("projects")}
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit Projects
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="flex items-center justify-center gap-2 col-span-2"
-                        onClick={() => setEditSection("skills")}
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit Skills
-                      </Button>
+          <div 
+            className={`transition-opacity duration-200 ${pageTransition ? 'opacity-0' : 'opacity-100'}`}
+          >
+            {activeTab === "card" && (
+              <div className="p-4">
+                <h1 className="text-2xl font-bold mb-4">
+                  {userData ? `${userData.name}'s Card` : 'Your Card'}
+                </h1>
+                
+                {editSection === null ? (
+                  <div className="space-y-6">
+                    {/* Preview Mode */}
+                    <div className="mb-6 relative">
+                      <BusinessCardPreview 
+                        user={userData} 
+                        contacts={contacts}
+                        projects={projects}
+                        skills={skills}
+                        customLinks={customLinks}
+                      />
+                      
+                      {/* Edit Buttons for each section */}
+                      <div className="grid grid-cols-2 gap-3 mt-4">
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => setEditSection("profile")}
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Profile
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => setEditSection("background")}
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Background
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setEditSection("contact");
+                            // Debug log
+                            debugInfo();
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Contact Info
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center justify-center gap-2"
+                          onClick={() => setEditSection("projects")}
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Projects
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="flex items-center justify-center gap-2 col-span-2"
+                          onClick={() => setEditSection("skills")}
+                        >
+                          <Edit className="h-4 w-4" />
+                          Edit Skills
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Edit Mode */}
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold">
-                      {editSection === "profile" && "Edit Profile"}
-                      {editSection === "background" && "Edit Background"}
-                      {editSection === "contact" && "Edit Contact Info"}
-                      {editSection === "projects" && "Edit Projects"}
-                      {editSection === "skills" && "Edit Skills"}
-                    </h2>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => setEditSection(null)}
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Edit Mode */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-semibold">
+                        {editSection === "profile" && "Edit Profile"}
+                        {editSection === "background" && "Edit Background"}
+                        {editSection === "contact" && "Edit Contact Info"}
+                        {editSection === "projects" && "Edit Projects"}
+                        {editSection === "skills" && "Edit Skills"}
+                      </h2>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setEditSection(null)}
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </div>
+                    
+                    {/* Render only the specific section of the form based on editSection */}
+                    <Card>
+                      <CardContent className="p-4 pt-6">
+                        {editSection === "profile" && userData && (
+                          <ProfileForm 
+                            user={userData}
+                            onSuccess={handleEditSuccess}
+                            onCancel={() => setEditSection(null)}
+                          />
+                        )}
+                        
+                        {editSection === "background" && userData && (
+                          <BackgroundForm 
+                            user={userData}
+                            onSuccess={handleEditSuccess}
+                            onCancel={() => setEditSection(null)}
+                          />
+                        )}
+                        
+                        {editSection === "contact" && userData && (
+                          <ContactForm 
+                            userId={userData.id}
+                            onSuccess={handleEditSuccess}
+                            onCancel={() => setEditSection(null)}
+                          />
+                        )}
+                        
+                        {editSection === "projects" && userData && (
+                          <ProjectsForm 
+                            userId={userData.id}
+                            onSuccess={handleEditSuccess}
+                            onCancel={() => setEditSection(null)}
+                          />
+                        )}
+                        
+                        {editSection === "skills" && userData && (
+                          <SkillsForm 
+                            userId={userData.id}
+                            onSuccess={handleEditSuccess}
+                            onCancel={() => setEditSection(null)}
+                          />
+                        )}
+                      </CardContent>
+                    </Card>
                   </div>
-                  
-                  {/* Render only the specific section of the form based on editSection */}
-                  <Card>
-                    <CardContent className="p-4 pt-6">
-                      {editSection === "profile" && userData && (
-                        <ProfileForm 
-                          user={userData}
-                          onSuccess={handleEditSuccess}
-                          onCancel={() => setEditSection(null)}
-                        />
-                      )}
-                      
-                      {editSection === "background" && userData && (
-                        <BackgroundForm 
-                          user={userData}
-                          onSuccess={handleEditSuccess}
-                          onCancel={() => setEditSection(null)}
-                        />
-                      )}
-                      
-                      {editSection === "contact" && userData && (
-                        <ContactForm 
-                          userId={userData.id}
-                          onSuccess={handleEditSuccess}
-                          onCancel={() => setEditSection(null)}
-                        />
-                      )}
-                      
-                      {editSection === "projects" && userData && (
-                        <ProjectsForm 
-                          userId={userData.id}
-                          onSuccess={handleEditSuccess}
-                          onCancel={() => setEditSection(null)}
-                        />
-                      )}
-                      
-                      {editSection === "skills" && userData && (
-                        <SkillsForm 
-                          userId={userData.id}
-                          onSuccess={handleEditSuccess}
-                          onCancel={() => setEditSection(null)}
-                        />
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {activeTab === "explore" && (
-            <div className="p-4">
-              <ExploreSection />
-            </div>
-          )}
-          
-          {activeTab === "premium" && (
-            <div className="p-4">
-              <h1 className="text-2xl font-bold mb-4">Premium Features</h1>
-              <PremiumFeatures 
-                user={userData} 
-                onSubscribed={() => {
-                  // Refresh user data after subscription
-                  refreshUser();
-                  loadUserData();
-                }}
-              />
-            </div>
-          )}
+                )}
+              </div>
+            )}
+            
+            {activeTab === "explore" && (
+              <div className="p-4">
+                <ExploreSection />
+              </div>
+            )}
+            
+            {activeTab === "premium" && (
+              <div className="p-4">
+                <h1 className="text-2xl font-bold mb-4">Premium Features</h1>
+                <PremiumFeatures 
+                  user={userData} 
+                  onSubscribed={() => {
+                    // Refresh user data after subscription
+                    refreshUser();
+                    loadUserData();
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
         
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t flex items-center justify-around">
-          <button
-            className={`flex flex-col items-center justify-center p-2 ${
-              activeTab === "card" ? "text-primary" : "text-muted-foreground"
-            }`}
-            onClick={() => setActiveTab("card")}
-          >
-            <CreditCard className="h-5 w-5" />
-            <span className="text-xs">Card</span>
-          </button>
-          
-          <button
-            className={`flex flex-col items-center justify-center p-2 ${
-              activeTab === "explore" ? "text-primary" : "text-muted-foreground"
-            }`}
-            onClick={() => setActiveTab("explore")}
-          >
-            <Search className="h-5 w-5" />
-            <span className="text-xs">Explore</span>
-          </button>
-          
-          <button
-            className={`flex flex-col items-center justify-center p-2 ${
-              activeTab === "premium" ? "text-primary" : "text-muted-foreground"
-            }`}
-            onClick={() => setActiveTab("premium")}
-          >
-            <Star className="h-5 w-5" />
-            <span className="text-xs">Premium</span>
-          </button>
-        </div>
+        {/* Use the new AnimatedBottomNav component */}
+        <AnimatedBottomNav 
+          activeTab={activeTab} 
+          onChange={handleTabChange} 
+        />
       </main>
     </ProtectedRoute>
   );

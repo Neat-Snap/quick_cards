@@ -1,9 +1,12 @@
-// components/explore/ExploreUserCard.tsx
+"use client";
+
 import { User } from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAvatarUrl } from "@/components/business-card-preview";
+import { AnimatedCard } from "@/components/AnimatedCard";
+import { useState } from "react";
 
 interface ExploreUserCardProps {
   user: User;
@@ -11,6 +14,8 @@ interface ExploreUserCardProps {
 }
 
 export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  
   // Safely get initials from name or first_name/last_name
   const getInitials = () => {
     if (user.first_name || user.last_name) {
@@ -47,17 +52,24 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
   };
 
   return (
-    <Card 
-      className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+    <AnimatedCard 
+      className="overflow-hidden cursor-pointer"
+      hoverEffect="lift"
+      clickEffect="pulse"
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <div 
-        className="h-24 w-full" 
-        style={getBackgroundStyle()}
+        className="h-24 w-full transition-transform duration-500 ease-out"
+        style={{
+          ...getBackgroundStyle(),
+          transform: isHovered ? 'scale(1.05)' : 'scale(1)'
+        }}
       />
       <CardContent className="pt-0 relative">
         <div className="flex items-center gap-3 -mt-6">
-          <Avatar className="h-12 w-12 border-2 border-background">
+          <Avatar className={`h-12 w-12 border-2 border-background transition-transform duration-300 ${isHovered ? 'scale-110' : 'scale-100'}`}>
             <AvatarImage src={getAvatarUrl(user.avatar_url)} alt={user.name || user.username} />
             <AvatarFallback>{getInitials()}</AvatarFallback>
           </Avatar>
@@ -75,7 +87,15 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
         
         {user.badge && (
           <div className="mt-3">
-            <Badge variant="secondary">{user.badge}</Badge>
+            <Badge 
+              variant="secondary" 
+              className="transition-all duration-300"
+              style={{
+                transform: isHovered ? 'scale(1.05)' : 'scale(1)'
+              }}
+            >
+              {user.badge}
+            </Badge>
           </div>
         )}
         
@@ -83,12 +103,27 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
           <div className="mt-3">
             <div className="flex flex-wrap gap-1">
               {user.skills.slice(0, 3).map((skill, i) => (
-                <Badge key={i} variant="secondary" className="text-xs">
+                <Badge 
+                  key={i} 
+                  variant="secondary" 
+                  className="text-xs transition-all duration-300"
+                  style={{
+                    transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                    transitionDelay: `${i * 50}ms`
+                  }}
+                >
                   {typeof skill === 'string' ? skill : skill.name}
                 </Badge>
               ))}
               {user.skills.length > 3 && (
-                <Badge variant="outline" className="text-xs">
+                <Badge 
+                  variant="outline" 
+                  className="text-xs transition-all duration-300"
+                  style={{
+                    transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+                    transitionDelay: '150ms'
+                  }}
+                >
                   +{user.skills.length - 3}
                 </Badge>
               )}
@@ -96,6 +131,6 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
           </div>
         )}
       </CardContent>
-    </Card>
+    </AnimatedCard>
   );
 }
