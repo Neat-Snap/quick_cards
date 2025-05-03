@@ -36,12 +36,12 @@ export function AnimatedForm({
             damping: 30,
             mass: 1
           }}
-          className="w-full absolute top-0 left-0 right-0 z-10"
+          className="w-full absolute top-0 left-0 right-0 z-10 overflow-y-auto max-h-screen pb-16"
           style={{ minHeight: "100%" }}
         >
-          <Card className="overflow-hidden mb-4">
+          <Card className="overflow-hidden mb-4 min-h-[calc(100vh-6rem)]">
             <div ref={contentRef}>
-              <div className="p-4">
+              <div className="p-4 pb-20">  {/* Added pb-20 for extra bottom padding above the navigation bar */}
                 <div className="flex items-center justify-between mb-4">
                   <motion.h2 
                     initial={{ opacity: 0, x: -20 }}
