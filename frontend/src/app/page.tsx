@@ -227,36 +227,37 @@ export default function Home() {
                   {userData ? `${userData.name}'s Card` : 'Your Card'}
                 </motion.h1>
                 
-                <motion.div
-                  variants={contentVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="space-y-6"
-                >
-                  {/* Preview section */}
-                  <div className="mb-6 relative">
-                    <motion.div
-                      initial={{ scale: 0.95, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ 
-                        duration: 0.5,
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 25
-                      }}
-                    >
-                      <BusinessCardPreview 
-                        user={userData} 
-                        contacts={contacts}
-                        projects={projects}
-                        skills={skills}
-                        customLinks={customLinks}
-                      />
-                    </motion.div>
-                    
-                    {/* Edit Buttons - Only shown when not editing */}
-                    {!editSection && (
+                {/* Show card preview and edit buttons only when not editing */}
+                {!editSection && (
+                  <motion.div
+                    variants={contentVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="space-y-6"
+                  >
+                    {/* Preview section */}
+                    <div className="mb-6 relative">
+                      <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ 
+                          duration: 0.5,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25
+                        }}
+                      >
+                        <BusinessCardPreview 
+                          user={userData} 
+                          contacts={contacts}
+                          projects={projects}
+                          skills={skills}
+                          customLinks={customLinks}
+                        />
+                      </motion.div>
+                      
+                      {/* Edit Buttons */}
                       <motion.div 
                         className="grid grid-cols-2 gap-3 mt-4"
                         initial={{ opacity: 0, y: 20 }}
@@ -346,9 +347,10 @@ export default function Home() {
                           </Button>
                         </motion.div>
                       </motion.div>
-                    )}
-                  </div>
-                </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+                
                 
                 {/* Animated Form Section */}
                 <AnimatedForm 
