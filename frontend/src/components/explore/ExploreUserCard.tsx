@@ -5,7 +5,7 @@ import { CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { getAvatarUrl } from "@/components/business-card-preview";
-import { AnimatedCard } from "@/components/AnimatedCard";
+import { GlassCard } from "@/components/GlassCard";
 import { useState } from "react";
 
 interface ExploreUserCardProps {
@@ -52,29 +52,42 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
   };
 
   return (
-    <AnimatedCard 
+    <GlassCard 
       className="overflow-hidden cursor-pointer"
-      hoverEffect="lift"
-      clickEffect="pulse"
+      intensity="light"
+      hoverEffect={true}
+      glowEffect={true}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div 
-        className="h-24 w-full transition-transform duration-500 ease-out"
+        className="h-24 w-full transition-transform duration-500 ease-out relative"
         style={{
           ...getBackgroundStyle(),
           transform: isHovered ? 'scale(1.05)' : 'scale(1)'
         }}
-      />
+      >
+        {/* Glass overlay on hover */}
+        {isHovered && (
+          <div 
+            className="absolute inset-0 bg-black/10 backdrop-blur-sm transition-opacity duration-300"
+            style={{ opacity: isHovered ? 0.5 : 0 }}
+          />
+        )}
+      </div>
       <CardContent className="pt-0 relative">
         <div className="flex items-center gap-3 -mt-6">
-          <Avatar className={`h-12 w-12 border-2 border-background transition-transform duration-300 ${isHovered ? 'scale-110' : 'scale-100'}`}>
-            <AvatarImage src={getAvatarUrl(user.avatar_url)} alt={user.name || user.username} />
-            <AvatarFallback>{getInitials()}</AvatarFallback>
-          </Avatar>
+          <div className={`transition-all duration-300 ${isHovered ? 'translate-y-[-2px]' : ''}`}>
+            <Avatar className={`h-12 w-12 border-2 border-white/20 shadow-lg transition-transform duration-300 ${isHovered ? 'scale-110' : 'scale-100'}`}>
+              <AvatarImage src={getAvatarUrl(user.avatar_url)} alt={user.name || user.username} />
+              <AvatarFallback>{getInitials()}</AvatarFallback>
+            </Avatar>
+          </div>
           <div className="mt-6">
-            <h3 className="font-medium">{user.name || user.username}</h3>
+            <h3 className={`font-medium transition-all duration-300 ${isHovered ? 'text-primary translate-y-[-1px]' : ''}`}>
+              {user.name || user.username}
+            </h3>
             <p className="text-sm text-muted-foreground">@{user.username}</p>
           </div>
         </div>
@@ -89,9 +102,10 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
           <div className="mt-3">
             <Badge 
               variant="secondary" 
-              className="transition-all duration-300"
+              className="transition-all duration-300 bg-white/10 backdrop-blur-sm"
               style={{
-                transform: isHovered ? 'scale(1.05)' : 'scale(1)'
+                transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+                boxShadow: isHovered ? '0 2px 10px rgba(0,0,0,0.1)' : 'none'
               }}
             >
               {user.badge}
@@ -106,10 +120,11 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
                 <Badge 
                   key={i} 
                   variant="secondary" 
-                  className="text-xs transition-all duration-300"
+                  className="text-xs transition-all duration-300 bg-white/10 backdrop-blur-sm"
                   style={{
                     transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-                    transitionDelay: `${i * 50}ms`
+                    transitionDelay: `${i * 50}ms`,
+                    boxShadow: isHovered ? '0 2px 8px rgba(0,0,0,0.1)' : 'none'
                   }}
                 >
                   {typeof skill === 'string' ? skill : skill.name}
@@ -121,7 +136,8 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
                   className="text-xs transition-all duration-300"
                   style={{
                     transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
-                    transitionDelay: '150ms'
+                    transitionDelay: '150ms',
+                    boxShadow: isHovered ? '0 2px 8px rgba(0,0,0,0.1)' : 'none'
                   }}
                 >
                   +{user.skills.length - 3}
@@ -131,6 +147,6 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
           </div>
         )}
       </CardContent>
-    </AnimatedCard>
+    </GlassCard>
   );
 }

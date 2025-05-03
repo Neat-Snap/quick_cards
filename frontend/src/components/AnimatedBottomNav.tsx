@@ -25,112 +25,53 @@ export function AnimatedBottomNav({
     { id: "premium", icon: <Star className="h-5 w-5" />, label: "Premium" }
   ]
 }: AnimatedBottomNavProps) {
-  const [indicatorStyles, setIndicatorStyles] = useState({
-    width: 0,
-    left: 0,
-    opacity: 0
-  });
-  
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   
-  // Update the indicator position when active tab changes
-  useEffect(() => {
-    const updateIndicator = () => {
-      if (!navRef.current) return;
-      
-      const activeIndex = items.findIndex(item => item.id === activeTab);
-      if (activeIndex === -1) return;
-      
-      const activeItem = itemRefs.current[activeIndex];
-      if (!activeItem) return;
-      
-      const navRect = navRef.current.getBoundingClientRect();
-      const itemRect = activeItem.getBoundingClientRect();
-      
-      // Calculate relative position to the nav container
-      const left = itemRect.left - navRect.left;
-      
-      setIndicatorStyles({
-        width: itemRect.width,
-        left: left,
-        opacity: 1
-      });
-    };
-    
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(updateIndicator, 50);
-    
-    return () => clearTimeout(timer);
-  }, [activeTab, items]);
-  
-  // Update indicator on resize
-  useEffect(() => {
-    const handleResize = () => {
-      const timer = setTimeout(() => {
-        const activeIndex = items.findIndex(item => item.id === activeTab);
-        if (activeIndex >= 0 && itemRefs.current[activeIndex]) {
-          const navRect = navRef.current?.getBoundingClientRect();
-          const itemRect = itemRefs.current[activeIndex]?.getBoundingClientRect();
-          
-          if (navRect && itemRect) {
-            const left = itemRect.left - navRect.left;
-            
-            setIndicatorStyles(prev => ({
-              ...prev,
-              width: itemRect.width,
-              left: left
-            }));
-          }
-        }
-      }, 50);
-      
-      return () => clearTimeout(timer);
-    };
-    
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [activeTab, items]);
-  
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t flex items-center justify-around"
+      className="fixed bottom-4 left-4 right-4 h-16 bg-background/60 backdrop-blur-lg border border-white/20 rounded-xl flex items-center justify-around shadow-lg z-50"
       ref={navRef}
+      style={{
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+      }}
     >
-      {/* Moving Indicator */}
-      <div 
-        className="absolute h-1 bg-primary rounded-full bottom-0 transition-all duration-300 ease-in-out"
-        style={{ 
-          width: `${indicatorStyles.width}px`, 
-          left: `${indicatorStyles.left}px`,
-          opacity: indicatorStyles.opacity,
-          transform: "translateY(-4px)"
-        }}
-      />
-      
       {items.map((item, index) => (
         <button
           key={item.id}
           ref={el => { itemRefs.current[index] = el; }}
           className={cn(
             "flex flex-col items-center justify-center p-2 relative transition-all duration-300",
-            "hover:bg-accent/30 active:scale-95 rounded-md",
-            "w-full max-w-[80px] h-full",
+            "rounded-lg w-full max-w-[80px] h-full",
             activeTab === item.id 
               ? "text-primary" 
               : "text-muted-foreground"
           )}
           onClick={() => onChange(item.id)}
+          style={{
+            backdropFilter: activeTab === item.id ? "blur(8px)" : "none",
+            background: activeTab === item.id ? "rgba(255, 255, 255, 0.05)" : "transparent",
+          }}
         >
+          {/* Glass effect for active item */}
+          {activeTab === item.id && (
+            <div className="absolute inset-0 rounded-lg bg-primary/5 border border-primary/20 -z-10"></div>
+          )}
+          
           <div className={cn(
-            "transition-transform duration-300",
-            activeTab === item.id ? "scale-110" : "scale-100"
+            "transition-all duration-300 relative",
+            activeTab === item.id ? "scale-125" : "scale-100",
           )}>
             {item.icon}
+            
+            {/* Subtle glow for active icon */}
+            {activeTab === item.id && (
+              <div className="absolute inset-0 bg-primary/20 blur-md rounded-full -z-10"></div>
+            )}
           </div>
           <span className={cn(
-            "text-xs mt-1 transition-opacity duration-300",
-            activeTab === item.id ? "opacity-100" : "opacity-70"
+            "text-xs mt-1 transition-all duration-300",
+            activeTab === item.id ? "opacity-100 font-medium" : "opacity-70"
           )}>
             {item.label}
           </span>
