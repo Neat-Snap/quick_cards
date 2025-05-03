@@ -29,6 +29,8 @@ const getContactIcon = (type: string) => {
   }
 };
 
+// const DURATION = 0.3;
+
 const handleContactAction = (type: string, value: string) => {
   if (type === 'email') {
     window.location.href = `mailto:${value}`;
@@ -97,13 +99,13 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
             className="flex items-center gap-3 mb-2"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
           >
             <motion.div 
               className="p-3 bg-primary/10 rounded-full"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.3, type: "spring" }}
+              transition={{ delay: 0.2, type: "spring" }}
             >
               {getContactIcon(contact.type)}
             </motion.div>
@@ -112,7 +114,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
           >
             <CardDescription>
               {contact.value}
@@ -124,7 +126,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
             className="py-2"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.4 }}
           >
             <p className="text-sm text-muted-foreground">
               {contact.type === 'email' && 'Click the button below to send an email.'}
@@ -141,7 +143,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
             className="w-full"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, type: "spring" }}
+            transition={{ delay: 0.5, type: "spring" }}
           >
             <Button 
               className="w-full" 
@@ -164,7 +166,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
           >
             <CardTitle>{project.name}</CardTitle>
             {project.role && (
@@ -195,7 +197,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
               className="mb-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
             >
               <h3 className="text-sm font-medium mb-2">Description</h3>
               <div className="max-h-[200px] overflow-y-auto rounded-md bg-muted/10 p-3">
@@ -210,7 +212,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
               className="w-full"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.4 }}
             >
               <Button 
                 className="w-full" 
@@ -240,7 +242,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.1 }}
           >
             <CardTitle>{skill.name}</CardTitle>
           </motion.div>
@@ -250,7 +252,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
             className="mb-4 flex justify-center"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.3, type: "spring" }}
+            transition={{ delay: 0.2, type: "spring" }}
           >
             <div className="w-24 h-24 rounded-full overflow-hidden bg-muted flex items-center justify-center">
               {iconUrl ? (
@@ -275,7 +277,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
             >
               <h3 className="text-sm font-medium mb-2">Description</h3>
               <p className="text-sm text-muted-foreground">{skill.description}</p>
@@ -294,13 +296,13 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.2 }}
       >
         <motion.div 
           className="absolute inset-0 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.2 }}
           onClick={onClose}
         ></motion.div>
         
