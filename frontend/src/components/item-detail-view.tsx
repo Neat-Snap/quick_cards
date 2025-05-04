@@ -318,17 +318,6 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
           }}
         >
           <Card className="w-full">
-            <div className="absolute top-2 right-2">
-              <motion.div
-                initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
-                animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                transition={{ delay: 0.3, type: "spring" }}
-              >
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </motion.div>
-            </div>
             
             <div className="pt-2">
               <motion.div
@@ -346,6 +335,18 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
                   Back
                 </Button>
               </motion.div>
+
+              <div className="absolute top-2 right-2">
+                <motion.div
+                  initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring" }}
+                >
+                  <Button variant="ghost" size="icon" onClick={onClose}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+              </div>
             </div>
             
             {/* Render the appropriate content based on type */}
