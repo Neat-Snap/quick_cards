@@ -64,6 +64,8 @@ export function BusinessCardPreview({
   const lastName = user?.last_name || (user?.name && user.name.split(' ').length > 1 ? user.name.split(' ')[1] : "Name");
   const username = user?.username || "username";
   const description = user?.description || "Your card description will appear here. Edit your profile to add a description about yourself.";
+
+  console.log("projects debug: ", projects)
   
   // Set background based on user background_type and background_value
   const getBackgroundStyle = () => {

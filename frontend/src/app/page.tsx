@@ -256,6 +256,8 @@ export default function Home() {
     console.log("Current skills:", skills);
     console.log("Current links:", customLinks);
   };
+
+  console.log("Current projects:", projects);
   
   // Get form title based on edit section
   const getFormTitle = () => {
