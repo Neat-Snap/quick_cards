@@ -19,7 +19,7 @@ import { AnimatedForm } from "@/components/AnimatedForm";
 import { motion } from "framer-motion";
 import { ShareCardButton } from "@/components/ShareCardButton";
 import { UserProfileView } from "@/components/user-profile/UserProfileView";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { useOnboarding } from "@/components/hooks/useOnboarding";
 import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { 
   User, 
