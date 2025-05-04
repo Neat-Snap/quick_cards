@@ -4,6 +4,8 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
 import TelegramScript from "@/components/TelegramScript";
+import { Toaster } from "@/components/ui/use-toast";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,6 +43,7 @@ export default function RootLayout({
         >
           <AuthProvider>
             {children}
+            <Toaster />
           </AuthProvider>
         </ThemeProvider>
         

@@ -93,18 +93,3 @@ export function AnimatedButton({
     </Button>
   );
 }
-
-// Add ripple animation to globals.css
-// @keyframes ripple {
-//   0% {
-//     transform: translate(-50%, -50%) scale(0);
-//     opacity: 0.5;
-//   }
-//   100% {
-//     transform: translate(-50%, -50%) scale(1);
-//     opacity: 0;
-//   }
-// }
-// .animate-ripple {
-//   animation: ripple 0.6s linear forwards;
-// }
