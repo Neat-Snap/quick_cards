@@ -61,7 +61,7 @@ interface PremiumFeaturesProps {
   onSubscribed?: () => void;
 }
 
-export function AnimatedPremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
+export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
   const [premiumStatus, setPremiumStatus] = useState<PremiumStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
