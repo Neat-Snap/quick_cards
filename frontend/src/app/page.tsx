@@ -29,6 +29,8 @@ import {
   getUserSkills,
   getUserLinks
 } from "@/lib/api";
+import { useLoading } from "@/context/LoadingContext";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 // Animation variants for content transitions
 const contentVariants = {
@@ -53,6 +55,7 @@ const contentVariants = {
 
 export default function Home() {
   const { user, refreshUser } = useAuth();
+  const { appLoading, startDataLoading, finishDataLoading } = useLoading();
   const [activeTab, setActiveTab] = useState("card");
   const [editSection, setEditSection] = useState<string | null>(null);
   
@@ -72,10 +75,24 @@ export default function Home() {
   // Load user data on mount and when user changes
   useEffect(() => {
     if (user) {
-      setUserData(user);
-      loadUserData();
+      startDataLoading(); // Signal that data loading has started
+      
+      // Wrap the data loading in an async function
+      const loadData = async () => {
+        try {
+          await loadUserData(); // Your existing function to load user data
+        } finally {
+          finishDataLoading(); // Signal that data loading is complete, regardless of success/failure
+        }
+      };
+      
+      loadData();
     }
   }, [user]);
+
+  if (appLoading) {
+    return <LoadingScreen />;
+  }
 
   // Handle tab changes with animation
   const handleTabChange = (tabId: string) => {

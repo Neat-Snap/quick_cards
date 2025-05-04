@@ -7,6 +7,7 @@ from app.db.models import User, Contact, Project, Skill, CustomLink, user_skill
 from app.schemas import UserResponse
 import sys
 import os
+from sqlalchemy import or_
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
@@ -162,7 +163,7 @@ async def search_users(q: str = None, skill: str = None, project: str = None, li
 
             if q:
                 query = query.filter(
-                    session.or_(
+                    or_(
                         User.name.ilike(f"%{q}%"),
                         User.username.ilike(f"%{q}%")
                     )

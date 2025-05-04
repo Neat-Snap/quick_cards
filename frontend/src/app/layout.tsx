@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
 import TelegramScript from "@/components/TelegramScript";
 import { Toaster } from "@/components/ui/use-toast";
+import { LoadingProvider } from "@/context/LoadingContext";
+
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -42,8 +44,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
-            <Toaster />
+            <LoadingProvider>
+              {children}
+              <Toaster />
+            </LoadingProvider>
           </AuthProvider>
         </ThemeProvider>
         
