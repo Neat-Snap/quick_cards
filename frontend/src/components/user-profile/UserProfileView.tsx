@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { ChevronRight, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+
+type ViewSourceContext = 'backlink' | 'explore' | 'default';
 
 interface UserProfileViewProps {
   userId: string | number;
@@ -15,6 +18,7 @@ interface UserProfileViewProps {
   showBackButton?: boolean;
   loadImmediately?: boolean;
   fullScreen?: boolean;
+  sourceContext?: ViewSourceContext;
 }
 
 export function UserProfileView({ 
@@ -23,11 +27,37 @@ export function UserProfileView({
   onBack,
   showBackButton = true,
   loadImmediately = true,
-  fullScreen = false
+  fullScreen = false,
+  sourceContext = 'default'
 }: UserProfileViewProps) {
   const [user, setUser] = useState<User | null>(initialData);
   const [loading, setLoading] = useState(loadImmediately);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const navigateToMainCard = () => {
+    // Navigate to the main page
+    router.push('/');
+  };
+
+  const getBackButtonText = () => {
+    switch(sourceContext) {
+      case 'backlink':
+        return "Back to My Card";
+      case 'explore':
+        return "Back to Explore";
+      default:
+        return "Back";
+    }
+  };
+
+  const handleBackClick = () => {
+    if (sourceContext === 'backlink') {
+      navigateToMainCard();
+    } else if (onBack) {
+      onBack();
+    }
+  };
   
   // Load full user data with direct API call to handle different response formats
   const loadUserData = async () => {
@@ -128,11 +158,11 @@ export function UserProfileView({
             >
               <Button 
                 variant="ghost" 
-                onClick={onBack} 
+                onClick={handleBackClick} 
                 className="mb-4 -ml-2"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Explore
+                {getBackButtonText()}
               </Button>
             </motion.div>
           )}
@@ -194,10 +224,10 @@ export function UserProfileView({
         <Button 
           variant="ghost" 
           className="flex items-center gap-1" 
-          onClick={onBack}
+          onClick={handleBackClick}
         >
           <ChevronRight className="h-4 w-4 rotate-180" />
-          Back
+          {getBackButtonText()}
         </Button>
       )}
       

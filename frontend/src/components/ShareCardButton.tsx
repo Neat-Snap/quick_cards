@@ -45,27 +45,28 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: Shar
   const handleTelegramShare = () => {
     const link = getShareLink();
     
+    // Create the share URL with encoded parameters
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Check out my business card!")}`;
+    
     if (window.Telegram?.WebApp) {
-      // Using Telegram's WebApp API to share
+      // Using Telegram's WebApp API to open the link
       try {
-        if (window.Telegram.WebApp.switchInlineQuery) {
-          window.Telegram.WebApp.switchInlineQuery("Check out my business card!", ['users']);
-          setIsOpen(false);
-        } else {
-          // Fallback if switchInlineQuery is not available
-          handleCopyLink();
-          toast({
-            title: "Sharing hint",
-            description: "Link copied. You can now paste it in any chat.",
-          });
-        }
+        // Use Telegram's openLink if available
+        window.Telegram.WebApp.openLink(shareUrl);
+        setIsOpen(false);
       } catch (error) {
         console.error("Error sharing through Telegram:", error);
+        // Fallback to copying link
         handleCopyLink();
+        toast({
+          title: "Sharing hint",
+          description: "Link copied. You can now paste it in any chat.",
+        });
       }
     } else {
       // Fallback for when Telegram WebApp API is not available
-      handleCopyLink();
+      window.open(shareUrl, '_blank');
+      setIsOpen(false);
     }
   };
 
