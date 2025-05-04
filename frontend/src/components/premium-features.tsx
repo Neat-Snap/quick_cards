@@ -235,7 +235,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
       <motion.div 
         key={index} 
         className="flex items-start gap-3"
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0.99, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 + (index * 0.05), duration: 0.3 }}
       >
@@ -267,13 +267,13 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
       <AnimatePresence>
         {showSuccessAnimation && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 0.99 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 1 }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
           >
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
+              initial={{ scale: 0.5, opacity: 0.99 }}
               animate={{ 
                 scale: [0.5, 1.2, 1],
                 opacity: 1
@@ -286,7 +286,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               className="text-center"
             >
               <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
+                initial={{ scale: 0.5, opacity: 0.99 }}
                 animate={{ 
                   scale: 1, 
                   opacity: 1,
@@ -304,7 +304,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 </div>
               </motion.div>
               <motion.h2
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0.99, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 }}
                 className="text-2xl font-bold text-white mb-2"
@@ -312,7 +312,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 Welcome to Premium!
               </motion.h2>
               <motion.p
-                initial={{ opacity: 0 }}
+                initial={{ opacity: 0.99 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
                 className="text-white/80"
@@ -327,7 +327,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
       {/* Current Premium Status */}
       <div className="space-y-6">
         <motion.div 
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 20, opacity: 0.99 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
           className="text-center rounded-lg border p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30"
@@ -335,7 +335,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
           {isPremium ? (
             <>
               <motion.div 
-                initial={{ scale: 0.8, opacity: 0 }}
+                initial={{ scale: 0.8, opacity: 0.99 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
                 className="inline-flex gap-2 items-center bg-yellow-400/20 text-yellow-700 dark:text-yellow-400 rounded-full px-4 py-1 mb-4"
@@ -344,7 +344,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 <span className="font-semibold">Premium Active</span>
               </motion.div>
               <motion.h2 
-                initial={{ y: 10, opacity: 0 }}
+                initial={{ y: 10, opacity: 0.99 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
                 className="text-2xl font-bold mb-2"
@@ -352,7 +352,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 Premium Plan
               </motion.h2>
               <motion.p 
-                initial={{ opacity: 0 }}
+                initial={{ opacity: 0.99 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
                 className="text-sm text-muted-foreground flex justify-center items-center gap-1 mb-4"
@@ -363,7 +363,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               
               {/* Current benefits */}
               <motion.div 
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 20, opacity: 0.99 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.5 }}
                 className="mt-4 bg-background/50 rounded-md p-4 max-w-md mx-auto"
@@ -376,7 +376,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                       <motion.div 
                         key={i} 
                         className="flex items-center gap-3 mb-2"
-                        initial={{ opacity: 0, x: -10 }}
+                        initial={{ opacity: 0.99, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 + (i * 0.05) }}
                       >
@@ -393,7 +393,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
           ) : (
             <>
               <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
+                initial={{ scale: 0.5, opacity: 0.99 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ 
                   type: "spring",
@@ -404,7 +404,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 <Crown className="h-16 w-16 text-yellow-400 mx-auto mb-4" />
               </motion.div>
               <motion.h2 
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 20, opacity: 0.99 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
                 className="text-2xl font-bold mb-3"
@@ -412,7 +412,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 Upgrade to Premium
               </motion.h2>
               <motion.p 
-                initial={{ opacity: 0 }}
+                initial={{ opacity: 0.99 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
                 className="text-sm text-muted-foreground max-w-md mx-auto mb-6"
@@ -420,7 +420,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 Get access to exclusive features to customize your business card and stand out from the crowd.
               </motion.p>
               <motion.div
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 20, opacity: 0.99 }}
                 animate={{ y: 0, opacity: 1 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -443,7 +443,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
         {!isPremium && (
           <div id="premium-features" className="pt-6">
             <motion.h2 
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0.99 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
               className="text-xl font-bold text-center mb-6"
@@ -451,7 +451,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               Premium Features
             </motion.h2>
             <motion.div
-              initial={{ y: 30, opacity: 0 }}
+              initial={{ y: 30, opacity: 0.99 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
@@ -515,15 +515,15 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
           {paymentInProgress && (
             <motion.div 
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0.99 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0.99 }}
             >
               <motion.div 
                 className="bg-background p-6 rounded-lg shadow-lg text-center"
-                initial={{ scale: 0.8, opacity: 0 }}
+                initial={{ scale: 0.8, opacity: 0.99 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
+                exit={{ scale: 0.8, opacity: 0.99 }}
                 transition={{ type: "spring", damping: 25 }}
               >
                 <motion.div
@@ -560,27 +560,27 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
         {dialogOpen && (
           <motion.div 
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 0.99 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0.99 }}
           >
             <motion.div 
               className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4"
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              initial={{ scale: 0.9, y: 20, opacity: 0.99 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0.99 }}
               transition={{ type: "spring", damping: 25 }}
             >
               <div className="flex justify-between items-center mb-4">
                 <motion.h3 
-                  initial={{ x: -20, opacity: 0 }}
+                  initial={{ x: -20, opacity: 0.99 }}
                   animate={{ x: 0, opacity: 1 }}
                   className="text-lg font-medium"
                 >
                   Confirm Purchase
                 </motion.h3>
                 <motion.div
-                  initial={{ rotate: -90, opacity: 0 }}
+                  initial={{ rotate: -90, opacity: 0.99 }}
                   animate={{ rotate: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
@@ -596,7 +596,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               
               <motion.div 
                 className="mb-6"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0.99, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
@@ -630,7 +630,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               
               <motion.div 
                 className="flex justify-end gap-2"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0.99, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
@@ -674,20 +674,20 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
         {errorDialogOpen && (
           <motion.div 
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 0.99 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0.99 }}
           >
             <motion.div 
               className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4"
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              initial={{ scale: 0.9, y: 20, opacity: 0.99 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0.99 }}
               transition={{ type: "spring", damping: 25 }}
             >
               <div className="flex justify-between items-center mb-4">
                 <motion.h3 
-                  initial={{ x: -20, opacity: 0 }}
+                  initial={{ x: -20, opacity: 0.99 }}
                   animate={{ x: 0, opacity: 1 }}
                   className="text-lg font-medium text-destructive flex items-center gap-2"
                 >
@@ -695,7 +695,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                   Payment Issue
                 </motion.h3>
                 <motion.div
-                  initial={{ rotate: -90, opacity: 0 }}
+                  initial={{ rotate: -90, opacity: 0.99 }}
                   animate={{ rotate: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
@@ -711,7 +711,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               
               <motion.div 
                 className="mb-6"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0.99, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
@@ -726,7 +726,7 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               
               <motion.div 
                 className="flex justify-end"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0.99, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
