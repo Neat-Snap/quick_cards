@@ -1,30 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export function useOnboarding() {
+  const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Only run on client side
-    if (typeof window !== "undefined") {
-      // Check if user has completed onboarding
-      const hasCompletedOnboarding = localStorage.getItem("onboardingCompleted") === "true";
-      
-      // If this is a new user (hasn't completed onboarding), show onboarding
-      setShowOnboarding(!hasCompletedOnboarding);
+    // Only run if we have user data
+    if (user) {
+      // Check if user is newly registered
+      // This relies on your API returning an is_new_user flag
+      setShowOnboarding(user.name === "");
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
   
   const completeOnboarding = () => {
-    localStorage.setItem("onboardingCompleted", "true");
+    // Simply hide the onboarding
     setShowOnboarding(false);
+    
+    // You might want to call an API here to update the user's status
+    // so they don't see onboarding next time
   };
   
+  // This is mainly for development/testing
   const resetOnboarding = () => {
-    localStorage.removeItem("onboardingCompleted");
     setShowOnboarding(true);
   };
   
