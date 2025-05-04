@@ -272,10 +272,10 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   <div>{}</div>
                 )}
                 
-                <GlassButton
+                <Button
+                  variant="default"
                   onClick={goToNextPage}
                   className="px-6"
-                  glowColor="rgba(37, 99, 235, 0.3)"
                 >
                   {currentPage < onboardingPages.length - 1 ? (
                     <>
@@ -285,7 +285,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   ) : (
                     "Get Started"
                   )}
-                </GlassButton>
+                </Button>
               </div>
             </div>
           </div>
