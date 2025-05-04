@@ -17,6 +17,7 @@ declare global {
           };
           auth_date?: string;
           hash?: string;
+          start_param?: string;
         };
         ready: () => void;
         expand: () => void;

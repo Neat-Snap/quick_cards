@@ -1,22 +1,21 @@
 // components/ShareCardButton.tsx
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Share, Copy, Users, Check, X } from "lucide-react";
+import { Share, Copy, Send, Check, X, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 
 interface ShareCardButtonProps {
   userId: string | number;
   botUsername?: string;
 }
 
-export function ShareCardButton({ userId, botUsername = "business_card_bot" }: ShareCardButtonProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: ShareCardButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
 
   // Generate the shareable link
   const getShareLink = () => {
@@ -46,106 +45,181 @@ export function ShareCardButton({ userId, botUsername = "business_card_bot" }: S
   const handleTelegramShare = () => {
     const link = getShareLink();
     
-    if (window.Telegram?.WebApp?.switchInlineQuery) {
+    if (window.Telegram?.WebApp) {
       // Using Telegram's WebApp API to share
       try {
-        window.Telegram.WebApp.switchInlineQuery(link, ['users', 'groups', 'channels']);
-        setIsMenuOpen(false);
+        if (window.Telegram.WebApp.switchInlineQuery) {
+          window.Telegram.WebApp.switchInlineQuery("Check out my business card!", ['users']);
+          setIsOpen(false);
+        } else {
+          // Fallback if switchInlineQuery is not available
+          handleCopyLink();
+          toast({
+            title: "Sharing hint",
+            description: "Link copied. You can now paste it in any chat.",
+          });
+        }
       } catch (error) {
         console.error("Error sharing through Telegram:", error);
-        toast({ 
-          title: "Share failed",
-          description: "Could not share through Telegram. Try copying the link instead.",
-          variant: "destructive"
-        });
+        handleCopyLink();
       }
     } else {
       // Fallback for when Telegram WebApp API is not available
-      toast({ 
-        title: "Share unavailable",
-        description: "Telegram sharing is only available in the Telegram app",
-        variant: "destructive"
-      });
+      handleCopyLink();
     }
   };
 
-  // Close menu when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
-    <div className="relative mb-4">
+    <>
       <Button 
         variant="outline"
         className="w-full flex items-center justify-center gap-2"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        onClick={() => setIsOpen(true)}
       >
         <Share className="h-4 w-4" />
         Share Your Card
       </Button>
 
       <AnimatePresence>
-        {isMenuOpen && (
+        {isOpen && (
           <motion.div
-            ref={menuRef}
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 right-0 mt-2 z-50"
+            className="fixed inset-0 bg-background/90 z-50 flex items-center justify-center p-4 pb-24 overflow-y-auto"
           >
-            <Card className="shadow-lg border-primary/10">
-              <CardContent className="p-2">
-                <div className="flex justify-between items-center p-2">
-                  <h3 className="text-sm font-medium">Share Your Card</h3>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6" 
-                    onClick={() => setIsMenuOpen(false)}
+            <motion.div 
+              className="absolute inset-0 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setIsOpen(false)}
+            ></motion.div>
+            
+            <motion.div
+              className="w-full max-w-md mx-auto z-10"
+              initial={{ scale: 0.9, y: 30, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 30, opacity: 0 }}
+              transition={{ 
+                type: "spring",
+                damping: 25,
+                stiffness: 300
+              }}
+            >
+              <Card className="w-full">
+                <div className="pt-2 flex flex-row justify-between items-center">
+                  <motion.div
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex items-center gap-1 ml-4 mt-2"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back
+                    </Button>
+                  </motion.div>
+
+                  <div className="mr-3 mt-2">
+                    <motion.div
+                      initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                      transition={{ delay: 0.3, type: "spring" }}
+                    >
+                      <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  </div>
                 </div>
                 
-                <div className="grid gap-2 p-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="justify-start" 
-                    onClick={handleCopyLink}
+                <CardHeader className="pb-4">
+                  <motion.div 
+                    className="flex items-center gap-3 mb-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
                   >
-                    {copied ? (
-                      <Check className="h-4 w-4 mr-2 text-green-500" />
-                    ) : (
-                      <Copy className="h-4 w-4 mr-2" />
-                    )}
-                    Copy Link
-                  </Button>
+                    <motion.div 
+                      className="p-3 bg-primary/10 rounded-full"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.1, type: "spring" }}
+                    >
+                      <Share className="h-5 w-5" />
+                    </motion.div>
+                    <CardTitle>Share Your Card</CardTitle>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <p className="text-sm text-muted-foreground">
+                      Share your card with friends and colleagues through Telegram
+                    </p>
+                  </motion.div>
+                </CardHeader>
+                
+                <CardContent className="pb-2">
+                  <motion.div 
+                    className="py-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <p className="text-sm mb-4">
+                      Your shareable link:
+                    </p>
+                    <div className="bg-muted p-3 rounded-md text-sm font-mono mb-4 text-muted-foreground overflow-hidden overflow-ellipsis">
+                      {getShareLink()}
+                    </div>
+                  </motion.div>
+                </CardContent>
+                
+                <CardFooter className="flex flex-col gap-2">
+                  <motion.div 
+                    className="w-full"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <Button 
+                      className="w-full" 
+                      onClick={handleCopyLink}
+                    >
+                      {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+                      Copy Link
+                    </Button>
+                  </motion.div>
                   
-                  <Button 
-                    variant="default" 
-                    size="sm" 
-                    className="justify-start" 
-                    onClick={handleTelegramShare}
+                  <motion.div 
+                    className="w-full"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
                   >
-                    <Users className="h-4 w-4 mr-2" />
-                    Share to Contacts
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={handleTelegramShare}
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      Share via Telegram
+                    </Button>
+                  </motion.div>
+                </CardFooter>
+              </Card>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }

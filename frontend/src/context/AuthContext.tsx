@@ -1,8 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, validateUser } from '@/lib/api';
+import { User, validateUser, getUserById } from '@/lib/api';
 import { isTelegramWebApp, setAppReady, expandApp, getTelegramUser, getInitData } from '@/lib/telegram';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +12,7 @@ interface AuthContextType {
   token: string | null; // Add token to context
   logout: () => void;
   refreshUser: () => Promise<void>;
+  sharedUserId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [isWebAppReady, setIsWebAppReady] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
+  const [sharedUserId, setSharedUserId] = useState<string | null>(null);
 
   // Load token from localStorage on mount
   useEffect(() => {
@@ -76,6 +79,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, 500);
 
     return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const checkForSharedCard = () => {
+      // Only if WebApp is available
+      if (isTelegramWebApp() && window.Telegram?.WebApp?.initDataUnsafe) {
+        const startParam = window.Telegram.WebApp.initDataUnsafe.start_param;
+        console.log("Start param detected:", startParam);
+        
+        if (startParam && startParam.startsWith('id')) {
+          // Extract user ID from the start_param
+          const userId = startParam.substring(2); // Remove 'id' prefix
+          console.log("Shared user ID detected:", userId);
+          setSharedUserId(userId);
+        }
+      }
+    };
+    
+    // Check after a small delay to ensure WebApp is fully initialized
+    setTimeout(checkForSharedCard, 500);
   }, []);
 
   // Improved refreshUser function with token handling
@@ -193,6 +216,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         error: initAttempts >= 3 ? error : null, // Only show error after all retry attempts
         logout,
         refreshUser,
+        sharedUserId,
       }}
     >
       {children}

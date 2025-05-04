@@ -18,6 +18,8 @@ import { AnimatedBottomNav } from "@/components/AnimatedBottomNav";
 import { AnimatedForm } from "@/components/AnimatedForm";
 import { motion } from "framer-motion";
 import { ShareCardButton } from "@/components/ShareCardButton";
+import { UserProfileView } from "@/components/user-profile/UserProfileView";
+
 import { 
   User, 
   Contact, 
@@ -57,7 +59,7 @@ const contentVariants = {
 const BOTUSERNAME = "face_cards_bot"
 
 export default function Home() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, sharedUserId } = useAuth();
   const { appLoading, startDataLoading, finishDataLoading } = useLoading();
   const [activeTab, setActiveTab] = useState("card");
   const [editSection, setEditSection] = useState<string | null>(null);
@@ -321,6 +323,19 @@ export default function Home() {
       default: return "";
     }
   };
+
+  if (sharedUserId) {
+    return (
+      <div className="p-4">
+        <UserProfileView 
+          userId={sharedUserId} 
+          fullScreen={true} 
+          showBackButton={true} 
+          onBack={() => window.location.href = `https://t.me/face_cards_bot`}
+        />
+      </div>
+    );
+  }
   
   return (
     <ProtectedRoute>
@@ -371,7 +386,9 @@ export default function Home() {
                       </motion.div>
 
                       {userData && (
-                        <ShareCardButton userId={userData.id} botUsername={BOTUSERNAME} />
+                        <div className="mt-4 mb-4">
+                          <ShareCardButton userId={userData.id} botUsername="face_cards_bot" />
+                        </div>
                       )}
                       
                       {/* Edit Buttons */}
