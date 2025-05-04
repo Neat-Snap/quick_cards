@@ -72,6 +72,7 @@ declare global {
           invoiceUrl: string, 
           callback?: (status: "paid" | "cancelled" | "failed" | string) => void
         ) => void;
+        switchInlineQuery?: (query: string, targetTypes?: ('users' | 'groups' | 'channels')[]) => void;
       };
     };
   }
@@ -134,3 +135,18 @@ export const getThemeParams = () => {
   
   return window.Telegram.WebApp.themeParams;
 }; 
+
+export const shareViaTelegram = (text: string, targetTypes: ('users' | 'groups' | 'channels')[] = ['users']): boolean => {
+  if (!isTelegramWebApp() || !window.Telegram?.WebApp?.switchInlineQuery) {
+    console.error("Telegram WebApp or switchInlineQuery not available");
+    return false;
+  }
+
+  try {
+    window.Telegram.WebApp.switchInlineQuery(text, targetTypes);
+    return true;
+  } catch (error) {
+    console.error("Error sharing via Telegram:", error);
+    return false;
+  }
+};

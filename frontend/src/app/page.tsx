@@ -17,6 +17,7 @@ import { ExploreSection } from "@/components/explore/ExploreSection";
 import { AnimatedBottomNav } from "@/components/AnimatedBottomNav";
 import { AnimatedForm } from "@/components/AnimatedForm";
 import { motion } from "framer-motion";
+import { ShareCardButton } from "@/components/ShareCardButton";
 import { 
   User, 
   Contact, 
@@ -52,6 +53,8 @@ const contentVariants = {
     }
   }
 };
+
+const BOTUSERNAME = "face_cards_bot"
 
 export default function Home() {
   const { user, refreshUser } = useAuth();
@@ -313,6 +316,10 @@ export default function Home() {
                           customLinks={customLinks}
                         />
                       </motion.div>
+
+                      {userData && (
+                        <ShareCardButton userId={userData.id} botUsername={BOTUSERNAME} />
+                      )}
                       
                       {/* Edit Buttons */}
                       <motion.div 
