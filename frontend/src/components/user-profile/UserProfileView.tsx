@@ -8,6 +8,8 @@ import { ChevronRight, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { closeApp } from "@/lib/telegram";
+
 
 type ViewSourceContext = 'backlink' | 'explore' | 'default';
 
@@ -36,8 +38,26 @@ export function UserProfileView({
   const router = useRouter();
 
   const navigateToMainCard = () => {
-    // Navigate to the main page
-    router.push('/');
+    console.log("Navigating to main card...");
+    
+    try {
+      // For Telegram WebApp, we need a different approach
+      // First try to use window.location for a hard redirect
+      window.location.href = '/';
+      
+      // If that doesn't immediately redirect (which would stop execution),
+      // use the router as a fallback
+      setTimeout(() => {
+        console.log("Fallback: Using router to navigate");
+        router.push('/');
+      }, 100);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      
+      // Last resort: close the app if it's in Telegram
+      console.log("Last resort: Closing app");
+      closeApp();
+    }
   };
 
   const getBackButtonText = () => {
@@ -56,6 +76,9 @@ export function UserProfileView({
       navigateToMainCard();
     } else if (onBack) {
       onBack();
+    } else {
+      console.log("No onBack handler provided, attempting navigation");
+      navigateToMainCard();
     }
   };
   
