@@ -19,7 +19,8 @@ import { AnimatedForm } from "@/components/AnimatedForm";
 import { motion } from "framer-motion";
 import { ShareCardButton } from "@/components/ShareCardButton";
 import { UserProfileView } from "@/components/user-profile/UserProfileView";
-
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { 
   User, 
   Contact, 
@@ -73,6 +74,9 @@ export default function Home() {
   
   // Animation states
   const [pageTransition, setPageTransition] = useState(false);
+
+  const { showOnboarding, completeOnboarding, isLoading: onboardingLoading } = useOnboarding();
+
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -340,6 +344,9 @@ export default function Home() {
   
   return (
     <ProtectedRoute>
+      {showOnboarding && !appLoading && (
+        <OnboardingFlow onComplete={completeOnboarding} />
+      )}
       <main className="flex min-h-screen flex-col items-center pb-16">
         <div className="w-full max-w-md flex-1 overflow-y-auto hide-scrollbar">
           <div 
