@@ -154,12 +154,13 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   useEffect(() => {
     // If toggling gradient but user is not premium, show toast and reset
     if (useGradient && !isPremium) {
-      // toast({
-      //   title: "Premium Feature",
-      //   description: "Gradient backgrounds are available with Premium",
-      //   variant: "default",
-      // });
-      setUseGradient(false);
+      console.log("isPremium", isPremium, "useGradient", useGradient)
+      toast({
+        title: "Premium Feature",
+        description: "Gradient backgrounds are available with Premium",
+        variant: "default",
+      });
+      // setUseGradient(false);
       setBackgroundType("color");
       return;
     }
