@@ -9,6 +9,7 @@ export function useOnboarding() {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
+    console.log("I AM HERE")
     // Only run if we have user data
     if (user) {
       // Check if user is newly registered
