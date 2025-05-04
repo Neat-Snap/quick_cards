@@ -9,6 +9,7 @@ import { toast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { closeApp, isTelegramWebApp } from "@/lib/telegram";
+import { botUsername } from "@/constants/constants";
 
 
 type ViewSourceContext = 'backlink' | 'explore' | 'default';
@@ -45,7 +46,7 @@ export function UserProfileView({
       if (isTelegramWebApp()) {
         // In Telegram, close and reopen might be the most reliable
         console.log("Closing Telegram WebApp to reset");
-        closeApp();
+        router.push(botUsername("1"))
         return;
       }
       
