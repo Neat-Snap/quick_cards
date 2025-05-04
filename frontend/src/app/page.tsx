@@ -75,20 +75,22 @@ export default function Home() {
   // Load user data on mount and when user changes
   useEffect(() => {
     if (user) {
-      startDataLoading(); // Signal that data loading has started
-      
-      // Wrap the data loading in an async function
       const loadData = async () => {
+        startDataLoading(); // Signal that data loading has started
+        
         try {
-          await loadUserData(); // Your existing function to load user data
+          await loadUserData(); // Wait for data to fully load
+        } catch (error) {
+          console.error("Error in data loading:", error);
+          // Consider showing an error toast here
         } finally {
-          finishDataLoading(); // Signal that data loading is complete, regardless of success/failure
+          finishDataLoading(); // Signal that data loading is complete
         }
       };
       
-      loadData();
+      loadData(); // Execute the async function
     }
-  }, [user]);
+  }, [user, startDataLoading, finishDataLoading]);
 
   if (appLoading) {
     return <LoadingScreen />;
