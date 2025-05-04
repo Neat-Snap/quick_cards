@@ -329,7 +329,8 @@ export default function Home() {
       <div className="p-4">
         <UserProfileView 
           userId={sharedUserId} 
-          fullScreen={true} 
+          fullScreen={true}
+          sourceContext="backlink" 
           showBackButton={true} 
           onBack={() => window.location.href = `https://t.me/face_cards_bot`}
         />

@@ -237,6 +237,7 @@ export function ExploreSection() {
           onBack={backToResults}
           showBackButton={true}
           fullScreen={true}
+          sourceContext="explore"
         />
       ) : (
         // Main Explore View
