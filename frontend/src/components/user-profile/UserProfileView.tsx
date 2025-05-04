@@ -8,7 +8,7 @@ import { ChevronRight, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { closeApp } from "@/lib/telegram";
+import { closeApp, isTelegramWebApp } from "@/lib/telegram";
 
 
 type ViewSourceContext = 'backlink' | 'explore' | 'default';
@@ -41,22 +41,25 @@ export function UserProfileView({
     console.log("Navigating to main card...");
     
     try {
-      // For Telegram WebApp, we need a different approach
-      // First try to use window.location for a hard redirect
-      window.location.href = '/';
+      // Force a complete reset of the app state
+      if (isTelegramWebApp()) {
+        // In Telegram, close and reopen might be the most reliable
+        console.log("Closing Telegram WebApp to reset");
+        closeApp();
+        return;
+      }
       
-      // If that doesn't immediately redirect (which would stop execution),
-      // use the router as a fallback
-      setTimeout(() => {
-        console.log("Fallback: Using router to navigate");
-        router.push('/');
-      }, 100);
+      // For browser environments, force a complete reload to the root
+      console.log("Forcing complete page reload to root");
+      window.location.href = window.location.origin;
+      
+      // Don't use router.push here since it might maintain some state
     } catch (error) {
       console.error("Navigation error:", error);
       
-      // Last resort: close the app if it's in Telegram
-      console.log("Last resort: Closing app");
-      closeApp();
+      // Last resort: reload the page
+      console.log("Last resort: Reloading page");
+      window.location.reload();
     }
   };
 
