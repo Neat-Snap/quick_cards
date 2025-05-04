@@ -16,6 +16,8 @@ export function useOnboarding() {
       console.log("is showing onboarding", user.name === "")
       setShowOnboarding(user.name === "");
       setIsLoading(false);
+    } else {
+      console.log("NOT USER")
     }
   }, [user]);
   
