@@ -16,7 +16,7 @@ export function useOnboarding() {
       // This relies on your API returning an is_new_user flag
       console.log("is showing onboarding", user.name === "")
       console.log("name is here", user.name)
-      setShowOnboarding(user.name === "");
+      setShowOnboarding(!user.name);
       setIsLoading(false);
     } else {
       console.log("NOT USER")
