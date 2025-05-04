@@ -8,7 +8,7 @@ import { ProjectsForm } from "@/components/projects-form";
 import { SkillsForm } from "@/components/skills-form";
 import { PremiumFeatures } from "@/components/premium-features";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Edit } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
@@ -71,26 +71,64 @@ export default function Home() {
   
   // Loading states
   const [loading, setLoading] = useState(true);
+
+  const loadingRef = useRef(false);
   
   // Load user data on mount and when user changes
   useEffect(() => {
-    if (user) {
+    // Only proceed if we have a user and aren't already loading
+    if (user && !loadingRef.current) {
       const loadData = async () => {
-        startDataLoading(); // Signal that data loading has started
+        // Set our ref flag to prevent duplicate loading
+        loadingRef.current = true;
+        startDataLoading();
         
         try {
-          await loadUserData(); // Wait for data to fully load
+          // Get current user with full data
+          console.log("Fetching user data...");
+          const userResponse = await getCurrentUser();
+          
+          if (!userResponse.success || !userResponse.user) {
+            throw new Error(userResponse.error || "Failed to load user data");
+          }
+          
+          // Update userData state
+          setUserData(userResponse.user);
+          
+          // Get other data in a single batch request
+          const [contactsData, projectsData, skillsData, linksData] = await Promise.all([
+            getUserContacts(),
+            getUserProjects(),
+            getUserSkills(),
+            getUserLinks()
+          ]);
+          
+          // Update state with the fetched data
+          setContacts(contactsData || []);
+          setProjects(projectsData || []);
+          setSkills(skillsData || []);
+          setCustomLinks(linksData || []);
+          
+          console.log("All data loaded successfully");
         } catch (error) {
-          console.error("Error in data loading:", error);
-          // Consider showing an error toast here
+          console.error("Error loading user data:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load your profile data.",
+            variant: "destructive",
+          });
         } finally {
-          finishDataLoading(); // Signal that data loading is complete
+          // Important: Reset the loading flag BEFORE finishing data loading
+          loadingRef.current = false;
+          setLoading(false);
+          finishDataLoading();
         }
       };
       
-      loadData(); // Execute the async function
+      loadData();
     }
-  }, [user, startDataLoading, finishDataLoading]);
+    // Only depend on user - not on the loading functions
+  }, [user]);
 
   if (appLoading) {
     return <LoadingScreen />;
