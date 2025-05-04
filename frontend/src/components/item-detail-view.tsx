@@ -319,7 +319,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
         >
           <Card className="w-full">
             
-            <div className="pt-2">
+            <div className="pt-2 flex flex-row justify-between items-center">
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -336,7 +336,7 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
                 </Button>
               </motion.div>
 
-              <div className="absolute top-2 right-2">
+                <div className="absolute top-2 right-2 mr-3 mt-2">
                 <motion.div
                   initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
                   animate={{ opacity: 1, rotate: 0, scale: 1 }}
