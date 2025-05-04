@@ -13,6 +13,7 @@ export function useOnboarding() {
     if (user) {
       // Check if user is newly registered
       // This relies on your API returning an is_new_user flag
+      console.log("is showing onboarding", user.name === "")
       setShowOnboarding(user.name === "");
       setIsLoading(false);
     }
