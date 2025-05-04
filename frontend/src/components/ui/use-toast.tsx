@@ -15,7 +15,7 @@ import {
 export type ToastProps = React.ComponentProps<typeof Toast>
 export type ToastActionElement = React.ReactElement
 
-export const TOAST_REMOVE_DELAY = 5000
+export const TOAST_REMOVE_DELAY = 3000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -67,6 +67,33 @@ const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case actionTypes.ADD_TOAST:
+      if (action.toast.id) {
+        const existingTimeout = toastTimeouts.get(action.toast.id);
+        if (existingTimeout) clearTimeout(existingTimeout);
+      }
+
+      // Set up the auto-dismiss timeout
+      if (action.toast.id) {
+        const duration = action.toast.duration || TOAST_REMOVE_DELAY;
+        const timeout = setTimeout(() => {
+          dispatch({
+            type: actionTypes.DISMISS_TOAST,
+            toastId: action.toast.id,
+          });
+          
+          // After animation completes, remove it from DOM
+          setTimeout(() => {
+            dispatch({
+              type: actionTypes.REMOVE_TOAST,
+              toastId: action.toast.id,
+            });
+          }, 300); // Animation duration
+          
+        }, duration);
+        
+        toastTimeouts.set(action.toast.id, timeout);
+      }
+      
       return {
         ...state,
         toasts: [...state.toasts, action.toast],
@@ -82,6 +109,12 @@ const reducer = (state: State, action: Action): State => {
 
     case actionTypes.DISMISS_TOAST: {
       const { toastId } = action
+
+      if (toastId) {
+        const timeout = toastTimeouts.get(toastId);
+        if (timeout) clearTimeout(timeout);
+        toastTimeouts.delete(toastId);
+      }
 
       // Toast is dismissed but still exists in the DOM
       if (toastId) {
@@ -106,6 +139,12 @@ const reducer = (state: State, action: Action): State => {
       }
     }
     case actionTypes.REMOVE_TOAST:
+      if (action.toastId) {
+        const timeout = toastTimeouts.get(action.toastId);
+        if (timeout) clearTimeout(timeout);
+        toastTimeouts.delete(action.toastId);
+      }
+
       if (action.toastId === undefined) {
         return {
           ...state,
@@ -133,7 +172,7 @@ function dispatch(action: Action) {
 interface Toast extends Omit<ToasterToast, "id"> {}
 
 // Directly export the toast function 
-export function toast({ ...props }: Toast) {
+export function toast({ duration, ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -148,6 +187,7 @@ export function toast({ ...props }: Toast) {
     toast: {
       ...props,
       id,
+      duration,
       open: true,
       onOpenChange: (open) => {
         if (!open) dismiss()

@@ -139,6 +139,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     const checkPremiumStatus = async () => {
       try {
         const premiumStatus = await getPremiumStatus();
+        console.log("got premium status from functions", premiumStatus)
         setIsPremium(premiumStatus.is_active);
       } catch (error) {
         console.error("Failed to check premium status:", error);
@@ -153,11 +154,11 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   useEffect(() => {
     // If toggling gradient but user is not premium, show toast and reset
     if (useGradient && !isPremium) {
-      toast({
-        title: "Premium Feature",
-        description: "Gradient backgrounds are available with Premium",
-        variant: "default",
-      });
+      // toast({
+      //   title: "Premium Feature",
+      //   description: "Gradient backgrounds are available with Premium",
+      //   variant: "default",
+      // });
       setUseGradient(false);
       setBackgroundType("color");
       return;
