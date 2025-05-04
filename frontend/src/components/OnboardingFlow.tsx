@@ -60,6 +60,16 @@ interface OnboardingFlowProps {
 export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [direction, setDirection] = useState<"right" | "left">("right");
+
+  useEffect(() => {
+    // Prevent scrolling on the body while onboarding is active
+    document.body.style.overflow = 'hidden';
+    
+    // Clean up when component unmounts
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
   
   const goToNextPage = () => {
     if (currentPage < onboardingPages.length - 1) {
@@ -212,7 +222,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
   
   return (
-    <div className="fixed inset-0 z-50 bg-background/50 backdrop-blur-md flex flex-col items-center">
+    <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center">
       {/* Skip button */}
       <div className="absolute top-4 right-4">
         <Button 
@@ -225,7 +235,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         </Button>
       </div>
       
-      <div className="w-full max-w-md flex-1 flex flex-col pt-12 pb-24 px-4">
+      <div className="w-full max-w-md flex-1 flex flex-col pt-12 pb-28 px-4"> {/* Increased bottom padding */}
         {/* Main content */}
         <div className="flex-1 relative overflow-hidden rounded-xl">
           <AnimatePresence custom={direction} initial={false}>
@@ -234,7 +244,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         </div>
         
         {/* Bottom navigation */}
-        <div className="pt-8 pb-4">
+        <div className="pt-8 pb-8"> {/* Increased bottom padding */}
           {/* Page indicators */}
           <div className="flex justify-center gap-2 mb-6">
             {onboardingPages.map((_, index) => (

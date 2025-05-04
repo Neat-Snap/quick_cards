@@ -602,11 +602,13 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Use the AnimatedBottomNav component */}
-        <AnimatedBottomNav 
-          activeTab={activeTab} 
-          onChange={handleTabChange} 
-        />
+        {/* Only show the bottom nav when onboarding is not visible */}
+        {!showOnboarding && (
+          <AnimatedBottomNav 
+            activeTab={activeTab} 
+            onChange={handleTabChange} 
+          />
+        )}
       </main>
     </ProtectedRoute>
   );
