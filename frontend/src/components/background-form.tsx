@@ -78,6 +78,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   const [backgroundValueError, setBackgroundValueError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [isPremiumLoading, setIsPremiumLoading] = useState(true);
   
   // Helper function to extract end color from gradient string
   function extractEndColor(gradientString: string): string | null {
@@ -144,6 +145,8 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
       } catch (error) {
         console.error("Failed to check premium status:", error);
         setIsPremium(false);
+      } finally {
+        setIsPremiumLoading(false);
       }
     };
     
@@ -152,6 +155,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   
   // Handle toggling gradient
   useEffect(() => {
+    if (isPremiumLoading) return; // Wait until premium status is loaded
     // If toggling gradient but user is not premium, show toast and reset
     if (useGradient && !isPremium) {
       console.log("isPremium", isPremium, "useGradient", useGradient)
@@ -172,7 +176,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     } else {
       setBackgroundType("color");
     }
-  }, [useGradient, customBackground, customBackgroundPreview, isPremium]);
+  }, [useGradient, customBackground, customBackgroundPreview, isPremium, isPremiumLoading]);
   
   // Handle custom background file selection
   const handleBackgroundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -334,7 +338,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
               id="gradient"
               checked={useGradient}
               onCheckedChange={setUseGradient}
-              disabled={!isPremium}
+              disabled={!isPremium || isPremiumLoading}
             />
             <Label htmlFor="gradient" className={!isPremium ? "text-muted-foreground" : ""}>
               Use Gradient
@@ -375,14 +379,14 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
                 className="hidden" 
                 accept="image/*"
                 onChange={handleBackgroundChange}
-                disabled={!isPremium}
+                disabled={!isPremium || isPremiumLoading}
               />
               <Button
                 type="button"
                 variant="outline"
                 className="w-full"
                 onClick={() => document.getElementById("customBackground")?.click()}
-                disabled={!isPremium}
+                disabled={!isPremium || isPremiumLoading}
               >
                 Choose File
               </Button>
