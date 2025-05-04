@@ -36,7 +36,7 @@ export function AnimatedForm({
             damping: 30,
             mass: 1
           }}
-          className="w-full absolute top-0 left-0 right-0 z-10 overflow-y-auto max-h-screen pb-16"
+          className="w-full absolute top-0 left-0 right-0 z-10 overflow-y-auto hide-scrollbar max-h-screen pb-16"
           style={{ minHeight: "100%" }}
         >
           <Card className="overflow-hidden mb-4 min-h-[calc(100vh-6rem)]">

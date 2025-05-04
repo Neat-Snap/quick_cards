@@ -256,3 +256,23 @@
   transform: scale(0.98);
   transition: opacity 300ms, transform 300ms;
 }
+
+.show-scrollbar {
+  overflow-y: auto;
+  /* Custom scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+.show-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.show-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.show-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 20px;
+}

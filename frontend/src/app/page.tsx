@@ -212,12 +212,12 @@ export default function Home() {
   return (
     <ProtectedRoute>
       <main className="flex min-h-screen flex-col items-center pb-16">
-        <div className="w-full max-w-md flex-1 overflow-y-auto">
+        <div className="w-full max-w-md flex-1 overflow-y-auto hide-scrollbar">
           <div 
             className={`transition-opacity duration-200 ${pageTransition ? 'opacity-0' : 'opacity-100'}`}
           >
             {activeTab === "card" && (
-              <div className="p-4">
+              <div className="p-4 overflow-y-auto hide-scrollbar">
                 <motion.h1 
                   className="text-2xl font-bold mb-4"
                   initial={{ opacity: 0, y: -10 }}
@@ -426,13 +426,13 @@ export default function Home() {
             )}
             
             {activeTab === "explore" && (
-              <div className="p-4">
+              <div className="p-4 overflow-y-auto hide-scrollbar">
                 <ExploreSection />
               </div>
             )}
             
             {activeTab === "premium" && (
-              <div className="p-4">
+              <div className="p-4 overflow-y-auto hide-scrollbar">
                 <motion.h1 
                   className="text-2xl font-bold mb-4"
                   initial={{ opacity: 0, y: -10 }}

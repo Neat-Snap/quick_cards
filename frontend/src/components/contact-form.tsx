@@ -517,7 +517,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           {contacts.length > 0 ? (
             <div className="space-y-4">
               <h4 className="font-medium">Your Contacts ({contacts.length})</h4>
-              <div className="max-h-64 overflow-y-auto pr-1">
+              <div className="max-h-64 overflow-y-auto pr-1 show-scrollbar">
                 {contacts.map((contact) => (
                   <div 
                     key={contact.id} 
