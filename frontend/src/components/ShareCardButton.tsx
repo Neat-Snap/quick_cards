@@ -25,11 +25,13 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
   const [loading, setLoading] = useState(false);
   const storyPreviewRef = useRef<HTMLDivElement>(null);
   const [generatingStory, setGeneratingStory] = useState(false);
+  const fetchedRef = useRef(false);
   
   // Reset state when dialog closes
   useEffect(() => {
     if (!isOpen) {
       setActiveTab("link");
+      fetchedRef.current = false;
       if (!userData) {
         setUser(null);
       }
@@ -39,7 +41,14 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
   // Fetch user data if not provided and dialog is open
   useEffect(() => {
     const fetchUserData = async () => {
-      if (!userData && isOpen && !user && !loading) {
+      // Only fetch if:
+      // 1. No userData was provided as a prop
+      // 2. Dialog is open
+      // 3. We don't already have user data
+      // 4. We're not already loading
+      // 5. We haven't already fetched in this dialog session
+      if (!userData && isOpen && !user && !loading && !fetchedRef.current) {
+        fetchedRef.current = true; // Mark that we've attempted to fetch
         setLoading(true);
         try {
           console.log("Fetching user data for story...");
@@ -60,7 +69,7 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
     };
     
     fetchUserData();
-  }, [userId, userData, isOpen, user, loading]);
+  }, [userId, userData, isOpen]); // Removed user and loading from dependency array
 
   // Generate the shareable link
   const getShareLink = () => {
