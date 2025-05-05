@@ -290,7 +290,8 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
 
         set_user(user_data)
 
-        return JSONResponse(status_code=200, content={"success": True, "user": user_data})
+        json_compatible_data = jsonable_encoder(user_data)
+        return JSONResponse(status_code=200, content={"success": True, "user": json_compatible_data})
     except Exception as e:
         logger.error(f"Error uploading avatar: {str(e)}")
         return JSONResponse(status_code=500, content={"error": f"Failed to upload avatar: {str(e)}"})
