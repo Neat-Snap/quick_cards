@@ -100,9 +100,7 @@ def process_successful_payment(message):
             
             requests.post(f"{settings.APP_URL}/api/v1/premium/successful_payment", json={"user_id": user_id, "tier": tier, "security_code": settings.SECURITY_CODE})
             
-            # Update user's premium status directly
-            with app.app_context():
-                update_user_premium_status(user_id, tier)
+            update_user_premium_status(user_id, tier)
             
             # Send confirmation to user
             bot.send_message(
