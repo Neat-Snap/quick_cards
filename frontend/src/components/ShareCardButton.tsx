@@ -198,7 +198,7 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
       // Create complete image URL if it's a relative path
       const fullImageUrl = imageUrl.startsWith('http') 
         ? imageUrl 
-        : `${window.location.origin}$/api/v1{imageUrl}`;
+        : `${window.location.origin}/api/v1${imageUrl}`;
       
       // Share to story using Telegram's native API
       if (typeof window.Telegram?.WebApp?.shareToStory === 'function') {
