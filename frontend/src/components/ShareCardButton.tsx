@@ -132,6 +132,38 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
     }
   };
 
+  // Function to upload story image to server
+  const uploadStoryImage = async (blob: Blob): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', blob, 'story-image.jpg');
+    
+    try {
+      const response = await fetch('/api/v1/users/me/story', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to upload story image: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // The server should return the URL to the uploaded image
+      if (data && data.url) {
+        return data.url;
+      } else if (data && data.file_url) {
+        return data.file_url;
+      } else {
+        throw new Error('Invalid response from server');
+      }
+    } catch (error) {
+      console.error('Error uploading story image:', error);
+      throw error;
+    }
+  };
+
   // Handle story share
   const handleStoryShare = async () => {
     if (!storyPreviewRef.current || !window.Telegram?.WebApp) {
@@ -151,42 +183,50 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
         backgroundColor: null
       });
       
-      // Get data URL from canvas
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else throw new Error('Failed to convert canvas to blob');
+        }, 'image/jpeg', 0.9);
+      });
+      
+      // Upload image to server and get URL
+      const imageUrl = await uploadStoryImage(blob);
+      console.log('Story image uploaded, URL:', imageUrl);
+      
+      // Create complete image URL if it's a relative path
+      const fullImageUrl = imageUrl.startsWith('http') 
+        ? imageUrl 
+        : `${window.location.origin}${imageUrl}`;
       
       // Share to story using Telegram's native API
       if (typeof window.Telegram?.WebApp?.shareStory === 'function') {
-        // Use the shareStory method if available
-        window.Telegram.WebApp.shareStory(dataUrl);
+        // Use the shareStory method if available with the URL
+        window.Telegram.WebApp.shareStory(fullImageUrl);
         setIsOpen(false);
       } else if (typeof window.Telegram?.WebApp?.sendData === 'function') {
         // Alternative using sendData (for older WebApp versions)
         window.Telegram.WebApp.sendData(JSON.stringify({
           type: 'share_story',
-          image: dataUrl,
+          image: fullImageUrl,
           text: "Check out my digital business card!"
         }));
         setIsOpen(false);
       } else {
-        // Fallback to manual sharing
-        // Create a temporary link element
-        const link = document.createElement('a');
-        link.href = dataUrl;
-        link.download = 'quickcard-story.jpg';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Fallback to opening the image in a new tab
+        window.open(fullImageUrl, '_blank');
         
         toast({
           title: "Story image created",
-          description: "You can now share this image in your Telegram story",
+          description: "Image has been created and opened in a new tab",
         });
       }
     } catch (error) {
       console.error("Error generating story:", error);
       toast({
         title: "Failed to create story",
-        description: "There was an error generating your story image",
+        description: error instanceof Error ? error.message : "There was an error generating your story image",
         variant: "destructive"
       });
     } finally {

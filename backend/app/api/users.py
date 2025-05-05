@@ -11,6 +11,7 @@ from sqlalchemy import or_
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
+stories_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "stories")
 
 from app.core.search import get_skill_search
 from app.middleware import *
@@ -246,6 +247,50 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
         return JSONResponse(status_code=400, content={"error": "File type not allowed"})
     
     os.makedirs(images_path, exist_ok=True)
+
+    extension = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"{user_id}.{extension}"
+    file_path = os.path.join(images_path, filename)
+
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            
+        file_content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+
+        user_data = get_user(user_id)
+        if not user_data:
+            return JSONResponse(status_code=404, content={"error": "User not found"})
+            
+        avatar_url = f"/files/profile/{filename}"
+        user_data["avatar_url"] = avatar_url
+
+        set_user(user_data)
+
+        return JSONResponse(status_code=200, content={"success": True, "avatar_url": avatar_url})
+    except Exception as e:
+        logger.error(f"Error uploading avatar: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": f"Failed to upload avatar: {str(e)}"})
+    
+@router.post("/users/me/story")
+async def upload_story(context: AuthContext = Depends(get_auth_context), file: UploadFile = File(...)):
+    user_id, error = check_context(context)
+    if not user_id or error:
+        return error
+    
+    if not file:
+        return JSONResponse(status_code=400, content={"error": "No file provided"})
+    
+    if file.filename == '':
+        return JSONResponse(status_code=400, content={"error": "No file selected"})
+    
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return JSONResponse(status_code=400, content={"error": "File type not allowed"})
+    
+    os.makedirs(stories_path, exist_ok=True)
 
     extension = file.filename.rsplit('.', 1)[1].lower()
     filename = f"{user_id}.{extension}"
