@@ -115,8 +115,6 @@ def process_successful_payment(message):
 
 
 
-
-# Admin notification function
 def notify_admins(message):
     for admin_id in settings.ADMIN_USER_IDS:
         try:
@@ -124,7 +122,7 @@ def notify_admins(message):
         except Exception as e:
             print(f"Failed to notify admin {admin_id}: {e}")
 
-# Start the bot
+
 if __name__ == "__main__":
     print("Bot started...")
     bot.polling(none_stop=True) 
