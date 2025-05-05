@@ -329,7 +329,7 @@ export function BusinessCardPreview({
                               className="text-xs text-primary hover:underline truncate"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {project.url}
+                              {project.url.replace(/^https?:\/\//, "")}
                             </a>
                           </div>
                         )}
