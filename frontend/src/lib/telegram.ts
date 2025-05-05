@@ -4,7 +4,7 @@ declare global {
   interface Window {
     Telegram: {
       WebApp: {
-        shareStory?: (dataUrl: string) => void;
+        shareToStory?: (dataUrl: string) => void;
         sendData?: (data: string) => void;
         initData: string;
         initDataUnsafe: {

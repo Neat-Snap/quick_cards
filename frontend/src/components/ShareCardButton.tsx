@@ -201,9 +201,9 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
         : `${window.location.origin}${imageUrl}`;
       
       // Share to story using Telegram's native API
-      if (typeof window.Telegram?.WebApp?.shareStory === 'function') {
+      if (typeof window.Telegram?.WebApp?.shareToStory === 'function') {
         // Use the shareStory method if available with the URL
-        window.Telegram.WebApp.shareStory(fullImageUrl);
+        window.Telegram.WebApp.shareToStory(fullImageUrl);
         setIsOpen(false);
       } else if (typeof window.Telegram?.WebApp?.sendData === 'function') {
         // Alternative using sendData (for older WebApp versions)
