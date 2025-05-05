@@ -369,7 +369,7 @@ export default function Home() {
                       className="mr-3"
                     >
                       <img 
-                        src="/public/images/logo.svg" 
+                        src="../../public/images/logo.svg" 
                         alt="QuickCard Logo" 
                         className="h-8 w-8" 
                       />
