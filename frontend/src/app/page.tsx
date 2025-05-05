@@ -624,14 +624,33 @@ export default function Home() {
             
             {activeTab === "premium" && (
               <div className="p-4 overflow-y-auto hide-scrollbar">
-                <motion.h1 
-                  className="text-2xl font-bold mb-4"
+                <motion.div 
+                  className="flex items-center justify-between mb-6"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  Premium Features
-                </motion.h1>
+                  <div className="flex items-center">
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                      className="mr-3"
+                    >
+                      <img 
+                        src="/static/images/logo.svg" 
+                        alt="QuickCard Logo" 
+                        className="h-8 w-8" 
+                      />
+                    </motion.div>
+                    <div>
+                      <h1 className="text-2xl font-bold">Premium</h1>
+                      <p className="text-sm text-muted-foreground">
+                        Upgrade your business card
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
                 <motion.div
                   variants={contentVariants}
                   initial="hidden"
