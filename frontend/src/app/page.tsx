@@ -355,7 +355,7 @@ export default function Home() {
           >
             {activeTab === "card" && (
               <div className="p-4 overflow-y-auto hide-scrollbar">
-                <motion.div 
+                {/* <motion.div 
                   className="flex items-center justify-between mb-6"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -383,7 +383,7 @@ export default function Home() {
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </motion.div> */}
                 
                 {/* Show card preview and edit buttons only when not editing */}
                 {!editSection && (
@@ -598,7 +598,7 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center">
-                    <motion.div
+                    {/* <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.4, delay: 0.1 }}
@@ -609,7 +609,7 @@ export default function Home() {
                         alt="QuickCard Logo" 
                         className="h-10 w-10" 
                       />
-                    </motion.div>
+                    </motion.div> */}
                     <div>
                       <h1 className="text-2xl font-bold">Explore</h1>
                       <p className="text-sm text-muted-foreground">
