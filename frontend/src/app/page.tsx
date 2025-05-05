@@ -631,7 +631,7 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center">
-                    <motion.div
+                    {/* <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.4, delay: 0.1 }}
@@ -642,7 +642,7 @@ export default function Home() {
                         alt="QuickCard Logo" 
                         className="h-8 w-8" 
                       />
-                    </motion.div>
+                    </motion.div> */}
                     <div>
                       <h1 className="text-2xl font-bold">Premium</h1>
                       <p className="text-sm text-muted-foreground">
