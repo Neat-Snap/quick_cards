@@ -199,7 +199,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         <Separator />
         <div className="flex flex-col items-center gap-4">
           <Avatar className="h-24 w-24 border">
-            <AvatarImage src={getAvatarUrl(user?.avatar_url)} alt="Profile" />
+            <AvatarImage src={avatarPreview || getAvatarUrl(user?.avatar_url)} alt="Profile" />
             <AvatarFallback>
               {user?.first_name?.charAt(0) || ""}
               {user?.last_name?.charAt(0) || ""}
