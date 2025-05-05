@@ -192,7 +192,7 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
       });
       
       // Upload image to server and get URL
-      const imageUrl = await uploadStoryImage(blob);
+      const imageUrl = await uploadStory(blob);
       console.log('Story image uploaded, URL:', imageUrl);
       
       // Create complete image URL if it's a relative path
