@@ -341,7 +341,7 @@ export function BusinessCardPreview({
             </div>
           </div>
         )}
-        {projects && projects.length === 0 && (
+        {/* {projects && projects.length === 0 && (
           <div className="w-full">
             <h3 className="text-sm font-medium mb-3">Projects</h3>
             <Card className="bg-muted/30">
@@ -350,7 +350,7 @@ export function BusinessCardPreview({
               </CardContent>
             </Card>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Render detail view if active */}
