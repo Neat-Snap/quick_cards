@@ -132,6 +132,7 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
         return JSONResponse(status_code=400, content={"error": error or "Invalid user data"})
     
     tier = user_data["tier"]
+    logger.info(f"Updating avatar with user data: {user_data}")
     is_available, message = validate_user_premium_data(user_data, tier)
     if not is_available:
         return JSONResponse(status_code=400, content={"error": error or f"Reached the limits: {message}"})
@@ -248,6 +249,7 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
         return JSONResponse(status_code=400, content={"error": "No file selected"})
     
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    #TODO что то сделать с проверкой
     if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
         return JSONResponse(status_code=400, content={"error": "File type not allowed"})
     
