@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StoryPreview } from "@/components/StoryPreview";
-import { User, getUserById } from "@/lib/api";
+import { User, getUserById, uploadStory } from "@/lib/api";
 import html2canvas from 'html2canvas';
 
 interface ShareCardButtonProps {
@@ -133,36 +133,36 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
   };
 
   // Function to upload story image to server
-  const uploadStoryImage = async (blob: Blob): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', blob, 'story-image.jpg');
+  // const uploadStoryImage = async (blob: Blob): Promise<string> => {
+  //   const formData = new FormData();
+  //   formData.append('file', blob, 'story-image.jpg');
     
-    try {
-      const response = await fetch('/api/v1/users/me/story', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+  //   try {
+  //     const response = await fetch('/api/v1/users/me/story', {
+  //       method: 'POST',
+  //       body: formData,
+  //       credentials: 'include',
+  //     });
       
-      if (!response.ok) {
-        throw new Error(`Failed to upload story image: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`Failed to upload story image: ${response.status}`);
+  //     }
       
-      const data = await response.json();
+  //     const data = await response.json();
       
-      // The server should return the URL to the uploaded image
-      if (data && data.url) {
-        return data.url;
-      } else if (data && data.file_url) {
-        return data.file_url;
-      } else {
-        throw new Error('Invalid response from server');
-      }
-    } catch (error) {
-      console.error('Error uploading story image:', error);
-      throw error;
-    }
-  };
+  //     // The server should return the URL to the uploaded image
+  //     if (data && data.url) {
+  //       return data.url;
+  //     } else if (data && data.file_url) {
+  //       return data.file_url;
+  //     } else {
+  //       throw new Error('Invalid response from server');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error uploading story image:', error);
+  //     throw error;
+  //   }
+  // };
 
   // Handle story share
   const handleStoryShare = async () => {
