@@ -89,7 +89,7 @@ async def check_payment(request: Request):
             "premium_status": {
                 "premium_tier": tier,
                 "tier_name": get_tier_name(tier),
-                "expires_at": (datetime.now() + timedelta(days=30)).isoformat(),
+                "expires_at": str((datetime.now() + timedelta(days=30)).isoformat()),
                 "is_active": True
             }
         })
@@ -102,7 +102,7 @@ async def check_payment(request: Request):
             "premium_status": {
                 "premium_tier": user_data.get("premium_tier", 0),
                 "tier_name": get_tier_name(user_data.get("premium_tier", 0)),
-                "expires_at": user_data.get("premium_expires_at", None),
+                "expires_at": str(user_data.get("premium_expires_at", None)),
                 "is_active": True
             }
         })
