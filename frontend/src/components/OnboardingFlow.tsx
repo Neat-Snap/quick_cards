@@ -264,20 +264,20 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   <Button 
                     variant="outline" 
                     onClick={goToPrevPage}
-                    className="gap-2"
+                    className="gap-2 min-w-[120px]"
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Back
                   </Button>
                 ) : (
                   // Empty div for layout
-                  <div>{}</div>
+                  <div className="min-w-[120px]">{}</div>
                 )}
                 
                 <Button
                   variant="default"
                   onClick={goToNextPage}
-                  className="px-6"
+                  className="min-w-[120px]"
                 >
                   {currentPage < onboardingPages.length - 1 ? (
                     <>
