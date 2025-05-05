@@ -64,7 +64,7 @@ async def check_new_endpount(user_id: int):
 
 @router.post("/users/new/update")
 async def update_new_endpoint(request: Request):
-    data = request.json()
+    data = await request.json()
     if not data or "user_id" not in data:
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
     
