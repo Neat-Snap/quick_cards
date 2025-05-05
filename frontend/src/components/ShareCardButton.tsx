@@ -17,6 +17,10 @@ interface ShareCardButtonProps {
   userData?: User | null;
 }
 
+function isUser(obj: any): obj is User {
+  return obj && typeof obj.id === "number";
+}
+
 export function ShareCardButton({ userId, botUsername = "face_cards_bot", userData = null }: ShareCardButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -55,16 +59,15 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
           const response = await getUserById(userId.toString());
           console.log("User data response:", response);
           
-          // Check if response is the user object directly or has a nested structure
-          if (response) {
-            if (response.success && response.user) {
-              // Handle response format: { success: true, user: {...} }
-              setUser(response.user);
-            } else {
-              console.error("Failed to get valid user data");
-            }
+          // Check if response is the user object directly or has expected structure
+          if (isUser(response)) {
+            // API returned user object directly
+            setUser(response);
+          } else if (response && response.success && response.user) {
+            // API returned {success: true, user: {...}}
+            setUser(response.user);
           } else {
-            console.error("Empty response from getUserById");
+            console.error("Failed to get valid user data");
           }
         } catch (error) {
           console.error("Error fetching user data for story:", error);
