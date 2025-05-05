@@ -294,7 +294,7 @@ async def upload_story(context: AuthContext = Depends(get_auth_context), file: U
 
     extension = file.filename.rsplit('.', 1)[1].lower()
     filename = f"{user_id}.{extension}"
-    file_path = os.path.join(images_path, filename)
+    file_path = os.path.join(stories_path, filename)
 
     logger.info(f"final file path for uploading story: {file_path}")
 
