@@ -355,14 +355,35 @@ export default function Home() {
           >
             {activeTab === "card" && (
               <div className="p-4 overflow-y-auto hide-scrollbar">
-                <motion.h1 
-                  className="text-2xl font-bold mb-4"
+                <motion.div 
+                  className="flex items-center justify-between mb-6"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  {userData ? `${userData.name}'s Card` : 'Your Card'}
-                </motion.h1>
+                  <div className="flex items-center">
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                      className="mr-3"
+                    >
+                      <img 
+                        src="/public/images/logo.svg" 
+                        alt="QuickCard Logo" 
+                        className="h-8 w-8" 
+                      />
+                    </motion.div>
+                    <div>
+                      <h1 className="text-2xl font-bold">QuickCard</h1>
+                      {userData && (
+                        <p className="text-sm text-muted-foreground">
+                          {userData.name} Card
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
                 
                 {/* Show card preview and edit buttons only when not editing */}
                 {!editSection && (
@@ -570,6 +591,33 @@ export default function Home() {
             
             {activeTab === "explore" && (
               <div className="p-4 overflow-y-auto hide-scrollbar">
+                <motion.div 
+                  className="flex items-center justify-between mb-6"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="flex items-center">
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                      className="mr-3"
+                    >
+                      <img 
+                        src="/static/images/logo.svg" 
+                        alt="QuickCard Logo" 
+                        className="h-8 w-8" 
+                      />
+                    </motion.div>
+                    <div>
+                      <h1 className="text-2xl font-bold">Explore</h1>
+                      <p className="text-sm text-muted-foreground">
+                        Discover other business cards
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
                 <ExploreSection />
               </div>
             )}
