@@ -79,6 +79,8 @@ async def initialize_from_telegram(request: Request):
         if not user_data:
             is_new_user = True
             logger.info(f"Creating new user with id: {user_id}")
+
+            logger.info(f"Creating user with user info: {user_info}")
             
             success = create_user(
                 user_id=user_id,
@@ -86,7 +88,7 @@ async def initialize_from_telegram(request: Request):
                 name=user_info.get('first_name', '') + (f" {user_info.get('last_name', '')}" if user_info.get('last_name') else ''),
                 avatar_url=user_info.get('photo_url', ''),
                 background_type="color",
-                background_value="#f0f0f0",
+                background_value="#1e293b",
                 description="",
                 badge="New User"
             )
