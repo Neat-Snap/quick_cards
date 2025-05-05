@@ -131,7 +131,7 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
     if not is_valid:
         return JSONResponse(status_code=400, content={"error": error or "Invalid user data"})
     
-    tier = user_data["tier"]
+    tier = user_data["premium_tier"]
     logger.info(f"Updating avatar with user data: {user_data}")
     is_available, message = validate_user_premium_data(user_data, tier)
     if not is_available:
@@ -445,7 +445,7 @@ async def create_project_endpoint(request: Request, context: AuthContext = Depen
     
     project_data = get_projects(user_id)
     user_data = get_user(user_id)
-    tier = user_data["tier"]
+    tier = user_data["premium_tier"]
     is_available, message = validate_projects_limit(project_data, tier)
     if not is_available:
         return JSONResponse(status_code=400, content={"error": f"Reached limits: {message}"})
