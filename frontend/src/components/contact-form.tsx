@@ -17,7 +17,7 @@ const ALLOWED_CONTACT_TYPES = ["email", "phone", "telegram", "website"];
 const MAX_VALUE_LENGTH = 255;
 const PHONE_REGEX = /^\+?\d{7,16}$/;
 const EMAIL_REGEX = /^[^@]+@[^@]+\.[^@]+$/;
-const TELEGRAM_REGEX = /^@?[a-zA-Z0-9_]{5,32}$/;
+const TELEGRAM_REGEX = /^@?[a-zA-Z0-9_]{4,32}$/;
 const WEBSITE_REGEX = /^https?:\/\/[^\s\/$.?#].[^\s]*$/;
 
 interface ContactFormProps {

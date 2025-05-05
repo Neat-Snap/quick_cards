@@ -2,7 +2,7 @@ from typing import List, Optional
 import logging
 from datetime import datetime, timedelta
 from app.core.search import get_skill_search
-from app.core.validations import validate_string, validate_user_data, validate_contact, validate_project
+from app.core.validations import validate_string, validate_user_data, validate_contact, validate_project, validate_skills_limit, validate_links_limit, validate_projects_limit, validate_user_premium_data
 from app.db.models import User, Contact, Project, Skill, CustomLink, user_skill
 from app.schemas import UserResponse
 import sys
@@ -11,6 +11,7 @@ from sqlalchemy import or_
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
+stories_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "story")
 
 from app.core.search import get_skill_search
 from app.middleware import *
@@ -130,6 +131,12 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
     if not is_valid:
         return JSONResponse(status_code=400, content={"error": error or "Invalid user data"})
     
+    tier = user_data["premium_tier"]
+    logger.info(f"Updating avatar with user data: {user_data}")
+    is_available, message = validate_user_premium_data(user_data)
+    if not is_available:
+        return JSONResponse(status_code=400, content={"error": error or f"Reached the limits: {message}"})
+    
     set_user(user_data)
 
     json_compatible_data = jsonable_encoder(user_data)
@@ -242,6 +249,7 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
         return JSONResponse(status_code=400, content={"error": "No file selected"})
     
     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    #TODO что то сделать с проверкой
     if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
         return JSONResponse(status_code=400, content={"error": "File type not allowed"})
     
@@ -273,6 +281,49 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
         logger.error(f"Error uploading avatar: {str(e)}")
         return JSONResponse(status_code=500, content={"error": f"Failed to upload avatar: {str(e)}"})
     
+@router.post("/users/me/story")
+async def upload_story(context: AuthContext = Depends(get_auth_context), file: UploadFile = File(...)):
+    user_id, error = check_context(context)
+    if not user_id or error:
+        return error
+    
+    if not file:
+        return JSONResponse(status_code=400, content={"error": "No file provided"})
+    
+    if file.filename == '':
+        return JSONResponse(status_code=400, content={"error": "No file selected"})
+    
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return JSONResponse(status_code=400, content={"error": "File type not allowed"})
+    
+    os.makedirs(stories_path, exist_ok=True)
+
+    extension = file.filename.rsplit('.', 1)[1].lower()
+    filename = f"{user_id}.{extension}"
+    file_path = os.path.join(stories_path, filename)
+
+    logger.info(f"final file path for uploading story: {file_path}")
+
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            
+        file_content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+
+        # user_data = get_user(user_id)
+        # if not user_data:
+        #     return JSONResponse(status_code=404, content={"error": "User not found"})
+            
+        avatar_url = f"/files/story/{filename}"
+
+        return JSONResponse(status_code=200, content={"success": True, "avatar_url": avatar_url})
+    except Exception as e:
+        logger.error(f"Error uploading avatar: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": f"Failed to upload avatar: {str(e)}"})
+    
     
 @router.post("/users/me/contacts")
 async def create_contact_endpoint(request: Request, context: AuthContext = Depends(get_auth_context)):
@@ -290,8 +341,12 @@ async def create_contact_endpoint(request: Request, context: AuthContext = Depen
     
     user_contacts = get_contacts(user_id)
     user_data = get_user(user_id)
-    if len(user_contacts) >= 3 and user_data.get("premium_tier", 0) == 0:
+    tier = user_data["premium_tier"]
+    is_available, message = validate_links_limit(user_contacts, tier)
+    if not is_available:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for more than 3 contacts"})
+    
+
     
     try:
         contact_data = create_contact(
@@ -328,6 +383,8 @@ async def update_contact(contact_id: int, request: Request, context: AuthContext
     is_valid, validation_error = validate_contact(contact)
     if not is_valid:
         return JSONResponse(status_code=400, content={"error": validation_error or "Invalid contact data"})
+    
+    # is_available, message = validate_links_limit(contact)
     
     try:
         updated_contact = set_contact_data(contact)
@@ -385,6 +442,13 @@ async def create_project_endpoint(request: Request, context: AuthContext = Depen
     is_valid, validation_error = validate_project(data)
     if not is_valid:
         return JSONResponse(status_code=400, content={"error": validation_error or "Invalid project data"})
+    
+    project_data = get_projects(user_id)
+    user_data = get_user(user_id)
+    tier = user_data["premium_tier"]
+    is_available, message = validate_projects_limit(project_data, tier)
+    if not is_available:
+        return JSONResponse(status_code=400, content={"error": f"Reached limits: {message}"})
     
     try:
         project_data = create_project(
@@ -621,6 +685,13 @@ async def create_skill_endpoint(request: Request, context: AuthContext = Depends
                     is_predefined=False
                 )
                 msg = "Custom skill created and added to user"
+            
+            skills_data = get_skills(user_id)
+            tier = user_data["premium_tier"]
+            is_available, message = validate_skills_limit(skills_data, tier=tier)
+            if not is_available:
+                return JSONResponse(status_code=403, content=f"Reached limit: {message}")
+
             
             session.add(new_skill)
             session.flush()  

@@ -223,68 +223,135 @@ export function BusinessCardPreview({
   return (
     <>
       <ScrollableStyles />
-      <Card className="overflow-hidden" style={getBackgroundStyle()}>
-        <CardContent className="p-6">
-          <div className="flex flex-col items-center">
-            {/* User Info Section */}
-            <Avatar className="h-24 w-24 mb-4 border-4 border-white">
-              <AvatarImage 
-                src={getAvatarUrl(user?.avatar_url)} 
-                alt={`${fullName}`} 
-              />
-              <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            
-            <div className="flex items-center gap-2 mb-2">
-              <h2 className="text-2xl font-bold text-white">{fullName}</h2>
-              {user?.badge && (
-                <Badge variant="secondary">{user.badge}</Badge>
+      <div className="space-y-6">
+        {/* Main Card */}
+        <Card className="overflow-hidden" style={getBackgroundStyle()}>
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center">
+              {/* User Info Section */}
+              <Avatar className="h-24 w-24 mb-4 border-4 border-white">
+                <AvatarImage 
+                  src={getAvatarUrl(user?.avatar_url)} 
+                  alt={`${fullName}`} 
+                />
+                <AvatarFallback>{firstName.charAt(0)}{lastName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              
+              <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-2xl font-bold text-white">{fullName}</h2>
+                {user?.badge && (
+                  <Badge variant="secondary">{user.badge}</Badge>
+                )}
+              </div>
+              
+              <p className="text-sm text-white/70 mb-4">@{username}</p>
+              
+              <p className="text-sm text-white/90 text-center mb-6">
+                {description}
+              </p>
+              
+              {contacts && contacts.length > 0 && (
+                <div className="w-full mb-4">
+                  <ScrollableSection 
+                    title="Contacts" 
+                    emptyMessage="No contacts added yet"
+                  >
+                    {contacts.map(contact => renderContactCard(contact))}
+                  </ScrollableSection>
+                </div>
+              )}
+              
+              {customLinks && customLinks.length > 0 && (
+                <div className="w-full mb-4">
+                  <ScrollableSection title="Links" emptyMessage="No links added yet">
+                    {customLinks.map(link => renderLinkCard(link))}
+                  </ScrollableSection>
+                </div>
+              )}
+              
+              {skills && skills.length > 0 && (
+                <div className="w-full">
+                  <ScrollableSection title="Skills" emptyMessage="No skills added yet">
+                    {skills.map(skill => renderSkillCard(skill))}
+                  </ScrollableSection>
+                </div>
               )}
             </div>
-            
-            <p className="text-sm text-white/70 mb-4">@{username}</p>
-            
-            <p className="text-sm text-white/90 text-center mb-6">
-              {description}
-            </p>
-            
-            {contacts && contacts.length > 0 && (
-              <div className="w-full mb-4">
-                <ScrollableSection 
-                  title="Contacts" 
-                  emptyMessage="No contacts added yet"
+          </CardContent>
+        </Card>
+        
+        {/* Projects Section (Vertical Layout) */}
+        {projects && projects.length > 0 && (
+          <div className="w-full">
+            <h3 className="text-sm font-medium mb-3">Projects</h3>
+            <div className="space-y-3">
+              {projects.map(project => (
+                <Card 
+                  key={project.id}
+                  className="overflow-hidden hover:bg-primary/5 transition-colors cursor-pointer"
+                  onClick={() => openDetail('project', project)}
                 >
-                  {contacts.map(contact => renderContactCard(contact))}
-                </ScrollableSection>
-              </div>
-            )}
-            
-            {customLinks && customLinks.length > 0 && (
-              <div className="w-full mb-4">
-                <ScrollableSection title="Links" emptyMessage="No links added yet">
-                  {customLinks.map(link => renderLinkCard(link))}
-                </ScrollableSection>
-              </div>
-            )}
-            
-            {skills && skills.length > 0 && (
-              <div className="w-full mb-4">
-                <ScrollableSection title="Skills" emptyMessage="No skills added yet">
-                  {skills.map(skill => renderSkillCard(skill))}
-                </ScrollableSection>
-              </div>
-            )}
-            
-            {projects && projects.length > 0 && (
-              <div className="w-full">
-                <ScrollableSection title="Projects" emptyMessage="No projects added yet">
-                  {projects.map(project => renderProjectCard(project))}
-                </ScrollableSection>
-              </div>
-            )}
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      {project.avatar_url && (
+                        <div className="flex-shrink-0">
+                          <div className="w-16 h-16 rounded-md overflow-hidden bg-muted">
+                            <img 
+                              src={project.avatar_url} 
+                              alt={project.name} 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Hide the image container if loading fails
+                                (e.target as HTMLImageElement).parentElement!.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-base truncate">{project.name}</h4>
+                          <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 ml-2" />
+                        </div>
+                        {project.role && (
+                          <p className="text-sm text-muted-foreground mt-1">{project.role}</p>
+                        )}
+                        {project.description && (
+                          <p className="text-sm mt-2 line-clamp-2 overflow-hidden text-muted-foreground/80">{project.description}</p>
+                        )}
+                        {project.url && (
+                          <div className="mt-2 flex items-center">
+                            <ExternalLink className="h-3 w-3 mr-1 text-muted-foreground" />
+                            <a 
+                              href={project.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline truncate"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {project.url.replace(/^https?:\/\//, "")}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+        {/* {projects && projects.length === 0 && (
+          <div className="w-full">
+            <h3 className="text-sm font-medium mb-3">Projects</h3>
+            <Card className="bg-muted/30">
+              <CardContent className="p-6 text-center">
+                <p className="text-sm text-muted-foreground">No projects added yet</p>
+              </CardContent>
+            </Card>
+          </div>
+        )} */}
+      </div>
 
       {/* Render detail view if active */}
       {activeDetail && (

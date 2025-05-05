@@ -36,6 +36,7 @@ import {
 } from "@/lib/api";
 import { useLoading } from "@/context/LoadingContext";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { botUsername as bus} from "@/constants/constants";
 
 // Animation variants for content transitions
 const contentVariants = {
@@ -58,7 +59,7 @@ const contentVariants = {
   }
 };
 
-const BOTUSERNAME = "face_cards_bot"
+const BOTUSERNAME = bus()
 
 export default function Home() {
   const { user, refreshUser, sharedUserId } = useAuth();
@@ -337,7 +338,7 @@ export default function Home() {
           fullScreen={true}
           sourceContext="backlink" 
           showBackButton={true} 
-          onBack={() => window.location.href = `https://t.me/face_cards_bot`}
+          onBack={() => window.location.href = `https://t.me/${BOTUSERNAME}`}
         />
       </div>
     );
@@ -355,7 +356,7 @@ export default function Home() {
           >
             {activeTab === "card" && (
               <div className="p-4 overflow-y-auto hide-scrollbar">
-                <motion.div 
+                {/* <motion.div 
                   className="flex items-center justify-between mb-6"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -369,9 +370,9 @@ export default function Home() {
                       className="mr-3"
                     >
                       <img 
-                        src="/public/images/logo.svg" 
+                        src="/static/images/logo.svg" 
                         alt="QuickCard Logo" 
-                        className="h-8 w-8" 
+                        className="h-12 w-12" 
                       />
                     </motion.div>
                     <div>
@@ -383,7 +384,7 @@ export default function Home() {
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </motion.div> */}
                 
                 {/* Show card preview and edit buttons only when not editing */}
                 {!editSection && (
@@ -417,7 +418,7 @@ export default function Home() {
 
                       {userData && (
                         <div className="mt-4 mb-4">
-                          <ShareCardButton userId={userData.id} botUsername="face_cards_bot" />
+                          <ShareCardButton userId={userData.id} botUsername={bus()} />
                         </div>
                       )}
                       
@@ -598,7 +599,7 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center">
-                    <motion.div
+                    {/* <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.4, delay: 0.1 }}
@@ -607,9 +608,9 @@ export default function Home() {
                       <img 
                         src="/static/images/logo.svg" 
                         alt="QuickCard Logo" 
-                        className="h-8 w-8" 
+                        className="h-10 w-10" 
                       />
-                    </motion.div>
+                    </motion.div> */}
                     <div>
                       <h1 className="text-2xl font-bold">Explore</h1>
                       <p className="text-sm text-muted-foreground">
@@ -624,14 +625,33 @@ export default function Home() {
             
             {activeTab === "premium" && (
               <div className="p-4 overflow-y-auto hide-scrollbar">
-                <motion.h1 
-                  className="text-2xl font-bold mb-4"
+                <motion.div 
+                  className="flex items-center justify-between mb-6"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  Premium Features
-                </motion.h1>
+                  <div className="flex items-center">
+                    {/* <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                      className="mr-3"
+                    >
+                      <img 
+                        src="/static/images/logo.svg" 
+                        alt="QuickCard Logo" 
+                        className="h-8 w-8" 
+                      />
+                    </motion.div> */}
+                    <div>
+                      <h1 className="text-2xl font-bold">Premium</h1>
+                      <p className="text-sm text-muted-foreground">
+                        Upgrade your business card
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
                 <motion.div
                   variants={contentVariants}
                   initial="hidden"

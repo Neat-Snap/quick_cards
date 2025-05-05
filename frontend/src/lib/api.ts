@@ -309,6 +309,51 @@ export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatar_url
   }
 }
 
+
+export async function uploadStory(blob: Blob): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', blob, 'story.jpg');
+
+  try {
+    const token = localStorage.getItem('authToken');
+
+    const response = await fetch(`${API_URL}/v1/users/me/story`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+    console.log("Story upload response:", data);
+
+    if (!response.ok) {
+      throw new Error(data.error || `Upload failed with status ${response.status}`);
+    }
+
+    // Try to find the URL in common fields
+    if (data.avatar_url && typeof data.avatar_url === 'string') {
+      return data.avatar_url;
+    }
+    if (data.url && typeof data.url === 'string') {
+      return data.url;
+    }
+    if (data.file_url && typeof data.file_url === 'string') {
+      return data.file_url;
+    }
+    if (data.image_url && typeof data.image_url === 'string') {
+      return data.image_url;
+    }
+
+    throw new Error('No image URL returned from server');
+  } catch (error) {
+    console.error("Story upload error:", error);
+    throw error instanceof Error ? error : new Error('Unknown error during upload');
+  }
+}
+
 // User profile functions
 export async function getCurrentUser(): Promise<ApiResponse<User>> {
   // Add a cache-busting query parameter to force a fresh request

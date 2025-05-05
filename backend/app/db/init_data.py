@@ -6,13 +6,9 @@ logger = logging.getLogger(__name__)
 
 PREMIUM_FEATURES = [
     {"name": "Custom Background Image", "description": "Create gradient or custom background image for your card", "tier_required": 1},
-    {"name": "Custom Badge", "description": "Add a custom badge next to your name", "tier_required": 1},
     {"name": "Skills", "description": "Add your professional skills to your profile", "tier_required": 1},
     {"name": "Extended Projects", "description": "Add more than 3 projects to your profile", "tier_required": 1},
-    # {"name": "Animated Elements", "description": "Add animations to your card", "tier_required": 1},
     {"name": "Extended Links", "description": "Add more than 3 custom links to your profile", "tier_required": 1},
-    {"name": "Verified Badge", "description": "Get a verified badge for your profile", "tier_required": 1},
-    # {"name": "Video Upload", "description": "Upload videos to your profile", "tier_required": 1},
 ]
 
 def initialize_premium_features():

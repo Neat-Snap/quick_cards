@@ -71,14 +71,11 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
 
   // All premium features with their icons
   const premiumFeatures = [
-    { name: "Custom Background Image", description: "Upload your own background image for your card", icon: ImageIcon },
-    { name: "Custom Badge", description: "Add a special badge next to your name", icon: BadgeCheck },
-    { name: "Skills", description: "Add and display your skills with custom images", icon: Code },
+    { name: "Custom Background Image", description: "Create gradient or custom background image for your card", icon: ImageIcon },
+    { name: "Skills", description: "Add your professional skills to your profile", icon: Code },
     { name: "Extended Projects", description: "Add up to 5 projects to your profile (up from 3)", icon: Briefcase },
-    { name: "Animated Elements", description: "Add beautiful animations to your card", icon: Sparkles },
-    { name: "Custom Links", description: "Add external links to your profile", icon: BadgeCheck },
-    { name: "Verified Badge", description: "Show a verified badge on your card", icon: BadgeCheck },
-    { name: "Video Support", description: "Add video presentations to your card", icon: ImageIcon }
+    { name: "Animated Elements", description: "Add more than 3 projects to your profile", icon: Sparkles },
+    { name: "Extended Links", description: "Add more than 3 custom links to your profile", icon: BadgeCheck },
   ];
 
   // Load status from backend
@@ -108,6 +105,9 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
   // Check payment status with backend API
   const checkPaymentStatus = async (user_id: string | number): Promise<boolean> => {
     try {
+
+      await new Promise(res => setTimeout(res, 2000));
+
       const response = await fetch("/api/v1/premium/check_payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

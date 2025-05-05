@@ -242,7 +242,7 @@ export function ExploreSection() {
       ) : (
         // Main Explore View
         <div className="space-y-4" ref={containerRef}>
-          <h1 className="text-2xl font-bold">Explore</h1>
+          {/* <h1 className="text-2xl font-bold">Explore</h1> */}
           
           {/* Search Bar */}
           <div className="sticky top-0 z-10 bg-background pt-2 pb-4">

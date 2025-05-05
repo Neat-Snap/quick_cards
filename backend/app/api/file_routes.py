@@ -17,6 +17,8 @@ async def get_file(file_path: str):
     files_dir = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'files')
     
     full_path = os.path.join(files_dir, safe_path)
+
+    logger.info(f"getting request for file with file path: {full_path}")
     
     try:
         if not os.path.exists(full_path) or not os.path.isfile(full_path):

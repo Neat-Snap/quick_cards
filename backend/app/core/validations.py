@@ -167,3 +167,46 @@ def validate_project(project_data):
             return False, "Invalid project role"
 
     return True, None
+
+def validate_user_premium_data(user_data: dict):
+    tier = user_data.get("premium_tier", 0)
+    if tier == 0:
+        projects = user_data.get("projects", [])
+        links = user_data.get("custom_links", [])
+        skills = user_data.get("skills", [])
+        if isinstance(projects, list) and len(projects) >= 3:
+            return False, "Non-premium users can add up to 3 projects"
+        if isinstance(links, list) and len(links) >= 3:
+            return False, "Non-premium users can add up to 3 custom links"
+    return True, None
+
+
+def validate_projects_limit(projects_data, tier=0):
+    """
+    Validates if a non-premium user has exceeded the allowed number of projects.
+    Accepts projects_data (list) and tier (int).
+    """
+    if tier == 0:
+        if isinstance(projects_data, list) and len(projects_data) > 3:
+            return False, "Non-premium users can add up to 3 projects. Upgrade to premium for more."
+    return True, None
+
+def validate_links_limit(links_data, tier=0):
+    """
+    Validates if a non-premium user has exceeded the allowed number of custom links.
+    Accepts links_data (list) and tier (int).
+    """
+    if tier == 0:
+        if isinstance(links_data, list) and len(links_data) > 3:
+            return False, "Non-premium users can add up to 3 custom links. Upgrade to premium for more."
+    return True, None
+
+def validate_skills_limit(skills_data, tier=0):
+    """
+    Validates if a non-premium user is trying to add skills.
+    Accepts skills_data (list) and tier (int).
+    """
+    if tier == 0:
+        if skills_data:
+            return False, "Non-premium users cannot add skills to their profile. Upgrade to premium for this feature."
+    return True, None

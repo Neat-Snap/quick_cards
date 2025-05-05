@@ -166,49 +166,51 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               transition={{ delay: 0.5, duration: 0.4 }}
             >
               {Array.isArray(page.features) && page.features.length > 0 && (
-                <div className="space-y-4">
-                  {typeof page.features[0] === 'string' ? (
-                    // Simple string features
-                    <ul className="space-y-2">
-                      {page.features.map((feature, i) => (
-                        <motion.li 
-                          key={i}
-                          className="flex items-center gap-2"
-                          initial={{ x: -20, opacity: 0 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          transition={{ delay: 0.5 + (i * 0.1), duration: 0.3 }}
-                        >
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                          <span>{feature as string}</span>
-                        </motion.li>
-                      ))}
-                    </ul>
-                  ) : (
-                    // Complex features with icons and descriptions
-                    <div className="grid grid-cols-1 gap-4">
-                      {page.features.map((feature: any, i) => (
-                        <motion.div 
-                          key={i}
-                          initial={{ y: 20, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          transition={{ delay: 0.5 + (i * 0.1), duration: 0.3 }}
-                        >
-                          <GlassCard className="p-4">
-                            <div className="flex items-start gap-3">
-                              <div className="bg-primary/10 p-2 rounded-full">
-                                {feature.icon}
-                              </div>
-                              <div>
-                                <h3 className="font-medium">{feature.title}</h3>
-                                <p className="text-sm text-muted-foreground">{feature.description}</p>
-                              </div>
+                typeof page.features[0] === 'string' ? (
+                  // Updated styling for simple string features
+                  <div className="space-y-4 pb-4">
+                    {page.features.map((feature, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.5 + (i * 0.1), duration: 0.3 }}
+                        className="bg-primary/5 rounded-lg p-3 flex items-start"
+                      >
+                        <div className="bg-primary/10 text-primary rounded-full p-1.5 mr-3 flex-shrink-0 mt-0.5">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        </div>
+                        <span className="text-sm">{feature as string}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  // Complex features with icons and descriptions
+                  <div className="grid grid-cols-1 gap-4">
+                    {page.features.map((feature: any, i) => (
+                      <motion.div 
+                        key={i}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.5 + (i * 0.1), duration: 0.3 }}
+                      >
+                        <GlassCard className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="bg-primary/10 p-2 rounded-full">
+                              {feature.icon}
                             </div>
-                          </GlassCard>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                            <div>
+                              <h3 className="font-medium">{feature.title}</h3>
+                              <p className="text-sm text-muted-foreground">{feature.description}</p>
+                            </div>
+                          </div>
+                        </GlassCard>
+                      </motion.div>
+                    ))}
+                  </div>
+                )
               )}
             </motion.div>
           </div>
@@ -262,20 +264,20 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   <Button 
                     variant="outline" 
                     onClick={goToPrevPage}
-                    className="gap-2"
+                    className="gap-2 min-w-[80px]"
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Back
                   </Button>
                 ) : (
                   // Empty div for layout
-                  <div>{}</div>
+                  <div className="min-w-[80px]">{}</div>
                 )}
                 
                 <Button
                   variant="default"
                   onClick={goToNextPage}
-                  className="px-6"
+                  className="min-w-[80px]"
                 >
                   {currentPage < onboardingPages.length - 1 ? (
                     <>
