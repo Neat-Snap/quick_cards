@@ -108,6 +108,9 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
   // Check payment status with backend API
   const checkPaymentStatus = async (user_id: string | number): Promise<boolean> => {
     try {
+
+      await new Promise(res => setTimeout(res, 2000));
+
       const response = await fetch("/api/v1/premium/check_payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
