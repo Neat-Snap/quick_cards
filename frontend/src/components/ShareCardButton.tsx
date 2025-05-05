@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StoryPreview } from "@/components/StoryPreview";
 import { User, getUserById, uploadStory } from "@/lib/api";
 import html2canvas from 'html2canvas';
+import { botUsername as bus} from "@/constants/constants";
+
 
 interface ShareCardButtonProps {
   userId: string | number;
@@ -21,7 +23,7 @@ function isUser(obj: any): obj is User {
   return obj && typeof obj.id === "number";
 }
 
-export function ShareCardButton({ userId, botUsername = "face_cards_bot", userData = null }: ShareCardButtonProps) {
+export function ShareCardButton({ userId, botUsername = bus(), userData = null }: ShareCardButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState("link");

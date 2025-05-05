@@ -36,6 +36,7 @@ import {
 } from "@/lib/api";
 import { useLoading } from "@/context/LoadingContext";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { botUsername as bus} from "@/constants/constants";
 
 // Animation variants for content transitions
 const contentVariants = {
@@ -58,7 +59,7 @@ const contentVariants = {
   }
 };
 
-const BOTUSERNAME = "face_cards_bot"
+const BOTUSERNAME = bus()
 
 export default function Home() {
   const { user, refreshUser, sharedUserId } = useAuth();
@@ -337,7 +338,7 @@ export default function Home() {
           fullScreen={true}
           sourceContext="backlink" 
           showBackButton={true} 
-          onBack={() => window.location.href = `https://t.me/face_cards_bot`}
+          onBack={() => window.location.href = `https://t.me/${BOTUSERNAME}`}
         />
       </div>
     );
@@ -417,7 +418,7 @@ export default function Home() {
 
                       {userData && (
                         <div className="mt-4 mb-4">
-                          <ShareCardButton userId={userData.id} botUsername="face_cards_bot" />
+                          <ShareCardButton userId={userData.id} botUsername={bus()} />
                         </div>
                       )}
                       
