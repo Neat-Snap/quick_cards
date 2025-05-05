@@ -1,21 +1,66 @@
-// components/ShareCardButton.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Share, Copy, Send, Check, X, ArrowLeft } from "lucide-react";
+import { Share, Copy, Send, Check, X, ArrowLeft, Image as ImageIcon } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StoryPreview } from "@/components/StoryPreview";
+import { User, getUserById } from "@/lib/api";
+import html2canvas from 'html2canvas';
 
 interface ShareCardButtonProps {
   userId: string | number;
   botUsername?: string;
+  userData?: User | null;
 }
 
-export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: ShareCardButtonProps) {
+export function ShareCardButton({ userId, botUsername = "face_cards_bot", userData = null }: ShareCardButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState("link");
+  const [user, setUser] = useState<User | null>(userData);
+  const [loading, setLoading] = useState(false);
+  const storyPreviewRef = useRef<HTMLDivElement>(null);
+  const [generatingStory, setGeneratingStory] = useState(false);
+  
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveTab("link");
+      if (!userData) {
+        setUser(null);
+      }
+    }
+  }, [isOpen, userData]);
+  
+  // Fetch user data if not provided and dialog is open
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userData && isOpen && !user && !loading) {
+        setLoading(true);
+        try {
+          console.log("Fetching user data for story...");
+          const response = await getUserById(userId.toString());
+          console.log("User data response:", response);
+          
+          if (response.success && response.user) {
+            setUser(response.user);
+          } else {
+            console.error("Failed to get valid user data");
+          }
+        } catch (error) {
+          console.error("Error fetching user data for story:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    
+    fetchUserData();
+  }, [userId, userData, isOpen, user, loading]);
 
   // Generate the shareable link
   const getShareLink = () => {
@@ -51,7 +96,6 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: Shar
     if (window.Telegram?.WebApp) {
       // Using Telegram's WebApp API to open the link
       try {
-        // Use Telegram's openLink if available
         window.Telegram.WebApp.openLink(shareUrl);
         setIsOpen(false);
       } catch (error) {
@@ -70,10 +114,72 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: Shar
     }
   };
 
+  // Handle story share
+  const handleStoryShare = async () => {
+    if (!storyPreviewRef.current || !window.Telegram?.WebApp) {
+      handleCopyLink(); // Fallback
+      return;
+    }
+    
+    setGeneratingStory(true);
+    
+    try {
+      // Convert the story preview component to an image
+      const canvas = await html2canvas(storyPreviewRef.current, {
+        logging: false,
+        scale: 2, // Better quality for retina displays
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+      });
+      
+      // Get data URL from canvas
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      
+      // Share to story using Telegram's native API
+      if (typeof window.Telegram?.WebApp?.shareStory === 'function') {
+        // Use the shareStory method if available
+        window.Telegram.WebApp.shareStory(dataUrl);
+        setIsOpen(false);
+      } else if (typeof window.Telegram?.WebApp?.sendData === 'function') {
+        // Alternative using sendData (for older WebApp versions)
+        window.Telegram.WebApp.sendData(JSON.stringify({
+          type: 'share_story',
+          image: dataUrl,
+          text: "Check out my digital business card!"
+        }));
+        setIsOpen(false);
+      } else {
+        // Fallback to manual sharing
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'quickcard-story.jpg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: "Story image created",
+          description: "You can now share this image in your Telegram story",
+        });
+      }
+    } catch (error) {
+      console.error("Error generating story:", error);
+      toast({
+        title: "Failed to create story",
+        description: "There was an error generating your story image",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingStory(false);
+    }
+  };
+
   return (
     <>
       <Button 
-        variant="default"
+        variant="outline"
         className="w-full flex items-center justify-center gap-2"
         onClick={() => setIsOpen(true)}
       >
@@ -169,52 +275,99 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: Shar
                 </CardHeader>
                 
                 <CardContent className="pb-2">
-                  <motion.div 
-                    className="py-2"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <p className="text-sm mb-4">
-                      Your shareable link:
-                    </p>
-                    <div className="bg-muted p-3 rounded-md text-sm font-mono mb-4 text-muted-foreground overflow-hidden overflow-ellipsis">
-                      {getShareLink()}
-                    </div>
-                  </motion.div>
+                  <Tabs defaultValue="link" value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="grid grid-cols-2 mb-4">
+                      <TabsTrigger value="link">Share Link</TabsTrigger>
+                      <TabsTrigger value="story">Create Story</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="link" className="mt-0">
+                      <motion.div 
+                        className="py-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <p className="text-sm mb-4">
+                          Your shareable link:
+                        </p>
+                        <div className="bg-muted p-3 rounded-md text-sm font-mono mb-4 text-muted-foreground overflow-hidden overflow-ellipsis">
+                          {getShareLink()}
+                        </div>
+                      </motion.div>
+                    </TabsContent>
+                    
+                    <TabsContent value="story" className="mt-0">
+                      <motion.div 
+                        className="py-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <p className="text-sm mb-4">
+                          Share your card as a beautiful story:
+                        </p>
+                        <div className="flex justify-center mb-4">
+                          {loading ? (
+                            <div className="h-96 w-48 bg-muted rounded-lg flex items-center justify-center">
+                              <div className="animate-pulse">Loading preview...</div>
+                            </div>
+                          ) : user ? (
+                            <div className="max-w-[250px] w-full" ref={storyPreviewRef}>
+                              <StoryPreview user={user} logoUrl="/static/images/logo.svg" />
+                            </div>
+                          ) : (
+                            <div className="h-96 w-48 bg-muted rounded-lg flex items-center justify-center">
+                              <div className="text-sm text-muted-foreground">Failed to load preview</div>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
                 
-                <CardFooter className="flex flex-col gap-2">
-                  <motion.div 
-                    className="w-full"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <Button 
-                      className="w-full" 
-                      onClick={handleCopyLink}
-                    >
-                      {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
-                      Copy Link
-                    </Button>
-                  </motion.div>
+                <CardFooter className="flex flex-col gap-2 pt-2 pb-6">
+                  {activeTab === "link" && (
+                    <>
+                      <Button 
+                        className="w-full" 
+                        onClick={handleCopyLink}
+                      >
+                        {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+                        Copy Link
+                      </Button>
+                      
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        onClick={handleTelegramShare}
+                      >
+                        <Send className="mr-2 h-4 w-4" />
+                        Share via Telegram
+                      </Button>
+                    </>
+                  )}
                   
-                  <motion.div 
-                    className="w-full"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
+                  {activeTab === "story" && (
                     <Button 
                       className="w-full" 
-                      variant="outline"
-                      onClick={handleTelegramShare}
+                      onClick={handleStoryShare}
+                      disabled={!user || loading || generatingStory}
                     >
-                      <Send className="mr-2 h-4 w-4" />
-                      Share via Telegram
+                      {generatingStory ? (
+                        <>
+                          <span className="animate-spin mr-2 inline-block h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon className="mr-2 h-4 w-4" />
+                          Share as Story
+                        </>
+                      )}
                     </Button>
-                  </motion.div>
+                  )}
                 </CardFooter>
               </Card>
             </motion.div>

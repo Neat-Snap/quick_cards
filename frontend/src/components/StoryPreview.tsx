@@ -46,12 +46,13 @@ export function StoryPreview({ user, logoUrl = "/static/images/logo.svg" }: Stor
       className="w-full aspect-[9/16] rounded-lg overflow-hidden relative"
       style={getBackgroundGradient()}
     >
-      {/* Logo at the top */}
+      {/* Logo at the top with cross-origin attribute for html2canvas */}
       <div className="absolute top-0 left-0 right-0 pt-8 pb-12 px-4 flex justify-center">
         <img 
           src={logoUrl} 
           alt="QuickCard Logo" 
           className="h-12 w-12 drop-shadow-lg"
+          crossOrigin="anonymous"
         />
       </div>
       
