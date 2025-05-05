@@ -2,40 +2,37 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { getIsNewUser, updateIsNewUser } from "@/lib/api";
 
 export function useOnboarding() {
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
-    console.log("I AM HERE")
     // Only run if we have user data
-    if (user) {
-      // Check if user is newly registered
-      // This relies on your API returning an is_new_user flag
-      console.log("is showing onboarding", user.name === "")
-      console.log("name is here", user.name)
-      setShowOnboarding(!user.name);
-      setIsLoading(false);
-    } else {
-      console.log("NOT USER")
+    if (user && user.id) {
+      setIsLoading(true);
+      getIsNewUser(user.id)
+        .then((res) => {
+          setShowOnboarding(!!res.is_new);
+        })
+        .finally(() => setIsLoading(false));
     }
   }, [user]);
-  
-  const completeOnboarding = () => {
-    // Simply hide the onboarding
+
+  const completeOnboarding = async () => {
     setShowOnboarding(false);
-    
-    // You might want to call an API here to update the user's status
-    // so they don't see onboarding next time
+    if (user && user.id) {
+      await updateIsNewUser(user.id);
+    }
   };
-  
+
   // This is mainly for development/testing
   const resetOnboarding = () => {
     setShowOnboarding(true);
   };
-  
+
   return {
     showOnboarding,
     isLoading,

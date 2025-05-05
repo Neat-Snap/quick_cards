@@ -33,7 +33,9 @@ def get_user(user_id: str) -> Optional[Dict[str, Any]]:
                 "description": user.description,
                 "badge": user.badge,
                 "reffed_by": user.reffed_by,
-                "referrals": user.referrals
+                "referrals": user.referrals,
+                "is_banned": user.is_banned,
+                "is_new": user.is_new
             }
     except SQLAlchemyError as e:
         logger.error(f"Database error while retrieving user {user_id}: {str(e)}")

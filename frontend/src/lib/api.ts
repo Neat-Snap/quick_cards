@@ -95,6 +95,7 @@ export interface ApiResponse<T> {
   payment_url?: string;
   message?: string;  // Added message property for informational messages
   image_url?: string; // Added for image upload responses
+  is_new?: boolean;
 }
 
 // Helper function to make API requests with proper error handling
@@ -830,4 +831,17 @@ export async function checkPaymentStatus(
       error: error instanceof Error ? error.message : "Unknown error checking payment"
     };
   }
+}
+
+// Onboarding API helpers
+export async function getIsNewUser(userId: string | number): Promise<{ is_new: boolean }> {
+  const res = await apiRequest<{ is_new: boolean }>(`/v1/users/new/${userId}`);
+  return { is_new: !!(res && res.is_new) };
+}
+
+export async function updateIsNewUser(userId: string | number): Promise<void> {
+  await apiRequest<any>(`/v1/users/new/update`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  });
 }

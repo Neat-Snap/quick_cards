@@ -20,6 +20,9 @@ class User(Base):
     name = Column(String)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    is_banned = Column(Boolean, default=False)
+    is_new = Column(Boolean, default=True)
+
 
     reffed_by = Column(Integer, nullable=True)
     referrals = Column(Integer, default=0)

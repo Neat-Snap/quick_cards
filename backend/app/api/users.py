@@ -50,6 +50,33 @@ async def user_endpoint(request: Request, user: UserResponse):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@router.get("/users/new/{user_id}")
+async def check_new_endpount(user_id: int):
+    # auth_uid, error = check_context(context)
+    # if not auth_uid or error:
+    #     return error
+    
+    user_data = get_user(user_id)
+    is_new = user_data["is_new"]
+
+    return JSONResponse(status_code=200, content={"success": True, "is_new": is_new})
+
+
+@router.post("/users/new/update")
+async def update_new_endpoint(request: Request):
+    data = request.json()
+    if not data or "user_id" not in data:
+        return JSONResponse(status_code=400, content={"error": "Missing required fields"})
+    
+    user_id = data["user_id"]
+    
+    user_data = get_user(user_id)
+    user_data["is_new"] = False
+    set_user(user_data)
+
+    return JSONResponse(status_code=200, content={"success": True})
+
+
 @router.get("/users/me")
 async def get_current_user(context: AuthContext = Depends(get_auth_context)):
     user_id, error = check_context(context)
