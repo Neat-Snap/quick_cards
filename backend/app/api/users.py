@@ -296,6 +296,8 @@ async def upload_story(context: AuthContext = Depends(get_auth_context), file: U
     filename = f"{user_id}.{extension}"
     file_path = os.path.join(images_path, filename)
 
+    logger.info(f"final file path for uploading story: {file_path}")
+
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -304,14 +306,11 @@ async def upload_story(context: AuthContext = Depends(get_auth_context), file: U
         with open(file_path, "wb") as f:
             f.write(file_content)
 
-        user_data = get_user(user_id)
-        if not user_data:
-            return JSONResponse(status_code=404, content={"error": "User not found"})
+        # user_data = get_user(user_id)
+        # if not user_data:
+        #     return JSONResponse(status_code=404, content={"error": "User not found"})
             
         avatar_url = f"/files/story/{filename}"
-        user_data["avatar_url"] = avatar_url
-
-        set_user(user_data)
 
         return JSONResponse(status_code=200, content={"success": True, "avatar_url": avatar_url})
     except Exception as e:
