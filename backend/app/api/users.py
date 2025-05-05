@@ -133,7 +133,7 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
     
     tier = user_data["premium_tier"]
     logger.info(f"Updating avatar with user data: {user_data}")
-    is_available, message = validate_user_premium_data(user_data, tier)
+    is_available, message = validate_user_premium_data(user_data)
     if not is_available:
         return JSONResponse(status_code=400, content={"error": error or f"Reached the limits: {message}"})
     
