@@ -73,7 +73,7 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: Shar
   return (
     <>
       <Button 
-        variant="outline"
+        variant="default"
         className="w-full flex items-center justify-center gap-2"
         onClick={() => setIsOpen(true)}
       >

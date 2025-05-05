@@ -9,7 +9,8 @@ import { SkillsForm } from "@/components/skills-form";
 import { PremiumFeatures } from "@/components/premium-features";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useRef } from "react";
-import { Edit } from "lucide-react";
+import { Edit, Image, MessageCircle, Briefcase, Code } from "lucide-react";
+import { User as UserIcon } from "lucide-react"
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/components/ui/use-toast";
@@ -420,8 +421,8 @@ export default function Home() {
                             className="flex items-center justify-center gap-2 w-full"
                             onClick={() => setEditSection("profile")}
                           >
-                            <Edit className="h-4 w-4" />
-                            Edit Profile
+                            <UserIcon className="h-4 w-4" />
+                            Profile
                           </Button>
                         </motion.div>
                         
@@ -435,8 +436,8 @@ export default function Home() {
                             className="flex items-center justify-center gap-2 w-full"
                             onClick={() => setEditSection("background")}
                           >
-                            <Edit className="h-4 w-4" />
-                            Edit Background
+                            <Image className="h-4 w-4" />
+                            Background
                           </Button>
                         </motion.div>
                         
@@ -453,8 +454,8 @@ export default function Home() {
                               debugInfo();
                             }}
                           >
-                            <Edit className="h-4 w-4" />
-                            Edit Contact Info
+                            <MessageCircle className="h-4 w-4" />
+                            Contacts
                           </Button>
                         </motion.div>
                         
@@ -468,8 +469,8 @@ export default function Home() {
                             className="flex items-center justify-center gap-2 w-full"
                             onClick={() => setEditSection("projects")}
                           >
-                            <Edit className="h-4 w-4" />
-                            Edit Projects
+                            <Briefcase className="h-4 w-4" />
+                            Projects
                           </Button>
                         </motion.div>
                         
@@ -484,8 +485,8 @@ export default function Home() {
                             className="flex items-center justify-center gap-2 w-full"
                             onClick={() => setEditSection("skills")}
                           >
-                            <Edit className="h-4 w-4" />
-                            Edit Skills
+                            <Code className="h-4 w-4" />
+                            Skills
                           </Button>
                         </motion.div>
                       </motion.div>
