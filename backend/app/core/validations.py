@@ -179,7 +179,7 @@ def validate_user_premium_data(user_data: dict):
         if isinstance(links, list) and len(links) >= 3:
             return False, "Non-premium users can add up to 3 custom links"
         if len(skills) >= 0:
-            return "Non-premium users can not add skills to their profile"
+            return False, "Non-premium users can not add skills to their profile"
     return True, None
 
 

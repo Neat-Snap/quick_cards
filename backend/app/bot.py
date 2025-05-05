@@ -35,7 +35,7 @@ def handle_start(message):
     keyboard.add(webapp_btn)
     
     welcome_message = f"Hello, {first_name}! 👋\n\n"
-    welcome_message += "Welcome to Business Card Bot! Use this bot to create and share your digital business card.\n\n"
+    welcome_message += "<b>Welcome to QuickCard!</b> Use this bot to create and share your digital business card.\n\n"
     welcome_message += "Click the button below to open the app and customize your card:"
     
     bot.send_message(message.chat.id, welcome_message, reply_markup=keyboard)
@@ -43,11 +43,10 @@ def handle_start(message):
 # Handle /help command
 @bot.message_handler(commands=['help'])
 def handle_help(message):
-    help_text = "🔹 *Business Card Bot Help* 🔹\n\n"
+    help_text = "🔹 *QuickCard Help* 🔹\n\n"
     help_text += "This bot allows you to create and customize your digital business card. Here are the available commands:\n\n"
     help_text += "• /start - Start the bot and open the WebApp\n"
     help_text += "• /help - Show this help message\n\n"
-    help_text += "To create or edit your business card, use the 'Open Business Card' button that appears when you start the bot."
     
     # Create a keyboard with a WebApp button
     keyboard = InlineKeyboardMarkup()
