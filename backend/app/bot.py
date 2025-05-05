@@ -38,7 +38,7 @@ def handle_start(message):
     welcome_message += "<b>Welcome to QuickCard!</b> Use this bot to create and share your digital business card.\n\n"
     welcome_message += "Click the button below to open the app and customize your card:"
     
-    bot.send_message(message.chat.id, welcome_message, reply_markup=keyboard)
+    bot.send_message(message.chat.id, welcome_message, reply_markup=keyboard, parse_mode="HTML")
 
 # Handle /help command
 @bot.message_handler(commands=['help'])
