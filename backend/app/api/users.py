@@ -308,7 +308,7 @@ async def upload_story(context: AuthContext = Depends(get_auth_context), file: U
         if not user_data:
             return JSONResponse(status_code=404, content={"error": "User not found"})
             
-        avatar_url = f"/files/profile/{filename}"
+        avatar_url = f"/files/story/{filename}"
         user_data["avatar_url"] = avatar_url
 
         set_user(user_data)
