@@ -34,7 +34,7 @@ def validate_user_data(user_data: dict):
             return False, "Invalid username"
 
     name = user_data.get("name")
-    if name is not None:
+    if name:
         if not isinstance(name, str) or not (1 < len(name) <= 100) or not validate_string(name):
             return False, "Invalid name"
 
