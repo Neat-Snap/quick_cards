@@ -371,7 +371,7 @@ export default function Home() {
                       <img 
                         src="/static/images/logo.svg" 
                         alt="QuickCard Logo" 
-                        className="h-8 w-8" 
+                        className="h-12 w-12" 
                       />
                     </motion.div>
                     <div>
@@ -607,7 +607,7 @@ export default function Home() {
                       <img 
                         src="/static/images/logo.svg" 
                         alt="QuickCard Logo" 
-                        className="h-8 w-8" 
+                        className="h-10 w-10" 
                       />
                     </motion.div>
                     <div>
