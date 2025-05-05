@@ -1,44 +1,21 @@
+// components/ShareCardButton.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Share, Copy, Send, Check, X, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { Share, Copy, Send, Check, X, ArrowLeft } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StoryPreview } from "@/components/StoryPreview";
-import { User, getUserById } from "@/lib/api";
 
 interface ShareCardButtonProps {
   userId: string | number;
   botUsername?: string;
-  userData?: User | null;
 }
 
-export function ShareCardButton({ userId, botUsername = "face_cards_bot", userData = null }: ShareCardButtonProps) {
+export function ShareCardButton({ userId, botUsername = "face_cards_bot" }: ShareCardButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState("link");
-  const [user, setUser] = useState<User | null>(userData);
-  
-  // Fetch user data if not provided and dialog is open
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!userData && isOpen && !user) {
-        try {
-          const response = await getUserById(userId.toString());
-          if (response.success && response.user) {
-            setUser(response.user);
-          }
-        } catch (error) {
-          console.error("Error fetching user data for story:", error);
-        }
-      }
-    };
-    
-    fetchUserData();
-  }, [userId, userData, isOpen, user]);
 
   // Generate the shareable link
   const getShareLink = () => {
@@ -93,42 +70,10 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
     }
   };
 
-  // Handle story share
-  const handleStoryShare = () => {
-    // In a real implementation, you'd:
-    // 1. Generate a proper image (could use canvas or a server endpoint)
-    // 2. Pass it to Telegram's WebApp for story sharing
-    
-    // For now, we'll use the URL share approach but with a story message
-    const link = getShareLink();
-    const storyText = "Check out my digital business card! 📇✨";
-    
-    // Create the share URL with encoded parameters
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(storyText)}`;
-    
-    if (window.Telegram?.WebApp) {
-      try {
-        window.Telegram.WebApp.openLink(shareUrl);
-        setIsOpen(false);
-        toast({
-          title: "Story created",
-          description: "Your story has been shared to Telegram",
-        });
-      } catch (error) {
-        console.error("Error sharing story:", error);
-        // Fallback to copying link
-        handleCopyLink();
-      }
-    } else {
-      window.open(shareUrl, '_blank');
-      setIsOpen(false);
-    }
-  };
-
   return (
     <>
       <Button 
-        variant="outline"
+        variant="default"
         className="w-full flex items-center justify-center gap-2"
         onClick={() => setIsOpen(true)}
       >
@@ -224,85 +169,52 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
                 </CardHeader>
                 
                 <CardContent className="pb-2">
-                  <Tabs defaultValue="link" value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid grid-cols-2 mb-4">
-                      <TabsTrigger value="link">Share Link</TabsTrigger>
-                      <TabsTrigger value="story">Create Story</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="link" className="mt-0">
-                      <motion.div 
-                        className="py-2"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <p className="text-sm mb-4">
-                          Your shareable link:
-                        </p>
-                        <div className="bg-muted p-3 rounded-md text-sm font-mono mb-4 text-muted-foreground overflow-hidden overflow-ellipsis">
-                          {getShareLink()}
-                        </div>
-                      </motion.div>
-                    </TabsContent>
-                    
-                    <TabsContent value="story" className="mt-0">
-                      <motion.div 
-                        className="py-2"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        <p className="text-sm mb-4">
-                          Share your card as a beautiful story:
-                        </p>
-                        <div className="flex justify-center mb-4">
-                          {user ? (
-                            <div className="max-w-[250px] w-full">
-                              <StoryPreview user={user} logoUrl="/static/images/logo.svg" />
-                            </div>
-                          ) : (
-                            <div className="h-96 w-48 bg-muted rounded-lg flex items-center justify-center">
-                              <div className="animate-pulse">Loading preview...</div>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    </TabsContent>
-                  </Tabs>
+                  <motion.div 
+                    className="py-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <p className="text-sm mb-4">
+                      Your shareable link:
+                    </p>
+                    <div className="bg-muted p-3 rounded-md text-sm font-mono mb-4 text-muted-foreground overflow-hidden overflow-ellipsis">
+                      {getShareLink()}
+                    </div>
+                  </motion.div>
                 </CardContent>
                 
-                <CardFooter className="flex flex-col gap-2 pt-2 pb-6">
-                  {activeTab === "link" && (
-                    <>
-                      <Button 
-                        className="w-full" 
-                        onClick={handleCopyLink}
-                      >
-                        {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
-                        Copy Link
-                      </Button>
-                      
-                      <Button 
-                        className="w-full" 
-                        variant="outline"
-                        onClick={handleTelegramShare}
-                      >
-                        <Send className="mr-2 h-4 w-4" />
-                        Share via Telegram
-                      </Button>
-                    </>
-                  )}
-                  
-                  {activeTab === "story" && (
+                <CardFooter className="flex flex-col gap-2">
+                  <motion.div 
+                    className="w-full"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
                     <Button 
                       className="w-full" 
-                      onClick={handleStoryShare}
+                      onClick={handleCopyLink}
                     >
-                      <ImageIcon className="mr-2 h-4 w-4" />
-                      Share as Story
+                      {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+                      Copy Link
                     </Button>
-                  )}
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="w-full"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Button 
+                      className="w-full" 
+                      variant="outline"
+                      onClick={handleTelegramShare}
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      Share via Telegram
+                    </Button>
+                  </motion.div>
                 </CardFooter>
               </Card>
             </motion.div>
