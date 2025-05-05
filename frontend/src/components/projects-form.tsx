@@ -182,7 +182,7 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     if (premiumTier === 0) return 3;
     
     // Basic tier (1): 3 projects still
-    if (premiumTier === 1) return 3;
+    if (premiumTier === 1) return 25;
     
     // Premium tier (2): 5 projects
     if (premiumTier === 2) return 5;
