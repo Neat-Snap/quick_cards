@@ -55,10 +55,16 @@ export function ShareCardButton({ userId, botUsername = "face_cards_bot", userDa
           const response = await getUserById(userId.toString());
           console.log("User data response:", response);
           
-          if (response.success && response.user) {
-            setUser(response.user);
+          // Check if response is the user object directly or has a nested structure
+          if (response) {
+            if (response.success && response.user) {
+              // Handle response format: { success: true, user: {...} }
+              setUser(response.user);
+            } else {
+              console.error("Failed to get valid user data");
+            }
           } else {
-            console.error("Failed to get valid user data");
+            console.error("Empty response from getUserById");
           }
         } catch (error) {
           console.error("Error fetching user data for story:", error);
