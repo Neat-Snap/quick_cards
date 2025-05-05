@@ -131,7 +131,8 @@ async def update_user(request: Request, context: AuthContext = Depends(get_auth_
     if not is_valid:
         return JSONResponse(status_code=400, content={"error": error or "Invalid user data"})
     
-    is_available, message = validate_user_premium_data(user_data)
+    tier = user_data["tier"]
+    is_available, message = validate_user_premium_data(user_data, tier)
     if not is_available:
         return JSONResponse(status_code=400, content={"error": error or f"Reached the limits: {message}"})
     
@@ -338,7 +339,8 @@ async def create_contact_endpoint(request: Request, context: AuthContext = Depen
     
     user_contacts = get_contacts(user_id)
     user_data = get_user(user_id)
-    is_available, message = validate_links_limit(user_contacts)
+    tier = user_data["premium_tier"]
+    is_available, message = validate_links_limit(user_contacts, tier)
     if not is_available:
         return JSONResponse(status_code=403, content={"error": "Premium subscription required for more than 3 contacts"})
     
@@ -440,7 +442,9 @@ async def create_project_endpoint(request: Request, context: AuthContext = Depen
         return JSONResponse(status_code=400, content={"error": validation_error or "Invalid project data"})
     
     project_data = get_projects(user_id)
-    is_available, message = validate_projects_limit(project_data)
+    user_data = get_user(user_id)
+    tier = user_data["tier"]
+    is_available, message = validate_projects_limit(project_data, tier)
     if not is_available:
         return JSONResponse(status_code=400, content={"error": f"Reached limits: {message}"})
     
@@ -681,7 +685,8 @@ async def create_skill_endpoint(request: Request, context: AuthContext = Depends
                 msg = "Custom skill created and added to user"
             
             skills_data = get_skills(user_id)
-            is_available, message = validate_skills_limit(skills_data)
+            tier = user_data["premium_tier"]
+            is_available, message = validate_skills_limit(skills_data, tier=tier)
             if not is_available:
                 return JSONResponse(status_code=403, content=f"Reached limit: {message}")
 
