@@ -8,6 +8,7 @@ from app.schemas import UserResponse
 import sys
 import os
 from sqlalchemy import or_
+import imghdr
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
@@ -248,14 +249,27 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
     if file.filename == '':
         return JSONResponse(status_code=400, content={"error": "No file selected"})
     
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
-    #TODO что то сделать с проверкой
-    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        return JSONResponse(status_code=400, content={"error": "File type not allowed"})
+    # Read the file content first to validate it
+    file_content = await file.read()
+    
+    img_type = imghdr.what(None, file_content)
+    allowed_img_types = {'png', 'jpg', 'jpeg', 'gif'}
+    
+    if img_type not in allowed_img_types:
+        return JSONResponse(status_code=400, content={"error": "Invalid image file"})
+    
+    # Map imghdr types to file extensions
+    extension_map = {
+        'jpeg': 'jpg',
+        'png': 'png', 
+        'gif': 'gif'
+    }
+    
+    extension = extension_map.get(img_type, 'jpg')
     
     os.makedirs(images_path, exist_ok=True)
-
-    extension = file.filename.rsplit('.', 1)[1].lower()
+    
+    # Use the verified image type for the extension, not what was provided in filename
     filename = f"{user_id}.{extension}"
     file_path = os.path.join(images_path, filename)
 
@@ -263,7 +277,7 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
         if os.path.exists(file_path):
             os.remove(file_path)
             
-        file_content = await file.read()
+        # Write the validated image content to file
         with open(file_path, "wb") as f:
             f.write(file_content)
 
@@ -276,7 +290,7 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
 
         set_user(user_data)
 
-        return JSONResponse(status_code=200, content={"success": True, "avatar_url": avatar_url})
+        return JSONResponse(status_code=200, content={"success": True, "user": user_data})
     except Exception as e:
         logger.error(f"Error uploading avatar: {str(e)}")
         return JSONResponse(status_code=500, content={"error": f"Failed to upload avatar: {str(e)}"})
@@ -293,9 +307,22 @@ async def upload_story(context: AuthContext = Depends(get_auth_context), file: U
     if file.filename == '':
         return JSONResponse(status_code=400, content={"error": "No file selected"})
     
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
-    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        return JSONResponse(status_code=400, content={"error": "File type not allowed"})
+    file_content = await file.read()
+    
+    img_type = imghdr.what(None, file_content)
+    allowed_img_types = {'png', 'jpg', 'jpeg', 'gif'}
+    
+    if img_type not in allowed_img_types:
+        return JSONResponse(status_code=400, content={"error": "Invalid image file"})
+    
+    # Map imghdr types to file extensions
+    extension_map = {
+        'jpeg': 'jpg',
+        'png': 'png', 
+        'gif': 'gif'
+    }
+    
+    extension = extension_map.get(img_type, 'jpg')
     
     os.makedirs(stories_path, exist_ok=True)
 
@@ -308,8 +335,7 @@ async def upload_story(context: AuthContext = Depends(get_auth_context), file: U
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
-            
-        file_content = await file.read()
+
         with open(file_path, "wb") as f:
             f.write(file_content)
 
@@ -737,15 +763,26 @@ async def upload_skill_image(
     if file.filename == '':
         return JSONResponse(status_code=400, content={"error": "No file selected"})
         
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif', 'svg'}
-    if '.' not in file.filename or file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        return JSONResponse(status_code=400, content={"error": "File type not allowed"})
+    file_content = await file.read()
+    
+    img_type = imghdr.what(None, file_content)
+    allowed_img_types = {'png', 'jpg', 'jpeg', 'gif'}
+    
+    if img_type not in allowed_img_types:
+        return JSONResponse(status_code=400, content={"error": "Invalid image file"})
+    
+    # Map imghdr types to file extensions
+    extension_map = {
+        'jpeg': 'jpg',
+        'png': 'png', 
+        'gif': 'gif'
+    }
+    
+    extension = extension_map.get(img_type, 'jpg')
     
     skills_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'files', 'skills')
     os.makedirs(skills_path, exist_ok=True)
-    
-    extension = file.filename.rsplit('.', 1)[1].lower()
-    
+        
     if skill_id:
         filename = f"{user_id}_{skill_id}.{extension}"
     else:
