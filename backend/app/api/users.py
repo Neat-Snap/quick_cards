@@ -11,7 +11,7 @@ from sqlalchemy import or_
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 images_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "profile")
-stories_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "stories")
+stories_path = os.path.join(os.path.dirname(__file__), '..', '..', "..", 'files', "story")
 
 from app.core.search import get_skill_search
 from app.middleware import *
