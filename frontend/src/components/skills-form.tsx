@@ -25,8 +25,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSkillIconUrl, SUGGESTED_SKILLS } from "@/lib/SkillIconHelper";
 
-// Prefix for private custom skills
-const PRIVATE_SKILL_PREFIX = "🔒";
 
 // Check if a skill is private (created by the user)
 const isPrivateSkill = (skill: Skill): boolean => {
@@ -76,42 +74,25 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     const loadData = async () => {
       try {
         setLoading(true);
-        
+
         // Check premium status first
         const premiumStatus = await getPremiumStatus();
         console.log("Premium status for skills:", premiumStatus);
-        
+
         // Consider user as premium if their tier is > 0
         const hasPremium = premiumStatus.premium_tier > 0;
         setIsPremium(hasPremium);
-        
+
         if (hasPremium) {
           console.log("User has premium (tier:", premiumStatus.premium_tier, "), skills feature is enabled");
-          
-          // Force-reload the user profile to get fresh skills data
+
+          // Only fetch skills, not the full user profile
           try {
-            console.log("Fetching full user profile to get latest skills...");
-            const userResponse = await getCurrentUser();
-            
-            // Get the skills from the full user response
-            let loadedSkills: Skill[] = [];
-            
-            if (userResponse.success && userResponse.user && Array.isArray(userResponse.user.skills)) {
-              loadedSkills = userResponse.user.skills;
-              console.log(`Loaded ${loadedSkills.length} skills from user profile:`, loadedSkills);
-            } else {
-              // Fall back to direct skills endpoint
-              console.log("No skills in user profile, trying dedicated skills endpoint...");
-              loadedSkills = await getUserSkills();
-              console.log(`Loaded ${loadedSkills.length} skills from dedicated endpoint:`, loadedSkills);
-            }
-            
-            if (loadedSkills.length > 0) {
-              setUserSkills(loadedSkills);
-            } else {
-              console.log("No skills found for user");
-              setUserSkills([]);
-            }
+            console.log("Fetching user skills only...");
+            const loadedSkills = await getUserSkills();
+            console.log(`Loaded ${loadedSkills.length} skills from dedicated endpoint:`, loadedSkills);
+
+            setUserSkills(Array.isArray(loadedSkills) ? loadedSkills : []);
           } catch (skillsError) {
             console.error("Error loading skills:", skillsError);
             toast({
@@ -138,7 +119,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         setLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
   
