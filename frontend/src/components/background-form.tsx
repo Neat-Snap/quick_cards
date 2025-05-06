@@ -39,9 +39,7 @@ const COLORS = [
   "#0f172a", // slate
   "#1e293b", // slate-800
   "#334155", // slate-700
-  "#713f12", // amber-brown
 ];
-
 
 export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProps) {
   // Find closest matching color from predefined colors
