@@ -13,7 +13,7 @@ import { ScrollableSection, ScrollableStyles } from "@/components/scrollable-sec
 import { ItemDetailView } from "@/components/item-detail-view";
 import { getSkillIconUrl } from "@/lib/SkillIconHelper";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
+const API_URL = 'https://face-cards.ru/api';
 
 interface BusinessCardPreviewProps {
   user: User | null;
