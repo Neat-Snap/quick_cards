@@ -156,70 +156,38 @@ export default function Home() {
   // Function to load user data (contacts, projects, skills, links)
   const loadUserData = async () => {
     setLoading(true);
-    
+
     try {
       // Get current user with full data - force refresh from server
       console.log("Fetching fresh user data from server...");
       const userResponse = await getCurrentUser();
-      
+
       console.log("User response:", userResponse);
-      
+
       if (!userResponse.success) {
         throw new Error(userResponse.error || "Failed to load user data");
       }
-      
+
       // Access the user data correctly, handling both response formats
       const userData = userResponse.user;
-      
+
       if (!userData) {
         throw new Error("User data is undefined");
       }
-      
+
       console.log("User data:", userData);
-      
+
       // Update all state with the fresh data
       setUserData(userData);
-      
-      // Check if user data contains nested objects and set them
-      if (userData.contacts) {
-        console.log("Setting contacts from user data:", userData.contacts);
-        setContacts(userData.contacts as Contact[]);
-      }
 
-      console.log("projects from loaduserdata", userData.projects)
+      // Set arrays, defaulting to [] if missing
+      setContacts(Array.isArray(userData.contacts) ? userData.contacts as Contact[] : []);
+      setProjects(Array.isArray(userData.projects) ? userData.projects as Project[] : []);
+      setSkills(Array.isArray(userData.skills) ? userData.skills as Skill[] : []);
+      setCustomLinks(Array.isArray(userData.custom_links) ? userData.custom_links as CustomLink[] : []);
 
-      if (userData.projects) setProjects(userData.projects as Project[]);
-      if (userData.skills) setSkills(userData.skills as Skill[]);
-      if (userData.custom_links) setCustomLinks(userData.custom_links as CustomLink[]);
-      
-      // Also get separate endpoints data to ensure we have everything
-      console.log("Fetching additional user data...");
-      const [contactsData, projectsData, skillsData, linksData] = await Promise.all([
-        getUserContacts(),
-        getUserProjects(),
-        getUserSkills(),
-        getUserLinks()
-      ]);
-      
-      console.log("Contacts data from dedicated endpoint:", contactsData);
-      
-      // Only update state if data exists and wasn't already set from user object
-      if (contactsData && contactsData.length > 0 && (!userData.contacts || userData.contacts.length === 0)) {
-        console.log("Setting contacts from dedicated endpoint");
-        setContacts(contactsData);
-      }
-      if (projectsData && projectsData.length > 0 && (!userData.projects || userData.projects.length === 0)) {
-        setProjects(projectsData);
-      }
-      if (skillsData && skillsData.length > 0 && (!userData.skills || userData.skills.length === 0)) {
-        setSkills(skillsData);
-      }
-      if (linksData && linksData.length > 0 && (!userData.custom_links || userData.custom_links.length === 0)) {
-        setCustomLinks(linksData);
-      }
-      
       console.log("User data loaded successfully:", userData);
-      console.log("Contacts state:", contacts);
+      console.log("Contacts state:", userData.contacts);
     } catch (error) {
       console.error("Error loading user data:", error);
       toast({
