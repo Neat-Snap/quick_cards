@@ -705,10 +705,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
             type="button" 
             variant="outline" 
             className="w-full sm:w-auto"
-            onClick={() => {
-              handleSuccess();
-              if (onCancel) onCancel();
-            }}
+            onClick={onCancel}
           >
             Back
           </Button>
