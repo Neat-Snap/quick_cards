@@ -490,6 +490,20 @@ async def get_user_projects(context: AuthContext = Depends(get_auth_context)):
     except Exception as e:
         logger.error(f"Error getting contacts: {str(e)}")
         return JSONResponse(status_code=500, content={"error": f"Failed to get contacts: {str(e)}"})
+    
+
+@router.get("/users/me/skills")
+async def get_user_skills(context: AuthContext = Depends(get_auth_context)):
+    user_id, error = check_context(context)
+    if not user_id or error:
+        return error
+    
+    try:
+        user_skills = get_skills(user_id)
+        return JSONResponse(status_code=200, content=user_skills)
+    except Exception as e:
+        logger.error(f"Error getting skills: {str(e)}")
+        return JSONResponse(status_code=500, content={"error": f"Failed to get skills: {str(e)}"})
 
 
 @router.delete("/users/me/contacts/{contact_id}")
