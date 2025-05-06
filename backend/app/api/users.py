@@ -21,6 +21,9 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from app.db import *
 
+from PIL import Image
+import io
+
 
 router = APIRouter(
     prefix="/v1",
@@ -28,6 +31,15 @@ router = APIRouter(
 )
 
 logger = logging.getLogger(__name__)
+
+
+def compress_image(image_bytes, max_size=(512, 512), quality=75):
+    image = Image.open(io.BytesIO(image_bytes))
+    image = image.convert("RGB")
+    image.thumbnail(max_size, Image.LANCZOS)
+    output = io.BytesIO()
+    image.save(output, format="JPEG", quality=quality, optimize=True)
+    return output.getvalue()
 
 
 @router.post("/users")
@@ -38,7 +50,7 @@ async def user_endpoint(request: Request, user: UserResponse):
         return JSONResponse(status_code=400, content={"error": "Missing required fields"})
 
     existing_user = get_user(data["id"])
-    if existing_user:
+    if (existing_user):
         return JSONResponse(status_code=400, content={"error": "User already registered"})
     
     try:
@@ -249,7 +261,6 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
     if file.filename == '':
         return JSONResponse(status_code=400, content={"error": "No file selected"})
     
-    # Read the file content first to validate it
     file_content = await file.read()
     
     img_type = imghdr.what(None, file_content)
@@ -258,28 +269,25 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
     if img_type not in allowed_img_types:
         return JSONResponse(status_code=400, content={"error": "Invalid image file"})
     
-    # Map imghdr types to file extensions
     extension_map = {
         'jpeg': 'jpg',
         'png': 'png', 
         'gif': 'gif'
     }
-    
     extension = extension_map.get(img_type, 'jpg')
     
     os.makedirs(images_path, exist_ok=True)
-    
-    # Use the verified image type for the extension, not what was provided in filename
     filename = f"{user_id}.{extension}"
     file_path = os.path.join(images_path, filename)
 
     try:
+        # Compress and resize image before saving
+        compressed_content = compress_image(file_content, max_size=(512, 512), quality=75)
+
         if os.path.exists(file_path):
             os.remove(file_path)
-            
-        # Write the validated image content to file
         with open(file_path, "wb") as f:
-            f.write(file_content)
+            f.write(compressed_content)
 
         user_data = get_user(user_id)
         if not user_data:
@@ -843,13 +851,11 @@ async def upload_skill_image(
     if img_type not in allowed_img_types:
         return JSONResponse(status_code=400, content={"error": "Invalid image file"})
     
-    # Map imghdr types to file extensions
     extension_map = {
         'jpeg': 'jpg',
         'png': 'png', 
         'gif': 'gif'
     }
-    
     extension = extension_map.get(img_type, 'jpg')
     
     skills_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'files', 'skills')
@@ -865,12 +871,13 @@ async def upload_skill_image(
     file_path = os.path.join(skills_path, filename)
     
     try:
+        # Compress and resize image before saving
+        compressed_content = compress_image(file_content, max_size=(512, 512), quality=75)
+
         if os.path.exists(file_path):
             os.remove(file_path)
-            
-        file_content = await file.read()
         with open(file_path, "wb") as f:
-            f.write(file_content)
+            f.write(compressed_content)
         
         image_url = f"/v1/files/skills/{filename}"
         
