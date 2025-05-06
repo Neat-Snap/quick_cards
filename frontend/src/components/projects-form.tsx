@@ -923,7 +923,10 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
             type="button" 
             variant="outline" 
             className="w-full sm:w-auto mt-2"
-            onClick={onCancel}
+            onClick={() => {
+              handleSuccess();
+              if (onCancel) onCancel();
+            }}
           >
             Back
           </Button>
