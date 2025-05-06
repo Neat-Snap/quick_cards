@@ -147,7 +147,7 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       
       // If that returns empty, try getting them from the user object
       if (!userProjects || userProjects.length === 0) {
-        console.log("No projects found via direct API, trying from user object");
+        console.log("No projects found via direct API, trying from user object", userProjects);
         const userResponse = await getCurrentUser();
         
         if (userResponse.success && userResponse.user && userResponse.user.projects) {
