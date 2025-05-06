@@ -25,6 +25,10 @@ def handle_start(message):
     user_id = message.from_user.id
     username = message.from_user.username
     first_name = message.from_user.first_name
+
+    user_data = get_user(user_id)
+    if user_data is None:
+        notify_admins(f"👤 Новый пользователь запустил бота!\n\nID: {user_id}\nUsername: @{username}")
     
     # Create a keyboard with a WebApp button
     keyboard = InlineKeyboardMarkup()
@@ -118,7 +122,7 @@ def process_successful_payment(message):
 def notify_admins(message):
     for admin_id in settings.ADMIN_USER_IDS:
         try:
-            bot.send_message(admin_id, message)
+            bot.send_message(admin_id, message, parse_mode="HTML")
         except Exception as e:
             print(f"Failed to notify admin {admin_id}: {e}")
 
