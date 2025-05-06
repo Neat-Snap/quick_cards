@@ -295,6 +295,49 @@ async def upload_avatar(context: AuthContext = Depends(get_auth_context), file: 
     except Exception as e:
         logger.error(f"Error uploading avatar: {str(e)}")
         return JSONResponse(status_code=500, content={"error": f"Failed to upload avatar: {str(e)}"})
+
+
+# @router.get("/users/get/skills")
+# async def get_user_skills(context: AuthContext = Depends(get_auth_context)):
+#     user_id, error = check_context(context)
+#     if not user_id or error:
+#         return error
+
+#     try:
+#         user_skills = get_skills(user_id)
+#         return JSONResponse(status_code=200, content=user_skills)
+#     except Exception as e:
+#         logger.error(f"Error getting skills: {str(e)}")
+#         return JSONResponse(status_code=500, content={"error": f"Failed to get skills: {str(e)}"})
+
+
+# @router.get("/users/get/projects")
+# async def get_user_projects(context: AuthContext = Depends(get_auth_context)):
+#     user_id, error = check_context(context)
+#     if not user_id or error:
+#         return error
+
+#     try:
+#         user_projects = get_projects(user_id)
+#         return JSONResponse(status_code=200, content=user_projects)
+#     except Exception as e:
+#         logger.error(f"Error getting projects: {str(e)}")
+#         return JSONResponse(status_code=500, content={"error": f"Failed to get projects: {str(e)}"})
+
+
+# @router.get("/users/get/contacts")
+# async def get_user_contacts(context: AuthContext = Depends(get_auth_context)):
+#     user_id, error = check_context(context)
+#     if not user_id or error:
+#         return error
+
+#     try:
+#         user_contacts = get_contacts(user_id)
+#         return JSONResponse(status_code=200, content=user_contacts)
+#     except Exception as e:
+#         logger.error(f"Error getting contacts: {str(e)}")
+#         return JSONResponse(status_code=500, content={"error": f"Failed to get contacts: {str(e)}"})
+
     
 @router.post("/users/me/story")
 async def upload_story(context: AuthContext = Depends(get_auth_context), file: UploadFile = File(...)):
