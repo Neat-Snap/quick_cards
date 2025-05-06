@@ -24,26 +24,24 @@ const HEX_COLOR_REGEX = /^#(?:[0-9A-Fa-f]{6})$/;
 
 // Predefined colors
 const COLORS = [
-  // Original colors
+  "#0891b2", // cyan
+  "#0284c7", // light blue
   "#2563eb", // blue
+  "#0e7490", // teal
+  "#14b8a6", // teal-light
   "#16a34a", // green
   "#9333ea", // purple
+  "#db2777", // pink
   "#dc2626", // red
+  "#f97316", // orange
   "#ca8a04", // yellow
+  "#6d28d9", // indigo
   "#0f172a", // slate
   "#1e293b", // slate-800
   "#334155", // slate-700
-  
-  // Additional colors
-  "#0891b2", // cyan
-  "#0284c7", // light blue
-  "#0e7490", // teal
-  "#14b8a6", // teal-light
-  "#f97316", // orange
-  "#db2777", // pink
-  "#6d28d9", // indigo
   "#713f12", // amber-brown
 ];
+
 
 export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProps) {
   // Find closest matching color from predefined colors
@@ -195,9 +193,9 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!user) return;
-    
+  
     // Check if there are validation errors
     if (backgroundValueError) {
       toast({
@@ -207,46 +205,43 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
       });
       return;
     }
-    
+  
     setIsSubmitting(true);
-    
+  
     try {
       let backgroundValue = selectedColor;
-      
+  
       if (backgroundType === "gradient") {
-        // Check if user has premium for gradients
         if (!isPremium) {
           throw new Error("Premium subscription required for gradient backgrounds");
         }
         backgroundValue = `linear-gradient(135deg, ${selectedColor}, ${gradientEndColor})`;
       } else if (backgroundType === "image") {
-        // For image, we'd typically upload it first, but for now we'll just use the preview URL
-        // In a real implementation, you'd upload the image to a server and get a URL back
         backgroundValue = customBackgroundPreview || "";
-        
-        // Check if user has premium for custom background image
         if (!isPremium) {
           throw new Error("Premium subscription required for custom background images");
         }
       }
-      
+  
       const updateData: Partial<User> = {
         background_type: backgroundType,
         background_value: backgroundValue,
       };
-      
+  
+      // This updates the DB
       const response = await updateUserProfile(updateData);
-      
+  
       if (!response.success) {
         throw new Error(response.error || "Failed to update background");
       }
-      
+  
       toast({
         title: "Background Updated",
         description: "Your card background has been successfully updated.",
         variant: "default",
       });
-      
+  
+      // Notify parent to reload user data
       if (onSuccess) {
         onSuccess();
       }
@@ -273,7 +268,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   };
 
   return (
-    <form className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Background</h3>
