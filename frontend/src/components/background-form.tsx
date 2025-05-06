@@ -273,7 +273,7 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form className="space-y-6">
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Background</h3>
