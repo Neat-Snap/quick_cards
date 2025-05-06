@@ -28,7 +28,7 @@ def handle_start(message):
 
     user_data = get_user(user_id)
     if user_data is None:
-        notify_admins(f"👤 Новый пользователь запустил бота!\n\nID: {user_id}\nUsername: @{username}")
+        notify_admins(f"👤 <b>Новый пользователь запустил бота!\n\nID:</b> {user_id}\n<b>Username:</b> @{username}")
     
     # Create a keyboard with a WebApp button
     keyboard = InlineKeyboardMarkup()
