@@ -33,6 +33,7 @@ export const getAvatarUrl = (avatarPath: string | undefined): string => {
   
   // If it starts with /files/, it's already a full path
   if (avatarPath.startsWith('/files/')) {
+    console.log("api url is", API_URL, "avatar path is", avatarPath, "final path is", `${API_URL}/v1${avatarPath}`)
     return `${API_URL}/v1${avatarPath}`;
   }
   
