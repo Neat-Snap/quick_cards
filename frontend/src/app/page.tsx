@@ -90,84 +90,27 @@ export default function Home() {
     // Only proceed if we have a user and aren't already loading
     if (user && !loadingRef.current) {
       const loadData = async () => {
-        // Set our ref flag to prevent duplicate loading
         loadingRef.current = true;
         startDataLoading();
-        
+
         try {
-          // STEP 1: First get current user with full data
+          // Only one request here
           console.log("Fetching user data...");
           const userResponse = await getCurrentUser();
-          
+
           if (!userResponse.success || !userResponse.user) {
             throw new Error(userResponse.error || "Failed to load user data");
           }
-          
-          // Update userData state immediately
+
           const userData = userResponse.user;
           setUserData(userData);
-          
-          // STEP 2: Check if user data already has the collections we need
-          let projectsLoaded = false;
-          
-          // Set projects from user data if available
-          if (userData.projects && Array.isArray(userData.projects) && userData.projects.length > 0) {
-            console.log(`Setting ${userData.projects.length} projects from user data`);
-            setProjects(userData.projects as Project[]);
-            projectsLoaded = true;
-          }
-          
-          // Set contacts if available
-          if (userData.contacts && Array.isArray(userData.contacts)) {
-            console.log(`Setting ${userData.contacts.length} contacts from user data`);
-            setContacts(userData.contacts as Contact[]);
-          }
-          
-          // Set skills if available
-          if (userData.skills && Array.isArray(userData.skills)) {
-            console.log(`Setting ${userData.skills.length} skills from user data`);
-            setSkills(userData.skills as Skill[]);
-          }
-          
-          // Set custom links if available
-          if (userData.custom_links && Array.isArray(userData.custom_links)) {
-            console.log(`Setting ${userData.custom_links.length} custom links from user data`);
-            setCustomLinks(userData.custom_links as CustomLink[]);
-          }
-          
-          // STEP 3: Only make additional API calls for data we don't already have
-          console.log("Fetching additional user data as needed...");
-          
-          // Only fetch projects if we didn't already get them above
-          if (!projectsLoaded) {
-            console.log("Projects not found in user data, fetching separately...");
-            const projectsData = await getUserProjects();
-            if (projectsData && projectsData.length > 0) {
-              console.log(`Setting ${projectsData.length} projects from dedicated endpoint`);
-              setProjects(projectsData);
-            } else {
-              console.log("No projects found from dedicated endpoint");
-            }
-          }
-          
-          // Fetch other data as needed
-          const [contactsData, skillsData, linksData] = await Promise.all([
-            (!userData.contacts || !userData.contacts.length) ? getUserContacts() : null,
-            (!userData.skills || !userData.skills.length) ? getUserSkills() : null,
-            (!userData.custom_links || !userData.custom_links.length) ? getUserLinks() : null
-          ]);
-          
-          // Update state with any additional fetched data
-          if (contactsData && contactsData.length > 0) {
-            setContacts(contactsData);
-          }
-          if (skillsData && skillsData.length > 0) {
-            setSkills(skillsData);
-          }
-          if (linksData && linksData.length > 0) {
-            setCustomLinks(linksData);
-          }
-          
+
+          // Always set arrays, defaulting to [] if missing
+          setProjects(Array.isArray(userData.projects) ? userData.projects as Project[] : []);
+          setContacts(Array.isArray(userData.contacts) ? userData.contacts as Contact[] : []);
+          setSkills(Array.isArray(userData.skills) ? userData.skills as Skill[] : []);
+          setCustomLinks(Array.isArray(userData.custom_links) ? userData.custom_links as CustomLink[] : []);
+
           console.log("All data loaded successfully");
         } catch (error) {
           console.error("Error loading user data:", error);
@@ -177,13 +120,12 @@ export default function Home() {
             variant: "destructive",
           });
         } finally {
-          // Important: Reset the loading flag BEFORE finishing data loading
           loadingRef.current = false;
           setLoading(false);
           finishDataLoading();
         }
       };
-      
+
       loadData();
     }
     // Only depend on user - not on the loading functions
