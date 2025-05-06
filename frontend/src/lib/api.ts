@@ -505,8 +505,21 @@ export async function updateContact(contactId: number, contact: Partial<Contact>
 
 // Project functions
 export async function getUserProjects(): Promise<Project[]> {
-  const response = await apiRequest<any>('/v1/users/me');
-  return response.success && response.user ? response.user.projects || [] : [];
+  const response = await apiRequest<Project[]>('/v1/users/me/projects');
+  // If the response is an array directly
+  if (Array.isArray(response)) {
+    return response;
+  }
+  // If the response is wrapped in ApiResponse and contains user.projects
+  if (response && response.success && response.user && Array.isArray((response.user as any).projects)) {
+    return (response.user as any).projects;
+  }
+  // If the response is wrapped in ApiResponse and contains projects directly
+  if (response && response.success && Array.isArray((response as any).projects)) {
+    return (response as any).projects;
+  }
+  // Fallback: return empty array
+  return [];
 }
 
 export async function createProject(project: Omit<Project, 'id' | 'user_id'>): Promise<ApiResponse<Project>> {
@@ -529,7 +542,6 @@ export async function deleteProject(projectId: number): Promise<ApiResponse<any>
   });
 }
 
-// Skills functions
 // Skills functions
 export async function getUserSkills(): Promise<Skill[]> {
   try {
