@@ -24,53 +24,50 @@ const HEX_COLOR_REGEX = /^#(?:[0-9A-Fa-f]{6})$/;
 
 // Predefined colors
 const COLORS = [
-  // Cool tones
+  // 🔵 Blue & Teal Family
   "#e0f2fe", // light blue-100
   "#bae6fd", // light blue-200
-  "#0891b2", // cyan
   "#0284c7", // light blue
   "#2563eb", // blue
   "#0e7490", // teal
   "#14b8a6", // teal-light
+  "#0891b2", // cyan
 
-  // Greens
+  // 🟢 Green Family
+  "#f0fdfa", // emerald-50
   "#dcfce7", // light green-100
   "#bbf7d0", // light green-200
   "#16a34a", // green
 
-  // Purples & pinks
+  // 🟣 Purple Family
   "#f3e8ff", // light purple-100
   "#e9d5ff", // light purple-200
   "#9333ea", // purple
-  "#db2777", // pink
+  "#6d28d9", // indigo
+  "#eef2ff", // indigo-100
+  "#c7d2fe", // indigo-200
 
-  // Reds & oranges
+  // ❤️ Red & Pink Family
   "#ffe4e6", // rose-100
   "#fecaca", // red-200
   "#dc2626", // red
-  "#f97316", // orange
+  "#db2777", // pink
 
-  // Yellows & warm tones
+  // 🟠 Orange & Yellow Family
   "#fef9c3", // yellow-100
+  "#fde68a", // amber-200
   "#fcd34d", // yellow-300
   "#ca8a04", // yellow
-  "#fde68a", // amber-200
+  "#f97316", // orange
 
-  // Indigo & neutral darks
-  "#eef2ff", // indigo-100
-  "#c7d2fe", // indigo-200
-  "#6d28d9", // indigo
-  "#1e293b", // slate-800
-  "#334155", // slate-700
-  "#0f172a", // slate-900
-
-  // Very dark (modern background tones)
-  "#020617", // zinc-950
-  "#111827", // gray-900
-
-  // Clean pastel additions
+  // ⚫ Gray / Slate / Neutral Family
   "#f1f5f9", // light slate-100
-  "#f0fdfa", // emerald-50
+  "#eef2ff", // duplicate, already placed
+  "#334155", // slate-700
+  "#1e293b", // slate-800
+  "#0f172a", // slate-900
+  "#111827", // gray-900
+  "#020617", // zinc-950
 ];
 
 

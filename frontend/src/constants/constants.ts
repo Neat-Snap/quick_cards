@@ -1,4 +1,4 @@
 export function botUsername(start?: string): string {
     const startParam = start ? start : '{}';
-    return `https://t.me/quick_cards_bot?start=${startParam}`;
+    return `https://t.me/quick_business_bot?start=${startParam}`;
 }
