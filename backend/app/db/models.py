@@ -8,7 +8,7 @@ Base = declarative_base()
 user_skill = Table(
     "user_skill",
     Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id")),
+    Column("user_id", BigInteger, ForeignKey("users.id")),
     Column("skill_id", Integer, ForeignKey("skills.id"))
 )
 
