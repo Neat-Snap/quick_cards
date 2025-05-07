@@ -84,7 +84,7 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
 
   // Generate the shareable link
   const getShareLink = () => {
-    return bus(userId?.toString());
+    return bus(`id${userId?.toString()}`);
   };
 
   // Handle copy link
