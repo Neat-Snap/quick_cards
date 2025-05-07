@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
 import TelegramScript from "@/components/TelegramScript";
+import AnalyticsScript from "@/components/AnalyticsScript"
 import { Toaster } from "@/components/ui/use-toast";
 import { LoadingProvider } from "@/context/LoadingContext";
 import Script from "next/script";
@@ -17,7 +18,6 @@ declare global {
     };
   }
 }
-
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,24 +40,10 @@ export default function RootLayout({
           href="https://telegram.org/js/telegram-web-app.js" 
           as="script"
         />
-        {/* Load the script directly in head for immediate access */}
-        <script 
-          src="https://telegram.org/js/telegram-web-app.js" 
-          crossOrigin="anonymous"
-        />
-        {/* Telegram Analytics SDK via CDN */}
+        {/* Load the script in head without event handlers */}
         <Script
-          src="https://tganalytics.xyz/index.js"
-          strategy="afterInteractive"
-          async
-          onLoad={() => {
-            if (window.telegramAnalytics) {
-              window.telegramAnalytics.init({
-                token: 'eyJhcHBfbmFtZSI6InF1aWNrX2JvdCIsImFwcF91cmwiOiJodHRwczovL3QubWUvcXVpY2tfYnVzaW5lc3NfYm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vZmFjZS1jYXJkcy5ydSJ9!IC5m7q2ibufrjo1zcAL71+IWPOAOuLrHT05HBw048QE=', // Replace with your token
-                appName: 'quick_bot',
-              });
-            }
-          }}
+          src="https://telegram.org/js/telegram-web-app.js"
+          strategy="beforeInteractive"
         />
       </head>
       <body className={inter.className}>
@@ -75,7 +61,9 @@ export default function RootLayout({
           </AuthProvider>
         </ThemeProvider>
         
+        {/* Use the Client Component for scripts with event handlers */}
         <TelegramScript />
+        <AnalyticsScript />
       </body>
     </html>
   );
