@@ -558,5 +558,2174 @@
     "description": "Approach to project management and software development",
     "icon_name": null,
     "is_predefined": true
+  },
+  "golang": {
+    "name": "Go",
+    "variations": [
+      "golang",
+      "go"
+    ],
+    "category": "Programming",
+    "description": "Statically typed, compiled programming language by Google",
+    "icon_name": "go",
+    "is_predefined": false
+  },
+  "rust": {
+    "name": "Rust",
+    "variations": [
+      "rust"
+    ],
+    "category": "Programming",
+    "description": "Systems programming language focused on safety and performance",
+    "icon_name": "rust",
+    "is_predefined": false
+  },
+  "typescript": {
+    "name": "TypeScript",
+    "variations": [
+      "typescript",
+      "ts"
+    ],
+    "category": "Programming",
+    "description": "Strongly typed programming language that builds on JavaScript",
+    "icon_name": "typescript",
+    "is_predefined": false
+  },
+  "r": {
+    "name": "R",
+    "variations": [
+      "r"
+    ],
+    "category": "Programming",
+    "description": "Programming language for statistical computing and graphics",
+    "icon_name": "r",
+    "is_predefined": false
+  },
+  "scala": {
+    "name": "Scala",
+    "variations": [
+      "scala"
+    ],
+    "category": "Programming",
+    "description": "General-purpose programming language that supports functional programming",
+    "icon_name": "scala",
+    "is_predefined": false
+  },
+  "haskell": {
+    "name": "Haskell",
+    "variations": [
+      "haskell"
+    ],
+    "category": "Programming",
+    "description": "Advanced, purely functional programming language",
+    "icon_name": "haskell",
+    "is_predefined": false
+  },
+  "perl": {
+    "name": "Perl",
+    "variations": [
+      "perl"
+    ],
+    "category": "Programming",
+    "description": "High-level, general-purpose programming language",
+    "icon_name": "perl",
+    "is_predefined": false
+  },
+  "elixir": {
+    "name": "Elixir",
+    "variations": [
+      "elixir"
+    ],
+    "category": "Programming",
+    "description": "Functional, concurrent programming language that runs on the BEAM VM",
+    "icon_name": "elixir",
+    "is_predefined": false
+  },
+  "dart": {
+    "name": "Dart",
+    "variations": [
+      "dart"
+    ],
+    "category": "Programming",
+    "description": "Client-optimized language for fast apps on multiple platforms",
+    "icon_name": "dart",
+    "is_predefined": false
+  },
+  "flutter": {
+    "name": "Flutter",
+    "variations": [
+      "flutter"
+    ],
+    "category": "Frontend",
+    "description": "UI toolkit for building natively compiled applications",
+    "icon_name": "flutter",
+    "is_predefined": false
+  },
+  "svelte": {
+    "name": "Svelte",
+    "variations": [
+      "svelte"
+    ],
+    "category": "Frontend",
+    "description": "Component framework that compiles at build time",
+    "icon_name": "svelte",
+    "is_predefined": false
+  },
+  "next.js": {
+    "name": "Next.js",
+    "variations": [
+      "nextjs",
+      "next.js"
+    ],
+    "category": "Frontend",
+    "description": "React framework with hybrid static & server rendering",
+    "icon_name": "nextdotjs",
+    "is_predefined": false
+  },
+  "nuxt.js": {
+    "name": "Nuxt.js",
+    "variations": [
+      "nuxtjs",
+      "nuxt.js"
+    ],
+    "category": "Frontend",
+    "description": "Intuitive Vue framework for building web applications",
+    "icon_name": "nuxtdotjs",
+    "is_predefined": false
+  },
+  "tailwind css": {
+    "name": "Tailwind CSS",
+    "variations": [
+      "tailwindcss",
+      "tailwind",
+      "tailwind css"
+    ],
+    "category": "Frontend",
+    "description": "Utility-first CSS framework for rapid UI development",
+    "icon_name": "tailwindcss",
+    "is_predefined": false
+  },
+  "bootstrap": {
+    "name": "Bootstrap",
+    "variations": [
+      "bootstrap"
+    ],
+    "category": "Frontend",
+    "description": "Popular CSS framework for responsive web design",
+    "icon_name": "bootstrap",
+    "is_predefined": false
+  },
+  "sass": {
+    "name": "Sass",
+    "variations": [
+      "sass",
+      "scss"
+    ],
+    "category": "Frontend",
+    "description": "CSS preprocessor scripting language",
+    "icon_name": "sass",
+    "is_predefined": false
+  },
+  "laravel": {
+    "name": "Laravel",
+    "variations": [
+      "laravel"
+    ],
+    "category": "Backend",
+    "description": "PHP web application framework with elegant syntax",
+    "icon_name": "laravel",
+    "is_predefined": false
+  },
+  "ruby on rails": {
+    "name": "Ruby on Rails",
+    "variations": [
+      "rails",
+      "ror",
+      "ruby on rails"
+    ],
+    "category": "Backend",
+    "description": "Server-side web application framework written in Ruby",
+    "icon_name": "rubyonrails",
+    "is_predefined": false
+  },
+  "fastapi": {
+    "name": "FastAPI",
+    "variations": [
+      "fastapi"
+    ],
+    "category": "Backend",
+    "description": "Modern, fast web framework for building APIs with Python",
+    "icon_name": "fastapi",
+    "is_predefined": false
+  },
+  "nestjs": {
+    "name": "NestJS",
+    "variations": [
+      "nestjs"
+    ],
+    "category": "Backend",
+    "description": "Progressive Node.js framework for building server-side applications",
+    "icon_name": "nestjs",
+    "is_predefined": false
+  },
+  "asp.net core": {
+    "name": "ASP.NET Core",
+    "variations": [
+      "aspnetcore",
+      "asp.net core",
+      "asp.net"
+    ],
+    "category": "Backend",
+    "description": "Cross-platform, high-performance framework for building web apps",
+    "icon_name": "dotnet",
+    "is_predefined": false
+  },
+  "node.js": {
+    "name": "Node.js",
+    "variations": [
+      "nodejs",
+      "node.js",
+      "node"
+    ],
+    "category": "Backend",
+    "description": "JavaScript runtime built on Chrome's V8 JavaScript engine",
+    "icon_name": "nodedotjs",
+    "is_predefined": false
+  },
+  "deno": {
+    "name": "Deno",
+    "variations": [
+      "deno"
+    ],
+    "category": "Backend",
+    "description": "Secure runtime for JavaScript and TypeScript",
+    "icon_name": "deno",
+    "is_predefined": false
+  },
+  "graphql": {
+    "name": "GraphQL",
+    "variations": [
+      "graphql"
+    ],
+    "category": "Backend",
+    "description": "Query language for APIs and runtime for executing queries",
+    "icon_name": "graphql",
+    "is_predefined": false
+  },
+  "rest api": {
+    "name": "REST API",
+    "variations": [
+      "rest",
+      "restapi",
+      "rest api"
+    ],
+    "category": "Backend",
+    "description": "Architectural style for distributed hypermedia systems",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "scikit-learn": {
+    "name": "scikit-learn",
+    "variations": [
+      "scikit-learn",
+      "sklearn"
+    ],
+    "category": "Data Science",
+    "description": "Machine learning library for Python",
+    "icon_name": "scikitlearn",
+    "is_predefined": false
+  },
+  "pandas": {
+    "name": "Pandas",
+    "variations": [
+      "pandas"
+    ],
+    "category": "Data Science",
+    "description": "Data analysis and manipulation library for Python",
+    "icon_name": "pandas",
+    "is_predefined": false
+  },
+  "numpy": {
+    "name": "NumPy",
+    "variations": [
+      "numpy"
+    ],
+    "category": "Data Science",
+    "description": "Library for numerical computing in Python",
+    "icon_name": "numpy",
+    "is_predefined": false
+  },
+  "keras": {
+    "name": "Keras",
+    "variations": [
+      "keras"
+    ],
+    "category": "Data Science",
+    "description": "Deep learning API running on top of TensorFlow",
+    "icon_name": "keras",
+    "is_predefined": false
+  },
+  "opencv": {
+    "name": "OpenCV",
+    "variations": [
+      "opencv"
+    ],
+    "category": "Data Science",
+    "description": "Computer vision and machine learning software library",
+    "icon_name": "opencv",
+    "is_predefined": false
+  },
+  "jupyter": {
+    "name": "Jupyter",
+    "variations": [
+      "jupyter",
+      "jupyter notebook"
+    ],
+    "category": "Data Science",
+    "description": "Web application for creating and sharing documents with live code",
+    "icon_name": "jupyter",
+    "is_predefined": false
+  },
+  "spark": {
+    "name": "Apache Spark",
+    "variations": [
+      "spark",
+      "apache spark"
+    ],
+    "category": "Data Science",
+    "description": "Unified analytics engine for large-scale data processing",
+    "icon_name": "apachespark",
+    "is_predefined": false
+  },
+  "hadoop": {
+    "name": "Hadoop",
+    "variations": [
+      "hadoop"
+    ],
+    "category": "Data Science",
+    "description": "Framework for distributed storage and processing of big data",
+    "icon_name": "apachehadoop",
+    "is_predefined": false
+  },
+  "tableau": {
+    "name": "Tableau",
+    "variations": [
+      "tableau"
+    ],
+    "category": "Data Science",
+    "description": "Interactive data visualization software",
+    "icon_name": "tableau",
+    "is_predefined": false
+  },
+  "power bi": {
+    "name": "Power BI",
+    "variations": [
+      "powerbi",
+      "power bi"
+    ],
+    "category": "Data Science",
+    "description": "Business analytics service by Microsoft",
+    "icon_name": "powerbi",
+    "is_predefined": false
+  },
+  "elasticsearch": {
+    "name": "Elasticsearch",
+    "variations": [
+      "elasticsearch"
+    ],
+    "category": "Database",
+    "description": "Search and analytics engine based on Lucene",
+    "icon_name": "elasticsearch",
+    "is_predefined": false
+  },
+  "cassandra": {
+    "name": "Cassandra",
+    "variations": [
+      "cassandra"
+    ],
+    "category": "Database",
+    "description": "Highly-scalable NoSQL database management system",
+    "icon_name": "apachecassandra",
+    "is_predefined": false
+  },
+  "neo4j": {
+    "name": "Neo4j",
+    "variations": [
+      "neo4j"
+    ],
+    "category": "Database",
+    "description": "Graph database management system",
+    "icon_name": "neo4j",
+    "is_predefined": false
+  },
+  "mariadb": {
+    "name": "MariaDB",
+    "variations": [
+      "mariadb"
+    ],
+    "category": "Database",
+    "description": "Community-developed fork of MySQL",
+    "icon_name": "mariadb",
+    "is_predefined": false
+  },
+  "oracle database": {
+    "name": "Oracle Database",
+    "variations": [
+      "oracle",
+      "oracle db",
+      "oracle database"
+    ],
+    "category": "Database",
+    "description": "Multi-model database management system by Oracle",
+    "icon_name": "oracle",
+    "is_predefined": false
+  },
+  "ms sql server": {
+    "name": "Microsoft SQL Server",
+    "variations": [
+      "sqlserver",
+      "mssql",
+      "ms sql server"
+    ],
+    "category": "Database",
+    "description": "Relational database management system by Microsoft",
+    "icon_name": "microsoftsqlserver",
+    "is_predefined": false
+  },
+  "dynamodb": {
+    "name": "DynamoDB",
+    "variations": [
+      "dynamodb"
+    ],
+    "category": "Database",
+    "description": "NoSQL database service by Amazon Web Services",
+    "icon_name": "amazondynamodb",
+    "is_predefined": false
+  },
+  "firebase": {
+    "name": "Firebase",
+    "variations": [
+      "firebase"
+    ],
+    "category": "Database",
+    "description": "Platform for mobile and web application development by Google",
+    "icon_name": "firebase",
+    "is_predefined": false
+  },
+  "adobe premiere pro": {
+    "name": "Adobe Premiere Pro",
+    "variations": [
+      "premiere",
+      "premiere pro",
+      "adobe premiere",
+      "adobe premiere pro"
+    ],
+    "category": "Media",
+    "description": "Timeline-based video editing software",
+    "icon_name": "adobepremierepro",
+    "is_predefined": false
+  },
+  "adobe after effects": {
+    "name": "Adobe After Effects",
+    "variations": [
+      "after effects",
+      "ae",
+      "adobe after effects"
+    ],
+    "category": "Media",
+    "description": "Digital visual effects, motion graphics, and compositing application",
+    "icon_name": "adobeaftereffects",
+    "is_predefined": false
+  },
+  "final cut pro": {
+    "name": "Final Cut Pro",
+    "variations": [
+      "finalcut",
+      "final cut",
+      "final cut pro"
+    ],
+    "category": "Media",
+    "description": "Professional non-linear video editing software by Apple",
+    "icon_name": "apple",
+    "is_predefined": false
+  },
+  "davinci resolve": {
+    "name": "DaVinci Resolve",
+    "variations": [
+      "davinci",
+      "resolve",
+      "davinci resolve"
+    ],
+    "category": "Media",
+    "description": "Color correction and non-linear video editing application",
+    "icon_name": "blackmagicdesign",
+    "is_predefined": false
+  },
+  "unity": {
+    "name": "Unity",
+    "variations": [
+      "unity"
+    ],
+    "category": "Game Development",
+    "description": "Cross-platform game engine developed by Unity Technologies",
+    "icon_name": "unity",
+    "is_predefined": false
+  },
+  "unreal engine": {
+    "name": "Unreal Engine",
+    "variations": [
+      "ue",
+      "unreal",
+      "unreal engine"
+    ],
+    "category": "Game Development",
+    "description": "Game engine developed by Epic Games",
+    "icon_name": "unrealengine",
+    "is_predefined": false
+  },
+  "godot": {
+    "name": "Godot",
+    "variations": [
+      "godot"
+    ],
+    "category": "Game Development",
+    "description": "Free and open-source game engine",
+    "icon_name": "godotengine",
+    "is_predefined": false
+  },
+  "solidworks": {
+    "name": "SOLIDWORKS",
+    "variations": [
+      "solidworks"
+    ],
+    "category": "CAD",
+    "description": "Solid modeling computer-aided design software",
+    "icon_name": "dassaultsystemes",
+    "is_predefined": false
+  },
+  "catia": {
+    "name": "CATIA",
+    "variations": [
+      "catia"
+    ],
+    "category": "CAD",
+    "description": "Multi-platform software for 3D product design and engineering",
+    "icon_name": "dassaultsystemes",
+    "is_predefined": false
+  },
+  "3ds max": {
+    "name": "3ds Max",
+    "variations": [
+      "3dsmax",
+      "3ds max"
+    ],
+    "category": "3D Design",
+    "description": "3D computer graphics program for modeling, animation, and rendering",
+    "icon_name": "autodesk",
+    "is_predefined": false
+  },
+  "maya": {
+    "name": "Maya",
+    "variations": [
+      "maya",
+      "autodesk maya"
+    ],
+    "category": "3D Design",
+    "description": "3D computer animation, modeling, simulation, and rendering software",
+    "icon_name": "autodesk",
+    "is_predefined": false
+  },
+  "zbrush": {
+    "name": "ZBrush",
+    "variations": [
+      "zbrush"
+    ],
+    "category": "3D Design",
+    "description": "Digital sculpting tool for 3D modeling and texturing",
+    "icon_name": "pixologic",
+    "is_predefined": false
+  },
+  "cinema 4d": {
+    "name": "Cinema 4D",
+    "variations": [
+      "c4d",
+      "cinema4d",
+      "cinema 4d"
+    ],
+    "category": "3D Design",
+    "description": "3D modeling, animation, motion graphics, and rendering application",
+    "icon_name": "cinema4d",
+    "is_predefined": false
+  },
+  "jenkins": {
+    "name": "Jenkins",
+    "variations": [
+      "jenkins"
+    ],
+    "category": "DevOps",
+    "description": "Open source automation server for continuous integration",
+    "icon_name": "jenkins",
+    "is_predefined": false
+  },
+  "travis ci": {
+    "name": "Travis CI",
+    "variations": [
+      "travis",
+      "travis ci"
+    ],
+    "category": "DevOps",
+    "description": "Hosted continuous integration service",
+    "icon_name": "travisci",
+    "is_predefined": false
+  },
+  "circleci": {
+    "name": "CircleCI",
+    "variations": [
+      "circleci"
+    ],
+    "category": "DevOps",
+    "description": "Continuous integration and delivery platform",
+    "icon_name": "circleci",
+    "is_predefined": false
+  },
+  "ansible": {
+    "name": "Ansible",
+    "variations": [
+      "ansible"
+    ],
+    "category": "DevOps",
+    "description": "Open-source software provisioning, configuration management, and deployment tool",
+    "icon_name": "ansible",
+    "is_predefined": false
+  },
+  "terraform": {
+    "name": "Terraform",
+    "variations": [
+      "terraform"
+    ],
+    "category": "DevOps",
+    "description": "Infrastructure as code software tool by HashiCorp",
+    "icon_name": "terraform",
+    "is_predefined": false
+  },
+  "puppet": {
+    "name": "Puppet",
+    "variations": [
+      "puppet"
+    ],
+    "category": "DevOps",
+    "description": "Configuration management tool for IT automation",
+    "icon_name": "puppet",
+    "is_predefined": false
+  },
+  "chef": {
+    "name": "Chef",
+    "variations": [
+      "chef"
+    ],
+    "category": "DevOps",
+    "description": "Configuration management tool for infrastructure automation",
+    "icon_name": "chef",
+    "is_predefined": false
+  },
+  "prometheus": {
+    "name": "Prometheus",
+    "variations": [
+      "prometheus"
+    ],
+    "category": "DevOps",
+    "description": "Open-source monitoring and alerting toolkit",
+    "icon_name": "prometheus",
+    "is_predefined": false
+  },
+  "grafana": {
+    "name": "Grafana",
+    "variations": [
+      "grafana"
+    ],
+    "category": "DevOps",
+    "description": "Open-source platform for monitoring and observability",
+    "icon_name": "grafana",
+    "is_predefined": false
+  },
+  "heroku": {
+    "name": "Heroku",
+    "variations": [
+      "heroku"
+    ],
+    "category": "Cloud",
+    "description": "Cloud platform as a service supporting several programming languages",
+    "icon_name": "heroku",
+    "is_predefined": false
+  },
+  "digital ocean": {
+    "name": "DigitalOcean",
+    "variations": [
+      "digitalocean",
+      "digital ocean"
+    ],
+    "category": "Cloud",
+    "description": "Cloud infrastructure provider focused on simplicity for developers",
+    "icon_name": "digitalocean",
+    "is_predefined": false
+  },
+  "ibm cloud": {
+    "name": "IBM Cloud",
+    "variations": [
+      "ibmcloud",
+      "ibm cloud"
+    ],
+    "category": "Cloud",
+    "description": "Cloud computing platform by IBM",
+    "icon_name": "ibm",
+    "is_predefined": false
+  },
+  "alibaba cloud": {
+    "name": "Alibaba Cloud",
+    "variations": [
+      "alibabacloud",
+      "alibaba cloud"
+    ],
+    "category": "Cloud",
+    "description": "Cloud computing services by Alibaba Group",
+    "icon_name": "alibabacloud",
+    "is_predefined": false
+  },
+  "oracle cloud": {
+    "name": "Oracle Cloud",
+    "variations": [
+      "oraclecloud",
+      "oracle cloud"
+    ],
+    "category": "Cloud",
+    "description": "Cloud computing service offered by Oracle Corporation",
+    "icon_name": "oracle",
+    "is_predefined": false
+  },
+  "salesforce": {
+    "name": "Salesforce",
+    "variations": [
+      "salesforce"
+    ],
+    "category": "CRM",
+    "description": "Customer relationship management platform",
+    "icon_name": "salesforce",
+    "is_predefined": false
+  },
+  "hubspot": {
+    "name": "HubSpot",
+    "variations": [
+      "hubspot"
+    ],
+    "category": "CRM",
+    "description": "Marketing, sales, and service platform",
+    "icon_name": "hubspot",
+    "is_predefined": false
+  },
+  "zoho": {
+    "name": "Zoho",
+    "variations": [
+      "zoho"
+    ],
+    "category": "CRM",
+    "description": "Web-based online office suite and SaaS applications",
+    "icon_name": "zoho",
+    "is_predefined": false
+  },
+  "bitbucket": {
+    "name": "Bitbucket",
+    "variations": [
+      "bitbucket"
+    ],
+    "category": "Development Tools",
+    "description": "Git repository management solution by Atlassian",
+    "icon_name": "bitbucket",
+    "is_predefined": false
+  },
+  "gitlab": {
+    "name": "GitLab",
+    "variations": [
+      "gitlab"
+    ],
+    "category": "Development Tools",
+    "description": "Web-based DevOps lifecycle tool with Git repository manager",
+    "icon_name": "gitlab",
+    "is_predefined": false
+  },
+  "vs code": {
+    "name": "Visual Studio Code",
+    "variations": [
+      "vscode",
+      "vs code",
+      "visual studio code"
+    ],
+    "category": "Development Tools",
+    "description": "Source-code editor developed by Microsoft",
+    "icon_name": "visualstudiocode",
+    "is_predefined": false
+  },
+  "jetbrains": {
+    "name": "JetBrains IDEs",
+    "variations": [
+      "jetbrains",
+      "intellij",
+      "pycharm",
+      "webstorm"
+    ],
+    "category": "Development Tools",
+    "description": "Integrated development environments for various programming languages",
+    "icon_name": "jetbrains",
+    "is_predefined": false
+  },
+  "sublime text": {
+    "name": "Sublime Text",
+    "variations": [
+      "sublime",
+      "sublime text"
+    ],
+    "category": "Development Tools",
+    "description": "Sophisticated text editor for code, markup and prose",
+    "icon_name": "sublimetext",
+    "is_predefined": false
+  },
+  "atom": {
+    "name": "Atom",
+    "variations": [
+      "atom"
+    ],
+    "category": "Development Tools",
+    "description": "Hackable text editor for the 21st Century",
+    "icon_name": "atom",
+    "is_predefined": false
+  },
+  "npm": {
+    "name": "npm",
+    "variations": [
+      "npm"
+    ],
+    "category": "Development Tools",
+    "description": "Package manager for JavaScript",
+    "icon_name": "npm",
+    "is_predefined": false
+  },
+  "yarn": {
+    "name": "Yarn",
+    "variations": [
+      "yarn"
+    ],
+    "category": "Development Tools",
+    "description": "Package manager for JavaScript",
+    "icon_name": "yarn",
+    "is_predefined": false
+  },
+  "webpack": {
+    "name": "Webpack",
+    "variations": [
+      "webpack"
+    ],
+    "category": "Development Tools",
+    "description": "Static module bundler for JavaScript applications",
+    "icon_name": "webpack",
+    "is_predefined": false
+  },
+  "babel": {
+    "name": "Babel",
+    "variations": [
+      "babel"
+    ],
+    "category": "Development Tools",
+    "description": "JavaScript compiler for using next generation JavaScript today",
+    "icon_name": "babel",
+    "is_predefined": false
+  },
+  "eslint": {
+    "name": "ESLint",
+    "variations": [
+      "eslint"
+    ],
+    "category": "Development Tools",
+    "description": "Static code analysis tool for identifying problematic patterns in JavaScript",
+    "icon_name": "eslint",
+    "is_predefined": false
+  },
+  "postman": {
+    "name": "Postman",
+    "variations": [
+      "postman"
+    ],
+    "category": "Development Tools",
+    "description": "API platform for building and using APIs",
+    "icon_name": "postman",
+    "is_predefined": false
+  },
+  "wordpress": {
+    "name": "WordPress",
+    "variations": [
+      "wordpress",
+      "wp"
+    ],
+    "category": "CMS",
+    "description": "Content management system for website creation",
+    "icon_name": "wordpress",
+    "is_predefined": false
+  },
+  "drupal": {
+    "name": "Drupal",
+    "variations": [
+      "drupal"
+    ],
+    "category": "CMS",
+    "description": "Free and open-source content management framework",
+    "icon_name": "drupal",
+    "is_predefined": false
+  },
+  "joomla": {
+    "name": "Joomla",
+    "variations": [
+      "joomla"
+    ],
+    "category": "CMS",
+    "description": "Free and open-source content management system",
+    "icon_name": "joomla",
+    "is_predefined": false
+  },
+  "magento": {
+    "name": "Magento",
+    "variations": [
+      "magento"
+    ],
+    "category": "E-commerce",
+    "description": "E-commerce platform built on open source technology",
+    "icon_name": "magento",
+    "is_predefined": false
+  },
+  "shopify": {
+    "name": "Shopify",
+    "variations": [
+      "shopify"
+    ],
+    "category": "E-commerce",
+    "description": "E-commerce platform for online stores and retail point-of-sale systems",
+    "icon_name": "shopify",
+    "is_predefined": false
+  },
+  "woocommerce": {
+    "name": "WooCommerce",
+    "variations": [
+      "woocommerce"
+    ],
+    "category": "E-commerce",
+    "description": "Customizable, open-source e-commerce platform built on WordPress",
+    "icon_name": "woocommerce",
+    "is_predefined": false
+  },
+  "illustrator": {
+    "name": "Adobe Illustrator",
+    "variations": [
+      "illustrator"
+    ],
+    "category": "Design",
+    "description": "Vector graphics editor developed by Adobe",
+    "icon_name": "adobeillustrator",
+    "is_predefined": false
+  },
+  "adobe indesign": {
+    "name": "Adobe InDesign",
+    "variations": [
+      "indesign",
+      "adobe indesign"
+    ],
+    "category": "Design",
+    "description": "Desktop publishing and typesetting software application",
+    "icon_name": "adobeindesign",
+    "is_predefined": false
+  },
+  "affinity designer": {
+    "name": "Affinity Designer",
+    "variations": [
+      "affinity designer"
+    ],
+    "category": "Design",
+    "description": "Vector graphics editor for macOS, Windows, and iOS",
+    "icon_name": "affinitydesigner",
+    "is_predefined": false
+  },
+  "procreate": {
+    "name": "Procreate",
+    "variations": [
+      "procreate"
+    ],
+    "category": "Design",
+    "description": "Raster graphics editor app for digital painting for iOS",
+    "icon_name": "procreate",
+    "is_predefined": false
+  },
+  "trello": {
+    "name": "Trello",
+    "variations": [
+      "trello"
+    ],
+    "category": "Project Management",
+    "description": "Web-based Kanban-style list-making application",
+    "icon_name": "trello",
+    "is_predefined": false
+  },
+  "asana": {
+    "name": "Asana",
+    "variations": [
+      "asana"
+    ],
+    "category": "Project Management",
+    "description": "Web and mobile application designed to help teams organize, track, and manage their work",
+    "icon_name": "asana",
+    "is_predefined": false
+  },
+  "notion": {
+    "name": "Notion",
+    "variations": [
+      "notion"
+    ],
+    "category": "Project Management",
+    "description": "All-in-one workspace for notes, tasks, wikis, and databases",
+    "icon_name": "notion",
+    "is_predefined": false
+  },
+  "monday": {
+    "name": "monday.com",
+    "variations": [
+      "monday",
+      "monday.com"
+    ],
+    "category": "Project Management",
+    "description": "Cloud-based work operating system for team collaboration",
+    "icon_name": "monday",
+    "is_predefined": false
+  },
+  "clickup": {
+    "name": "ClickUp",
+    "variations": [
+      "clickup"
+    ],
+    "category": "Project Management",
+    "description": "Productivity platform for task management and collaboration",
+    "icon_name": "clickup",
+    "is_predefined": false
+  },
+  "scrum": {
+    "name": "Scrum",
+    "variations": [
+      "scrum"
+    ],
+    "category": "Management",
+    "description": "Framework for project management, primarily for software development",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "kanban": {
+    "name": "Kanban",
+    "variations": [
+      "kanban"
+    ],
+    "category": "Management",
+    "description": "Method for managing work with an emphasis on visualization",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "lean": {
+    "name": "Lean",
+    "variations": [
+      "lean"
+    ],
+    "category": "Management",
+    "description": "Methodical approach to identify and eliminate waste in processes",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "six sigma": {
+    "name": "Six Sigma",
+    "variations": [
+      "six sigma",
+      "sixsigma"
+    ],
+    "category": "Management",
+    "description": "Set of techniques and tools for process improvement",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "google analytics": {
+    "name": "Google Analytics",
+    "variations": [
+      "google analytics",
+      "googleanalytics",
+      "ga"
+    ],
+    "category": "Marketing",
+    "description": "Web analytics service offered by Google",
+    "icon_name": "googleanalytics",
+    "is_predefined": false
+  },
+  "mailchimp": {
+    "name": "Mailchimp",
+    "variations": [
+      "mailchimp"
+    ],
+    "category": "Marketing",
+    "description": "Marketing automation platform and email marketing service",
+    "icon_name": "mailchimp",
+    "is_predefined": false
+  },
+  "social media marketing": {
+    "name": "Social Media Marketing",
+    "variations": [
+      "social media marketing",
+      "smm"
+    ],
+    "category": "Marketing",
+    "description": "Using social media platforms to promote products or services",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "content marketing": {
+    "name": "Content Marketing",
+    "variations": [
+      "content marketing"
+    ],
+    "category": "Marketing",
+    "description": "Creating and sharing valuable content to attract and engage a target audience",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "email marketing": {
+    "name": "Email Marketing",
+    "variations": [
+      "email marketing"
+    ],
+    "category": "Marketing",
+    "description": "Sending marketing messages through email",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "google ads": {
+    "name": "Google Ads",
+    "variations": [
+      "google ads",
+      "adwords"
+    ],
+    "category": "Marketing",
+    "description": "Online advertising platform developed by Google",
+    "icon_name": "googleads",
+    "is_predefined": false
+  },
+  "facebook ads": {
+    "name": "Facebook Ads",
+    "variations": [
+      "facebook ads"
+    ],
+    "category": "Marketing",
+    "description": "Advertising platform offered by Facebook",
+    "icon_name": "facebook",
+    "is_predefined": false
+  },
+  "copywriting": {
+    "name": "Copywriting",
+    "variations": [
+      "copywriting"
+    ],
+    "category": "Content",
+    "description": "Act of writing text for advertising or marketing purposes",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "technical writing": {
+    "name": "Technical Writing",
+    "variations": [
+      "technical writing"
+    ],
+    "category": "Content",
+    "description": "Writing or drafting technical communications for technical, business, and consumer audiences",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "blog writing": {
+    "name": "Blog Writing",
+    "variations": [
+      "blog writing",
+      "blogging"
+    ],
+    "category": "Content",
+    "description": "Creating and writing content for blogs",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "microsoft office": {
+    "name": "Microsoft Office",
+    "variations": [
+      "ms office",
+      "office",
+      "microsoft office"
+    ],
+    "category": "Productivity",
+    "description": "Family of client software, server software, and services developed by Microsoft",
+    "icon_name": "microsoftoffice",
+    "is_predefined": false
+  },
+  "excel": {
+    "name": "Microsoft Excel",
+    "variations": [
+      "excel",
+      "ms excel"
+    ],
+    "category": "Productivity",
+    "description": "Spreadsheet developed by Microsoft",
+    "icon_name": "microsoftexcel",
+    "is_predefined": false
+  },
+  "powerpoint": {
+    "name": "Microsoft PowerPoint",
+    "variations": [
+      "powerpoint",
+      "ms powerpoint"
+    ],
+    "category": "Productivity",
+    "description": "Presentation program developed by Microsoft",
+    "icon_name": "microsoftpowerpoint",
+    "is_predefined": false
+  },
+  "word": {
+    "name": "Microsoft Word",
+    "variations": [
+      "word",
+      "ms word"
+    ],
+    "category": "Productivity",
+    "description": "Word processor developed by Microsoft",
+    "icon_name": "microsoftword",
+    "is_predefined": false
+  },
+  "google docs": {
+    "name": "Google Docs",
+    "variations": [
+      "google docs",
+      "googledocs"
+    ],
+    "category": "Productivity",
+    "description": "Online word processor included as part of Google's free web-based office suite",
+    "icon_name": "googledocs",
+    "is_predefined": false
+  },
+  "google sheets": {
+    "name": "Google Sheets",
+    "variations": [
+      "google sheets",
+      "googlesheets"
+    ],
+    "category": "Productivity",
+    "description": "Spreadsheet program included as part of Google's free web-based office suite",
+    "icon_name": "googlesheets",
+    "is_predefined": false
+  },
+  "google slides": {
+    "name": "Google Slides",
+    "variations": [
+      "google slides",
+      "googleslides"
+    ],
+    "category": "Productivity",
+    "description": "Presentation program included as part of Google's free web-based office suite",
+    "icon_name": "googleslides",
+    "is_predefined": false
+  },
+  "blockchain": {
+    "name": "Blockchain",
+    "variations": [
+      "blockchain"
+    ],
+    "category": "Technology",
+    "description": "System of recording information in a way that makes it difficult to change",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "cryptocurrency": {
+    "name": "Cryptocurrency",
+    "variations": [
+      "crypto",
+      "cryptocurrency"
+    ],
+    "category": "Technology",
+    "description": "Digital or virtual currency secured by cryptography",
+    "icon_name": "bitcoin",
+    "is_predefined": false
+  },
+  "solidity": {
+    "name": "Solidity",
+    "variations": [
+      "solidity"
+    ],
+    "category": "Programming",
+    "description": "Object-oriented programming language for writing smart contracts",
+    "icon_name": "solidity",
+    "is_predefined": false
+  },
+  "smart contracts": {
+    "name": "Smart Contracts",
+    "variations": [
+      "smart contracts"
+    ],
+    "category": "Technology",
+    "description": "Self-executing contract with the terms directly written into code",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "ethereum": {
+    "name": "Ethereum",
+    "variations": [
+      "ethereum",
+      "eth"
+    ],
+    "category": "Technology",
+    "description": "Decentralized, open-source blockchain with smart contract functionality",
+    "icon_name": "ethereum",
+    "is_predefined": false
+  },
+  "artificial intelligence": {
+    "name": "Artificial Intelligence",
+    "variations": [
+      "ai",
+      "artificial intelligence"
+    ],
+    "category": "Technology",
+    "description": "Intelligence demonstrated by machines, as opposed to natural intelligence",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "machine learning": {
+    "name": "Machine Learning",
+    "variations": [
+      "ml",
+      "machine learning"
+    ],
+    "category": "Technology",
+    "description": "Study of computer algorithms that improve automatically through experience",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "deep learning": {
+    "name": "Deep Learning",
+    "variations": [
+      "deep learning"
+    ],
+    "category": "Technology",
+    "description": "Part of machine learning based on artificial neural networks",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "nlp": {
+    "name": "Natural Language Processing",
+    "variations": [
+      "nlp",
+      "natural language processing"
+    ],
+    "category": "Technology",
+    "description": "Field of AI concerned with giving computers the ability to understand text and speech",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "computer vision": {
+    "name": "Computer Vision",
+    "variations": [
+      "cv",
+      "computer vision"
+    ],
+    "category": "Technology",
+    "description": "Field of AI that enables computers to derive meaningful information from digital images",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "cybersecurity": {
+    "name": "Cybersecurity",
+    "variations": [
+      "cyber security",
+      "cybersecurity"
+    ],
+    "category": "Technology",
+    "description": "Practice of protecting systems, networks, and programs from digital attacks",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "penetration testing": {
+    "name": "Penetration Testing",
+    "variations": [
+      "pentest",
+      "penetration testing"
+    ],
+    "category": "Technology",
+    "description": "Method of evaluating security by simulating attacks on a system",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "network security": {
+    "name": "Network Security",
+    "variations": [
+      "network security"
+    ],
+    "category": "Technology",
+    "description": "Protection of network infrastructure from unauthorized access or misuse",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "ethical hacking": {
+    "name": "Ethical Hacking",
+    "variations": [
+      "ethical hacking"
+    ],
+    "category": "Technology",
+    "description": "Authorized practice of bypassing system security to identify potential threats",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "cryptography": {
+    "name": "Cryptography",
+    "variations": [
+      "cryptography"
+    ],
+    "category": "Technology",
+    "description": "Practice and study of techniques for secure communication",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "iot": {
+    "name": "Internet of Things",
+    "variations": [
+      "iot",
+      "internet of things"
+    ],
+    "category": "Technology",
+    "description": "System of interrelated computing devices with ability to transfer data over a network",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "embedded systems": {
+    "name": "Embedded Systems",
+    "variations": [
+      "embedded systems",
+      "embedded"
+    ],
+    "category": "Technology",
+    "description": "Computer systems with a dedicated function within a larger system",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "arduino": {
+    "name": "Arduino",
+    "variations": [
+      "arduino"
+    ],
+    "category": "Technology",
+    "description": "Open-source electronic prototyping platform",
+    "icon_name": "arduino",
+    "is_predefined": false
+  },
+  "raspberry pi": {
+    "name": "Raspberry Pi",
+    "variations": [
+      "raspberry pi",
+      "rpi"
+    ],
+    "category": "Technology",
+    "description": "Small single-board computers for promoting computing education",
+    "icon_name": "raspberrypi",
+    "is_predefined": false
+  },
+  "robotics": {
+    "name": "Robotics",
+    "variations": [
+      "robotics"
+    ],
+    "category": "Technology",
+    "description": "Design, construction, and use of robots and computer systems for their control",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "augmented reality": {
+    "name": "Augmented Reality",
+    "variations": [
+      "ar",
+      "augmented reality"
+    ],
+    "category": "Technology",
+    "description": "Interactive experience where real-world environment is enhanced with computer-generated content",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "virtual reality": {
+    "name": "Virtual Reality",
+    "variations": [
+      "vr",
+      "virtual reality"
+    ],
+    "category": "Technology",
+    "description": "Simulated experience that can be similar to or completely different from the real world",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "mixed reality": {
+    "name": "Mixed Reality",
+    "variations": [
+      "mr",
+      "mixed reality"
+    ],
+    "category": "Technology",
+    "description": "Merging of real and virtual worlds to produce new environments",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "quantum computing": {
+    "name": "Quantum Computing",
+    "variations": [
+      "quantum computing"
+    ],
+    "category": "Technology",
+    "description": "Computing using quantum-mechanical phenomena",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "big data": {
+    "name": "Big Data",
+    "variations": [
+      "big data"
+    ],
+    "category": "Data Science",
+    "description": "Extremely large data sets that may be analyzed to reveal patterns and trends",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "data mining": {
+    "name": "Data Mining",
+    "variations": [
+      "data mining"
+    ],
+    "category": "Data Science",
+    "description": "Process of discovering patterns in large data sets",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "data visualization": {
+    "name": "Data Visualization",
+    "variations": [
+      "data visualization",
+      "data viz"
+    ],
+    "category": "Data Science",
+    "description": "Graphic representation of data to communicate information clearly and efficiently",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "statistics": {
+    "name": "Statistics",
+    "variations": [
+      "statistics",
+      "stats"
+    ],
+    "category": "Data Science",
+    "description": "Practice or science of collecting and analyzing numerical data in large quantities",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "econometrics": {
+    "name": "Econometrics",
+    "variations": [
+      "econometrics"
+    ],
+    "category": "Data Science",
+    "description": "Application of statistical methods to economic data",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "predictive analytics": {
+    "name": "Predictive Analytics",
+    "variations": [
+      "predictive analytics"
+    ],
+    "category": "Data Science",
+    "description": "Use of data, statistical algorithms and machine learning to identify future outcomes",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "data engineering": {
+    "name": "Data Engineering",
+    "variations": [
+      "data engineering"
+    ],
+    "category": "Data Science",
+    "description": "Designing and building systems for collecting, storing, and analyzing data",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "etl": {
+    "name": "ETL",
+    "variations": [
+      "etl",
+      "extract transform load"
+    ],
+    "category": "Data Science",
+    "description": "Process of extracting, transforming and loading data from source to destination",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "apache airflow": {
+    "name": "Apache Airflow",
+    "variations": [
+      "airflow",
+      "apache airflow"
+    ],
+    "category": "Data Science",
+    "description": "Platform to programmatically author, schedule and monitor workflows",
+    "icon_name": "apacheairflow",
+    "is_predefined": false
+  },
+  "dbt": {
+    "name": "dbt",
+    "variations": [
+      "dbt",
+      "data build tool"
+    ],
+    "category": "Data Science",
+    "description": "Tool that enables data analysts and engineers to transform data in their warehouse",
+    "icon_name": "dbt",
+    "is_predefined": false
+  },
+  "looker": {
+    "name": "Looker",
+    "variations": [
+      "looker"
+    ],
+    "category": "Data Science",
+    "description": "Business intelligence software and big data analytics platform",
+    "icon_name": "looker",
+    "is_predefined": false
+  },
+  "metabase": {
+    "name": "Metabase",
+    "variations": [
+      "metabase"
+    ],
+    "category": "Data Science",
+    "description": "Open-source business intelligence tool",
+    "icon_name": "metabase",
+    "is_predefined": false
+  },
+  "qlikview": {
+    "name": "QlikView",
+    "variations": [
+      "qlikview"
+    ],
+    "category": "Data Science",
+    "description": "Business intelligence and data visualization tool",
+    "icon_name": "qlik",
+    "is_predefined": false
+  },
+  "arcgis": {
+    "name": "ArcGIS",
+    "variations": [
+      "arcgis"
+    ],
+    "category": "GIS",
+    "description": "Geographic information system for working with maps and geographic information",
+    "icon_name": "esri",
+    "is_predefined": false
+  },
+  "qgis": {
+    "name": "QGIS",
+    "variations": [
+      "qgis"
+    ],
+    "category": "GIS",
+    "description": "Free and open-source cross-platform desktop geographic information system",
+    "icon_name": "qgis",
+    "is_predefined": false
+  },
+  "mapbox": {
+    "name": "Mapbox",
+    "variations": [
+      "mapbox"
+    ],
+    "category": "GIS",
+    "description": "Provider of custom online maps for websites and applications",
+    "icon_name": "mapbox",
+    "is_predefined": false
+  },
+  "leadership": {
+    "name": "Leadership",
+    "variations": [
+      "leadership"
+    ],
+    "category": "Soft Skills",
+    "description": "Ability to guide, influence, and inspire others to achieve a common goal",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "communication": {
+    "name": "Communication",
+    "variations": [
+      "communication"
+    ],
+    "category": "Soft Skills",
+    "description": "Effective exchange of information and ideas between individuals or groups",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "teamwork": {
+    "name": "Teamwork",
+    "variations": [
+      "teamwork",
+      "collaboration"
+    ],
+    "category": "Soft Skills",
+    "description": "Cooperative effort by members of a group to achieve a common goal",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "problem solving": {
+    "name": "Problem Solving",
+    "variations": [
+      "problem solving",
+      "problem-solving"
+    ],
+    "category": "Soft Skills",
+    "description": "Process of finding solutions to difficult or complex issues",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "critical thinking": {
+    "name": "Critical Thinking",
+    "variations": [
+      "critical thinking"
+    ],
+    "category": "Soft Skills",
+    "description": "Objective analysis and evaluation of an issue to form a judgment",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "time management": {
+    "name": "Time Management",
+    "variations": [
+      "time management"
+    ],
+    "category": "Soft Skills",
+    "description": "Process of planning and exercising conscious control of time spent on activities",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "adaptability": {
+    "name": "Adaptability",
+    "variations": [
+      "adaptability"
+    ],
+    "category": "Soft Skills",
+    "description": "Ability to adjust to new conditions or changes in the environment",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "creativity": {
+    "name": "Creativity",
+    "variations": [
+      "creativity"
+    ],
+    "category": "Soft Skills",
+    "description": "Ability to use imagination or original ideas to create something",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "emotional intelligence": {
+    "name": "Emotional Intelligence",
+    "variations": [
+      "emotional intelligence",
+      "eq"
+    ],
+    "category": "Soft Skills",
+    "description": "Ability to understand and manage your own emotions and those of others",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "negotiation": {
+    "name": "Negotiation",
+    "variations": [
+      "negotiation"
+    ],
+    "category": "Soft Skills",
+    "description": "Discussion aimed at reaching an agreement between different parties",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "conflict resolution": {
+    "name": "Conflict Resolution",
+    "variations": [
+      "conflict resolution"
+    ],
+    "category": "Soft Skills",
+    "description": "Process of resolving a dispute or disagreement between different parties",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "business analysis": {
+    "name": "Business Analysis",
+    "variations": [
+      "business analysis",
+      "ba"
+    ],
+    "category": "Business",
+    "description": "Research discipline that helps companies identify business needs and solutions",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "business development": {
+    "name": "Business Development",
+    "variations": [
+      "business development",
+      "biz dev"
+    ],
+    "category": "Business",
+    "description": "Creation of long-term value for an organization from customers, markets, and relationships",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "financial analysis": {
+    "name": "Financial Analysis",
+    "variations": [
+      "financial analysis"
+    ],
+    "category": "Business",
+    "description": "Assessment of viability, stability, and profitability of a business or project",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "market research": {
+    "name": "Market Research",
+    "variations": [
+      "market research"
+    ],
+    "category": "Business",
+    "description": "Process of gathering information about target markets and customers",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "product management": {
+    "name": "Product Management",
+    "variations": [
+      "product management"
+    ],
+    "category": "Business",
+    "description": "Organizational function that guides every step of a product's lifecycle",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "product marketing": {
+    "name": "Product Marketing",
+    "variations": [
+      "product marketing"
+    ],
+    "category": "Marketing",
+    "description": "Marketing focused on promoting and selling a specific product",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "growth hacking": {
+    "name": "Growth Hacking",
+    "variations": [
+      "growth hacking"
+    ],
+    "category": "Marketing",
+    "description": "Process of rapid experimentation across marketing channels to identify effective ways to grow a business",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "brand management": {
+    "name": "Brand Management",
+    "variations": [
+      "brand management"
+    ],
+    "category": "Marketing",
+    "description": "Process of maintaining, improving, and upholding a brand",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "user research": {
+    "name": "User Research",
+    "variations": [
+      "user research"
+    ],
+    "category": "Design",
+    "description": "Systematic study of target users to understand their behaviors, needs, and motivations",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "usability testing": {
+    "name": "Usability Testing",
+    "variations": [
+      "usability testing"
+    ],
+    "category": "Design",
+    "description": "Evaluating a product by testing it with representative users",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "interaction design": {
+    "name": "Interaction Design",
+    "variations": [
+      "interaction design",
+      "ixd"
+    ],
+    "category": "Design",
+    "description": "Design of interactive digital products, environments, systems, and services",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "information architecture": {
+    "name": "Information Architecture",
+    "variations": [
+      "information architecture",
+      "ia"
+    ],
+    "category": "Design",
+    "description": "Practice of organizing, structuring, and labeling content to help users find information",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "prototyping": {
+    "name": "Prototyping",
+    "variations": [
+      "prototyping"
+    ],
+    "category": "Design",
+    "description": "Early sample or model built to test a concept or process",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "wireframing": {
+    "name": "Wireframing",
+    "variations": [
+      "wireframing"
+    ],
+    "category": "Design",
+    "description": "Creating a visual guide that represents the skeletal framework of a website or app",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "design thinking": {
+    "name": "Design Thinking",
+    "variations": [
+      "design thinking"
+    ],
+    "category": "Design",
+    "description": "Methodology for creative problem solving centered on people's needs",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "service design": {
+    "name": "Service Design",
+    "variations": [
+      "service design"
+    ],
+    "category": "Design",
+    "description": "Planning and organizing people, infrastructure, and materials to improve service quality",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "animation": {
+    "name": "Animation",
+    "variations": [
+      "animation"
+    ],
+    "category": "Media",
+    "description": "Method of photographing successive drawings or creating computer-generated images to create an illusion of movement",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "video editing": {
+    "name": "Video Editing",
+    "variations": [
+      "video editing"
+    ],
+    "category": "Media",
+    "description": "Manipulating and rearranging video shots to create a new work",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "sound design": {
+    "name": "Sound Design",
+    "variations": [
+      "sound design"
+    ],
+    "category": "Media",
+    "description": "Process of specifying, acquiring, manipulating or generating audio elements",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "photography": {
+    "name": "Photography",
+    "variations": [
+      "photography"
+    ],
+    "category": "Media",
+    "description": "Art, application, and practice of creating durable images by recording light",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "motion graphics": {
+    "name": "Motion Graphics",
+    "variations": [
+      "motion graphics"
+    ],
+    "category": "Media",
+    "description": "Animation and visual effects for video and film",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "audio production": {
+    "name": "Audio Production",
+    "variations": [
+      "audio production"
+    ],
+    "category": "Media",
+    "description": "Process of creating audio content for various mediums",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "music production": {
+    "name": "Music Production",
+    "variations": [
+      "music production"
+    ],
+    "category": "Media",
+    "description": "Process of creating, producing, and refining recorded music",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "web accessibility": {
+    "name": "Web Accessibility",
+    "variations": [
+      "web accessibility",
+      "a11y"
+    ],
+    "category": "Frontend",
+    "description": "Inclusive practice of ensuring websites are usable by everyone",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "responsive design": {
+    "name": "Responsive Design",
+    "variations": [
+      "responsive design"
+    ],
+    "category": "Frontend",
+    "description": "Approach to web design that makes web pages render well on a variety of devices",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "progressive web apps": {
+    "name": "Progressive Web Apps",
+    "variations": [
+      "pwa",
+      "progressive web apps"
+    ],
+    "category": "Frontend",
+    "description": "Web apps that use modern web capabilities to deliver an app-like experience",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "css grid": {
+    "name": "CSS Grid",
+    "variations": [
+      "css grid"
+    ],
+    "category": "Frontend",
+    "description": "Two-dimensional grid-based layout system in CSS",
+    "icon_name": "css3",
+    "is_predefined": false
+  },
+  "flexbox": {
+    "name": "Flexbox",
+    "variations": [
+      "flexbox",
+      "css flexbox"
+    ],
+    "category": "Frontend",
+    "description": "CSS module that defines a one-dimensional layout model",
+    "icon_name": "css3",
+    "is_predefined": false
+  },
+  "microservices": {
+    "name": "Microservices",
+    "variations": [
+      "microservices"
+    ],
+    "category": "Backend",
+    "description": "Architectural style that structures an application as a collection of loosely coupled services",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "serverless": {
+    "name": "Serverless",
+    "variations": [
+      "serverless"
+    ],
+    "category": "Backend",
+    "description": "Cloud computing execution model where the cloud provider dynamically manages resource allocation",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "api design": {
+    "name": "API Design",
+    "variations": [
+      "api design"
+    ],
+    "category": "Backend",
+    "description": "Process of developing application programming interfaces that expose data and functionality",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "devops": {
+    "name": "DevOps",
+    "variations": [
+      "devops"
+    ],
+    "category": "DevOps",
+    "description": "Set of practices that combines software development and IT operations",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "sre": {
+    "name": "Site Reliability Engineering",
+    "variations": [
+      "sre",
+      "site reliability engineering"
+    ],
+    "category": "DevOps",
+    "description": "Discipline that incorporates aspects of software engineering and applies them to IT operations",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "ci/cd": {
+    "name": "CI/CD",
+    "variations": [
+      "ci/cd",
+      "continuous integration",
+      "continuous delivery"
+    ],
+    "category": "DevOps",
+    "description": "Method to frequently deliver apps to customers by introducing automation",
+    "icon_name": null,
+    "is_predefined": false
+  },
+  "infrastructure as code": {
+    "name": "Infrastructure as Code",
+    "variations": [
+      "iac",
+      "infrastructure as code"
+    ],
+    "category": "DevOps",
+    "description": "Managing and provisioning of infrastructure through code instead of manual processes",
+    "icon_name": null,
+    "is_predefined": false
   }
 }
