@@ -84,7 +84,7 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
 
   // Generate the shareable link
   const getShareLink = () => {
-    return `https://t.me/${botUsername}?startapp=id${userId}`;
+    return bus(userId?.toString());
   };
 
   // Handle copy link
