@@ -17,7 +17,6 @@ export function ScrollableSection({
 }: ScrollableSectionProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   
-  // Check if the children are empty (React.Children.count(children) === 0)
   const isEmpty = React.Children.count(children) === 0;
 
   return (
@@ -30,7 +29,6 @@ export function ScrollableSection({
         </div>
       ) : (
         <div className="relative">
-          {/* Scrollable container - removed arrow buttons */}
           <div 
             className="overflow-x-auto hide-scrollbar pb-2"
             ref={scrollContainerRef}
@@ -45,7 +43,6 @@ export function ScrollableSection({
   );
 }
 
-// Add a style to hide scrollbars but keep functionality
 export const ScrollableStyles = () => (
   <style jsx global>{`
     .hide-scrollbar {

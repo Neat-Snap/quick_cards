@@ -19,7 +19,6 @@ export function AnimatedCard({
 }: AnimatedCardProps) {
   const [isClicked, setIsClicked] = useState(false);
   
-  // Handle click animation
   const handleClick = () => {
     if (clickEffect === "none") return;
     
@@ -27,7 +26,6 @@ export function AnimatedCard({
     setTimeout(() => setIsClicked(false), 300);
   };
   
-  // Determine hover and click effect classes
   const getHoverClass = () => {
     switch (hoverEffect) {
       case "lift":

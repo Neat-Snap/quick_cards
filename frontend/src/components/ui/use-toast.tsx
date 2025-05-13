@@ -72,7 +72,6 @@ const reducer = (state: State, action: Action): State => {
         if (existingTimeout) clearTimeout(existingTimeout);
       }
 
-      // Set up the auto-dismiss timeout
       if (action.toast.id) {
         const duration = action.toast.duration || TOAST_REMOVE_DELAY;
         const timeout = setTimeout(() => {
@@ -81,13 +80,12 @@ const reducer = (state: State, action: Action): State => {
             toastId: action.toast.id,
           });
           
-          // After animation completes, remove it from DOM
           setTimeout(() => {
             dispatch({
               type: actionTypes.REMOVE_TOAST,
               toastId: action.toast.id,
             });
-          }, 300); // Animation duration
+          }, 300);
           
         }, duration);
         
@@ -116,7 +114,6 @@ const reducer = (state: State, action: Action): State => {
         toastTimeouts.delete(toastId);
       }
 
-      // Toast is dismissed but still exists in the DOM
       if (toastId) {
         const newToasts = state.toasts.map((t) =>
           t.id === toastId
@@ -129,7 +126,6 @@ const reducer = (state: State, action: Action): State => {
         return { ...state, toasts: newToasts }
       }
 
-      // Dismiss all toasts
       return {
         ...state,
         toasts: state.toasts.map((t) => ({
@@ -171,7 +167,6 @@ function dispatch(action: Action) {
 
 interface Toast extends Omit<ToasterToast, "id"> {}
 
-// Directly export the toast function 
 export function toast({ duration, ...props }: Toast) {
   const id = genId()
 

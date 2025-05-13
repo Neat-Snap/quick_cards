@@ -42,23 +42,18 @@ export function UserProfileView({
     console.log("Navigating to main card...");
     
     try {
-      // Force a complete reset of the app state
       if (isTelegramWebApp()) {
-        // In Telegram, close and reopen might be the most reliable
         console.log("Closing Telegram WebApp to reset");
         router.push(botUsername("1"))
         return;
       }
       
-      // For browser environments, force a complete reload to the root
       console.log("Forcing complete page reload to root");
       window.location.href = window.location.origin;
       
-      // Don't use router.push here since it might maintain some state
     } catch (error) {
       console.error("Navigation error:", error);
       
-      // Last resort: reload the page
       console.log("Last resort: Reloading page");
       window.location.reload();
     }
@@ -86,7 +81,6 @@ export function UserProfileView({
     }
   };
   
-  // Load full user data with direct API call to handle different response formats
   const loadUserData = async () => {
     setLoading(true);
     setError(null);
@@ -94,7 +88,6 @@ export function UserProfileView({
     try {
       console.log("Loading full user data for ID:", userId);
       
-      // Make direct API request to ensure we properly handle the response format
       const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
       
@@ -112,22 +105,17 @@ export function UserProfileView({
         throw new Error(`Failed to load user profile: ${response.status}`);
       }
       
-      // Parse the raw JSON response
       const data = await response.json();
       console.log("Raw user profile API response:", data);
       
-      // Handle different response formats
       let userData: User | null = null;
       
-      // Case 1: Response is the user object directly
       if (data && typeof data === 'object' && 'id' in data) {
         userData = data as User;
       } 
-      // Case 2: Response has a 'user' property
       else if (data && typeof data === 'object' && 'user' in data) {
         userData = data.user as User;
       }
-      // Case 3: Response is an array with a single user (unlikely but possible)
       else if (Array.isArray(data) && data.length > 0) {
         userData = data[0] as User;
       }
@@ -136,11 +124,9 @@ export function UserProfileView({
         console.log("User data extracted successfully:", userData);
         setUser(userData);
       } else {
-        // Couldn't extract user data
         console.warn("Could not extract user data from API response:", data);
         setError("Invalid user data format from server");
         
-        // Keep initial data if we have it
         if (initialData) {
           setUser(initialData);
         }
@@ -149,7 +135,6 @@ export function UserProfileView({
       console.error("Error loading user profile:", error);
       setError(error instanceof Error ? error.message : "Failed to load user profile");
       
-      // Keep initial data if we have it, since something is better than nothing
       if (initialData) {
         setUser(initialData);
       }
@@ -158,25 +143,22 @@ export function UserProfileView({
     }
   };
   
-  // Load data on mount if loadImmediately is true
   useEffect(() => {
     if (loadImmediately) {
       loadUserData();
     }
   }, [userId, loadImmediately]);
   
-  // Function to manually load data
   const handleLoadProfile = () => {
     if (!loading) {
       loadUserData();
     }
   };
 
-  // If fullScreen mode is enabled, render a full-screen overlay
   if (fullScreen) {
     return (
       <div className="fixed inset-0 bg-background z-50 overflow-auto">
-        <div className="max-w-md mx-auto py-4 px-4 pb-28"> {/* Added extra bottom padding (pb-28) */}
+        <div className="max-w-md mx-auto py-4 px-4 pb-28">
           {showBackButton && onBack && (
             <motion.div
               initial={{ x: -20, opacity: 0 }}
@@ -243,10 +225,8 @@ export function UserProfileView({
     );
   }
   
-  // Regular, non-fullscreen view with bottom padding
   return (
-    <div className="space-y-4 pb-20"> {/* Added bottom padding */}
-      {/* Back button */}
+    <div className="space-y-4 pb-20">
       {showBackButton && onBack && (
         <Button 
           variant="ghost" 
@@ -258,7 +238,6 @@ export function UserProfileView({
         </Button>
       )}
       
-      {/* Loading state */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
@@ -266,12 +245,10 @@ export function UserProfileView({
         </div>
       )}
       
-      {/* Error state */}
       {error && !loading && (
         <div className="text-center py-8 border rounded-md">
           <p className="text-destructive mb-2">{error}</p>
           
-          {/* Show retry button */}
           <Button 
             variant="outline" 
             size="sm" 
@@ -281,7 +258,6 @@ export function UserProfileView({
             Retry
           </Button>
           
-          {/* If we have initial data, show it */}
           {initialData && (
             <div className="mt-6 px-4">
               <p className="text-sm text-muted-foreground mb-4">
@@ -293,7 +269,6 @@ export function UserProfileView({
         </div>
       )}
       
-      {/* User profile display */}
       {!loading && !error && user && (
         <BusinessCardPreview 
           user={user} 
@@ -304,7 +279,6 @@ export function UserProfileView({
         />
       )}
       
-      {/* Empty state - no user found */}
       {!loading && !error && !user && (
         <div className="text-center py-8 border rounded-md">
           <p className="text-muted-foreground">User profile not found</p>

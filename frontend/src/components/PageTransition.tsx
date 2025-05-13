@@ -23,7 +23,6 @@ export function PageTransition({
       setMounted(true);
     }
     
-    // If hiding, wait for animation to complete before unmounting
     let timer: NodeJS.Timeout;
     if (!show && mounted) {
       timer = setTimeout(() => {
@@ -34,15 +33,12 @@ export function PageTransition({
     return () => clearTimeout(timer);
   }, [show, duration, mounted]);
   
-  // Don't render anything if not mounted and not showing
   if (!mounted && !show) {
     return null;
   }
   
-  // Define transform based on direction
   const getTransform = (isEntering: boolean) => {
     if (!isEntering) {
-      // Exit transforms
       switch (slideDirection) {
         case "left": return "translateX(-100%)";
         case "right": return "translateX(100%)";
@@ -51,11 +47,10 @@ export function PageTransition({
         default: return "translateX(-100%)";
       }
     }
-    return "translate(0)"; // Default position when visible
+    return "translate(0)";
   };
   
   const getInitialTransform = () => {
-    // Entry transforms (starting position)
     switch (slideDirection) {
       case "left": return "translateX(100%)";
       case "right": return "translateX(-100%)";
@@ -74,7 +69,6 @@ export function PageTransition({
       style={{
         transform: show ? getTransform(true) : getTransform(false),
         transitionDuration: `${duration}ms`,
-        // Initial state before animation starts
         ...(mounted && !show ? {} : { transform: getInitialTransform() })
       }}
     >

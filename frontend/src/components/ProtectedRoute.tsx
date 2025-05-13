@@ -16,8 +16,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!loading && !user && !error) {
-      // Redirect to auth page if not authenticated and no error
-      // For Telegram WebApp, we'd typically show an error instead of redirecting
       console.warn('User not authenticated');
     }
   }, [user, loading, error, router]);
@@ -62,7 +60,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
         <h2 className="mb-2 text-xl font-medium">Authentication Error</h2>
         <p className="mb-2 text-center text-sm text-muted-foreground">{error}</p>
         
-        {/* Detailed troubleshooting info */}
         <div className="mb-6 mt-4 max-w-md rounded-md bg-muted p-3 text-xs">
           <h3 className="mb-1 font-semibold">Troubleshooting:</h3>
           <ul className="space-y-1 pl-4">
@@ -83,6 +80,5 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // If we have a user or we're in development mode, show the children
   return <>{children}</>;
 } 

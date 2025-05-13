@@ -55,7 +55,6 @@ export function AnimatedBottomNav({
           )}>
             {item.icon}
             
-            {/* Subtle glow for active icon */}
             {activeTab === item.id && (
               <div className="absolute inset-0 bg-primary/10 blur-md rounded-full -z-10"></div>
             )}

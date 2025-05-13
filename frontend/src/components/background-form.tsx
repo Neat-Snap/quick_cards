@@ -17,55 +17,50 @@ interface BackgroundFormProps {
   onCancel?: () => void;
 }
 
-// Validation constants from backend
 const ALLOWED_BACKGROUND_TYPES = ["color", "gradient", "image"];
 const MAX_BACKGROUND_VALUE_LENGTH = 255;
 const HEX_COLOR_REGEX = /^#(?:[0-9A-Fa-f]{6})$/;
 
-// Predefined colors
 const COLORS = [
-  "#f0f9ff", // extra-light blue
-  "#e0f2fe", // lightest blue
-  "#bae6fd", // pale blue
-  "#0891b2", // cyan
-  "#0284c7", // light blue
-  "#2563eb", // blue
-  "#0e7490", // teal
-  "#14b8a6", // teal-light
-  "#16a34a", // green
-  "#22c55e", // light green
-  "#65a30d", // lime
-  "#ca8a04", // yellow
-  "#fde68a", // light yellow
-  "#f97316", // orange
-  "#fb923c", // light orange
-  "#dc2626", // red
-  "#fca5a5", // soft red
-  "#db2777", // pink
-  "#fbcfe8", // soft pink
-  "#9333ea", // purple
-  "#c084fc", // soft purple
-  "#6d28d9", // indigo
-  "#818cf8", // periwinkle
-  "#0f172a", // slate
-  "#1e293b", // slate-800
-  "#334155", // slate-700
-  "#94a3b8", // slate-400
-  "#111827", // near black
-  "#f5f5f5", // very light gray
-  "#e2e8f0", // cool gray
+  "#f0f9ff",
+  "#e0f2fe",
+  "#bae6fd",
+  "#0891b2",
+  "#0284c7",
+  "#2563eb",
+  "#0e7490",
+  "#14b8a6",
+  "#16a34a",
+  "#22c55e",
+  "#65a30d",
+  "#ca8a04",
+  "#fde68a",
+  "#f97316",
+  "#fb923c",
+  "#dc2626",
+  "#fca5a5",
+  "#db2777",
+  "#fbcfe8",
+  "#9333ea",
+  "#c084fc",
+  "#6d28d9",
+  "#818cf8",
+  "#0f172a",
+  "#1e293b",
+  "#334155",
+  "#94a3b8",
+  "#111827",
+  "#f5f5f5",
+  "#e2e8f0",
 ];
 
 
 export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProps) {
-  // Find closest matching color from predefined colors
   const findClosestColor = (colorValue: string): string => {
     if (!colorValue || typeof colorValue !== 'string') return COLORS[0];
     
-    // If the color is already in our list, return it
     if (COLORS.includes(colorValue)) return colorValue;
     
-    // Otherwise return the first color as default
     return COLORS[0];
   };
   
@@ -92,10 +87,8 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
   const [isPremium, setIsPremium] = useState(false);
   const [isPremiumLoading, setIsPremiumLoading] = useState(true);
   
-  // Helper function to extract end color from gradient string
   function extractEndColor(gradientString: string): string | null {
     try {
-      // Example format: "linear-gradient(135deg, #color1, #color2)"
       const match = gradientString.match(/linear-gradient\([^,]+,\s*([^,]+),\s*([^)]+)\)/);
       if (match && match[2]) {
         return match[2].trim();
@@ -106,48 +99,39 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     return null;
   }
   
-  // Validate background value
   useEffect(() => {
-    // Clear previous error
     setBackgroundValueError(null);
     
     if (backgroundType === "color") {
-      // Validate hex color
       if (!HEX_COLOR_REGEX.test(selectedColor)) {
         setBackgroundValueError("Invalid color format. Must be a valid hex color (e.g., #RRGGBB)");
       }
     } else if (backgroundType === "gradient") {
-      // For gradients, validate that both colors are valid hex
       if (!HEX_COLOR_REGEX.test(selectedColor) || !HEX_COLOR_REGEX.test(gradientEndColor)) {
         setBackgroundValueError("Invalid gradient colors. Both must be valid hex colors");
       }
       
-      // Check if the gradient string would exceed max length
       const gradientString = `linear-gradient(135deg, ${selectedColor}, ${gradientEndColor})`;
       if (gradientString.length > MAX_BACKGROUND_VALUE_LENGTH) {
         setBackgroundValueError(`Gradient value exceeds maximum length of ${MAX_BACKGROUND_VALUE_LENGTH} characters`);
       }
       
-      // Ensure user has premium for gradients
       if (!isPremium) {
         setBackgroundValueError("Premium subscription required for gradient backgrounds");
       }
     } else if (backgroundType === "image") {
-      // For images, check if we have a custom background preview
       if (!customBackgroundPreview) {
         setBackgroundValueError("Please select an image for the background");
       } else if (customBackgroundPreview.length > MAX_BACKGROUND_VALUE_LENGTH) {
         setBackgroundValueError(`Image URL exceeds maximum length of ${MAX_BACKGROUND_VALUE_LENGTH} characters`);
       }
       
-      // Ensure user has premium for custom backgrounds
       if (!isPremium) {
         setBackgroundValueError("Premium subscription required for custom background images");
       }
     }
   }, [backgroundType, selectedColor, gradientEndColor, customBackgroundPreview, isPremium]);
   
-  // Check premium status on mount
   useEffect(() => {
     const checkPremiumStatus = async () => {
       try {
@@ -165,10 +149,8 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     checkPremiumStatus();
   }, []);
   
-  // Handle toggling gradient
   useEffect(() => {
-    if (isPremiumLoading) return; // Wait until premium status is loaded
-    // If toggling gradient but user is not premium, show toast and reset
+    if (isPremiumLoading) return;
     if (useGradient && !isPremium) {
       console.log("isPremium", isPremium, "useGradient", useGradient)
       toast({
@@ -176,7 +158,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         description: "Gradient backgrounds are available with Premium",
         variant: "default",
       });
-      // setUseGradient(false);
       setBackgroundType("color");
       return;
     }
@@ -190,7 +171,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     }
   }, [useGradient, customBackground, customBackgroundPreview, isPremium, isPremiumLoading]);
   
-  // Handle custom background file selection
   const handleBackgroundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && isPremium) {
@@ -198,19 +178,16 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
       setBackgroundType("image");
       setUseGradient(false);
       
-      // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setCustomBackgroundPreview(previewUrl);
     }
   };
   
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
   
     if (!user) return;
   
-    // Check if there are validation errors
     if (backgroundValueError) {
       toast({
         title: "Validation Error",
@@ -242,7 +219,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         background_value: backgroundValue,
       };
   
-      // This updates the DB
       const response = await updateUserProfile(updateData);
   
       if (!response.success) {
@@ -255,7 +231,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         variant: "default",
       });
   
-      // Notify parent to reload user data
       if (onSuccess) {
         onSuccess();
       }
@@ -271,7 +246,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
     }
   };
 
-  // Helper to generate gradient preview
   const getGradientStyle = () => {
     if (backgroundType === "gradient") {
       return {
@@ -292,7 +266,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
         </div>
         <Separator />
         
-        {/* Color Selection */}
         <div className="space-y-4">
           <Label>Select Background Color</Label>
           <div className="flex flex-wrap gap-3">
@@ -315,7 +288,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
           </div>
         </div>
         
-        {/* Background Preview */}
         <div className="space-y-2">
           <Label>Background Preview</Label>
           <div 
@@ -334,14 +306,12 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
           )}
         </div>
         
-        {/* Premium Features Section */}
         <div className="space-y-4 pt-2">
           <div className="flex items-center">
             <Label className="font-medium">Premium Features</Label>
             {!isPremium && <Lock className="h-4 w-4 ml-2 text-muted-foreground" />}
           </div>
           
-          {/* Gradient Toggle */}
           <div className="flex items-center space-x-2">
             <Switch
               id="gradient"
@@ -355,7 +325,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
             </Label>
           </div>
           
-          {/* Gradient End Color (only show if gradient is enabled and premium) */}
           {useGradient && isPremium && (
             <div className="grid grid-cols-1 gap-3">
               <Label htmlFor="gradientEndColor">Gradient End Color</Label>
@@ -375,7 +344,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
             </div>
           )}
           
-          {/* Custom Background Image */}
           <div className="grid grid-cols-1 gap-3">
             <Label htmlFor="customBackground" className={!isPremium ? "text-muted-foreground" : ""}>
               Upload Custom Photo
@@ -410,7 +378,6 @@ export function BackgroundForm({ user, onSuccess, onCancel }: BackgroundFormProp
             )}
           </div>
           
-          {/* Premium upgrade message */}
           {!isPremium && (
             <div className="pt-1">
               <p className="text-sm text-muted-foreground flex items-center gap-2">

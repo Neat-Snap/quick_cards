@@ -10,11 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function BusinessCardForm() {
   const [projectCount, setProjectCount] = React.useState(1);
-  const isPremium = false; // This would be connected to actual premium status
+  const isPremium = false;
 
   return (
     <div className="space-y-6">
-      {/* Avatar Section */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Profile Avatar</h3>
@@ -26,7 +25,6 @@ export function BusinessCardForm() {
         <div className="flex flex-col items-center gap-4">
           <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
             <span className="text-2xl text-muted-foreground">JP</span>
-            {/* Avatar would be displayed here */}
           </div>
           <div className="flex gap-2">
             <Input id="avatar" type="file" className="hidden" />
@@ -40,7 +38,6 @@ export function BusinessCardForm() {
         </div>
       </div>
       
-      {/* Background Section */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Background</h3>
@@ -86,7 +83,6 @@ export function BusinessCardForm() {
         </div>
       </div>
       
-      {/* Personal Information */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Personal Information</h3>
@@ -126,7 +122,6 @@ export function BusinessCardForm() {
         </div>
       </div>
       
-      {/* Contact Information */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Contact Information</h3>
@@ -154,7 +149,6 @@ export function BusinessCardForm() {
         </div>
       </div>
       
-      {/* Projects Section */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Projects</h3>
@@ -216,7 +210,6 @@ export function BusinessCardForm() {
         </div>
       </div>
       
-      {/* Skills Section */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Skills {!isPremium && "(Premium)"}</h3>

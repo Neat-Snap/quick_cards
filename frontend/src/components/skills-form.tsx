@@ -26,13 +26,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { getSkillIconUrl, SUGGESTED_SKILLS } from "@/lib/SkillIconHelper";
 
 
-// Check if a skill is private (created by the user)
 const isPrivateSkill = (skill: Skill): boolean => {
   return skill.is_predefined === false;
 };
 
 
-// Get displayable name (without prefix if viewing own skills)
 const getDisplayName = (skill: Skill, isOwner: boolean = true): string => {
   return skill.name;
 };
@@ -52,14 +50,11 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [searching, setSearching] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   
-  // New state for tracking deleting skills with animation
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [successId, setSuccessId] = useState<number | null>(null);
   
-  // Suggestions state
   const [showSuggestions, setShowSuggestions] = useState(true);
   
-  // Custom skill creation state
   const [isCreatingSkill, setIsCreatingSkill] = useState(false);
   const [customSkillName, setCustomSkillName] = useState("");
   const [customSkillDescription, setCustomSkillDescription] = useState("");
@@ -69,24 +64,20 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [creatingSkill, setCreatingSkill] = useState(false);
   
-  // Check premium status and load skills on mount
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
 
-        // Check premium status first
         const premiumStatus = await getPremiumStatus();
         console.log("Premium status for skills:", premiumStatus);
 
-        // Consider user as premium if their tier is > 0
         const hasPremium = premiumStatus.premium_tier > 0;
         setIsPremium(hasPremium);
 
         if (hasPremium) {
           console.log("User has premium (tier:", premiumStatus.premium_tier, "), skills feature is enabled");
 
-          // Only fetch skills, not the full user profile
           try {
             console.log("Fetching user skills only...");
             const loadedSkills = await getUserSkills();
@@ -123,7 +114,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     loadData();
   }, []);
   
-  // Success animation handler
   useEffect(() => {
     if (successId !== null) {
       const timer = setTimeout(() => {
@@ -133,8 +123,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     }
   }, [successId]);
   
-  // Debounced search function
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
       if (!query.trim()) {
@@ -143,18 +131,14 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         return;
       }
       
-      // Hide suggestions when searching
       setShowSuggestions(false);
       
       try {
         const results = await searchSkills(query.trim());
         console.log("Search results for", query, ":", results);
         
-        // Filter out skills that user already has and private skills created by others
         const filteredResults = results.filter(skill => {
-          // Skip if user already has this skill
           const userHasSkill = userSkills.some(userSkill => {
-            // Compare by ID if available, otherwise by name
             if (skill.id && userSkill.id) {
               return userSkill.id === skill.id;
             }
@@ -163,7 +147,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
           
           if (userHasSkill) return false;
           
-          // Skip private skills (created by other users)
           if (isPrivateSkill(skill)) return false;
           
           return true;
@@ -184,7 +167,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     [userSkills]
   );
   
-  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
@@ -193,42 +175,33 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       setSearching(true);
       debouncedSearch(query);
     } else {
-      // Show suggestions when search is cleared
       setSearchResults([]);
       setShowSuggestions(true);
     }
   };
   
-  // Handle adding a skill from suggestion
   const handleAddSuggestion = async (skillName: string) => {
     console.log("Adding suggested skill:", skillName);
     
-    // Start search for this skill
     setSearchQuery(skillName);
     setSearching(true);
     
     try {
-      // Search for the skill
       const results = await searchSkills(skillName);
       
-      // Find the exact match (should be first result)
       const exactMatch = results.find(s => 
         s.name.toLowerCase() === skillName.toLowerCase()
       );
       
       if (exactMatch) {
-        // Add this skill
         await handleAddSkill(exactMatch);
       } else if (results.length > 0) {
-        // Add the first result
         await handleAddSkill(results[0]);
       } else {
-        // Create custom skill with this name
         setCustomSkillName(skillName);
         await handleCreateSkill();
       }
       
-      // Hide suggestions after adding
       setShowSuggestions(false);
     } catch (error) {
       console.error("Error adding suggestion:", error);
@@ -242,10 +215,8 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     }
   };
   
-  // Handle adding a skill to user
   const handleAddSkill = async (skill: Skill) => {
     try {
-      // Double-check premium status before adding
       const premiumStatus = await getPremiumStatus();
       const hasPremium = premiumStatus.premium_tier > 0;
       
@@ -261,10 +232,8 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       
       console.log("Adding skill:", skill.name, "with ID:", skill.id);
       
-      // Check if skill has a valid ID (not null or undefined)
       if (skill.id === null || skill.id === undefined) {
         console.log("Skill has no ID - creating custom skill instead");
-        // If skill has no ID, we need to create it first using createCustomSkill
         const createResponse = await createCustomSkill({
           name: skill.name,
           description: skill.description || "",
@@ -277,14 +246,11 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         
         console.log("Custom skill created successfully:", createResponse);
         
-        // Use the newly created skill data from the 'skill' property, not 'user'
         if (createResponse.skill) {
           const newSkill = createResponse.skill as Skill;
           
-          // Add skill to user skills
           setUserSkills([...userSkills, newSkill]);
           
-          // Remove skill from search results
           setSearchResults(searchResults.filter(s => s.name !== skill.name));
           
           toast({
@@ -293,18 +259,15 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
             variant: "default",
           });
         } else {
-          // Fallback handling if skill is not in the response
           console.error("Skill data missing from server response:", createResponse);
           
-          // Create a skill object from the original data + response message
           const constructedSkill: Skill = {
-            id: null, // We don't know the ID, but frontend can still display it
+            id: null,
             name: skill.name,
             description: skill.description || "",
             image_url: skill.image_url || ""
           };
           
-          // Add constructed skill to user skills list
           setUserSkills([...userSkills, constructedSkill]);
           
           toast({
@@ -317,20 +280,16 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         return;
       }
       
-      // Normal flow for skills with valid IDs
       const response = await addSkillToUser(skill.id);
       
       console.log("Server response for adding skill:", response);
       
-      // Check for error in response
       if (response.error) {
         throw new Error(response.error);
       }
       
-      // Add skill to user skills
       setUserSkills([...userSkills, skill]);
       
-      // Remove skill from search results
       setSearchResults(searchResults.filter(s => s.id !== skill.id));
       
       toast({
@@ -348,9 +307,7 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     }
   };
   
-  // Handle removing a skill from user
   const handleRemoveSkill = async (skillId: number | null) => {
-    // If skill ID is null, we can't remove it through the API
     if (skillId === null) {
       console.error("Cannot remove skill with null ID");
       toast({
@@ -361,18 +318,14 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
       return;
     }
     
-    // First set the deleting state to show animation
     setDeletingId(skillId);
     
-    // Immediately update the UI by removing the skill from state
     const skillToRemove = userSkills.find(skill => skill.id === skillId);
     setUserSkills(prev => prev.filter(skill => skill.id !== skillId));
     
     try {
-      // Make the API call in the background
       await removeSkillFromUser(skillId);
       
-      // Show success message
       toast({
         title: "Skill Removed",
         description: skillToRemove 
@@ -383,7 +336,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     } catch (error) {
       console.error("Error removing skill:", error);
       
-      // If the API call fails, add the skill back to the state
       if (skillToRemove) {
         setUserSkills(prev => [...prev, skillToRemove]);
       }
@@ -394,20 +346,17 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         variant: "destructive",
       });
     } finally {
-      // Clear the deleting state after a short delay
       setTimeout(() => {
         setDeletingId(null);
       }, 300);
     }
   };
   
-  // Start creating a custom skill
   const startCreatingSkill = () => {
     setIsCreatingSkill(true);
     setCustomSkillName(searchQuery);
   }
   
-  // Cancel creating a custom skill
   const cancelCreatingSkill = () => {
     setIsCreatingSkill(false);
     setCustomSkillName("");
@@ -416,7 +365,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     setCustomSkillImageUrl("");
   }
   
-  // Handle skill image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -425,21 +373,17 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     setIsUploadingImage(true);
     
     try {
-      // First create a temporary preview
       const previewUrl = await fileToDataUrl(file);
       setCustomSkillImageUrl(previewUrl);
       
-      // Now upload to server - pass skill_id if we're editing an existing skill
-      const skillId: number | undefined = undefined; // No editing mode in current implementation
+      const skillId: number | undefined = undefined;
       const response = await uploadSkillImage(file, skillId);
       
       if (!response.success) {
         throw new Error(response.error || "Failed to upload image");
       }
       
-      // Update with the URL directly from our response
       if (response.image_url) {
-        // Construct the full URL to the image
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
         const fullImageUrl = `${apiUrl}${response.image_url}`;
         
@@ -472,7 +416,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     }
   }
   
-  // Handle creating a custom skill
   const handleCreateSkill = async () => {
     if (!customSkillName.trim()) {
       toast({
@@ -486,10 +429,8 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     setCreatingSkill(true);
     
     try {
-      // Add the private prefix to the skill name to indicate it's a user-created custom skill
       const privateSkillName = customSkillName.trim();
       
-      // Create the custom skill with private prefix
       const response = await createCustomSkill({
         name: privateSkillName,
         description: customSkillDescription.trim(),
@@ -500,12 +441,10 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         throw new Error(response.error || "Failed to create skill");
       }
       
-      // Add the new skill to the user's skills
       let newSkill: Skill;
       if (response.skill) {
         newSkill = response.skill as Skill;
       } else {
-        // If skill is not in the response, construct it
         newSkill = {
           id: null,
           name: privateSkillName,
@@ -514,9 +453,8 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         };
       }
       
-      // Add to state and show success
       setUserSkills([...userSkills, newSkill]);
-      setSuccessId(newSkill.id || 0); // Show success animation
+      setSuccessId(newSkill.id || 0);
       
       toast({
         title: "Skill Created",
@@ -524,7 +462,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
         variant: "default",
       });
       
-      // Reset the form
       cancelCreatingSkill();
       
     } catch (error) {
@@ -539,7 +476,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     }
   }
   
-  // Filter suggested skills to remove ones the user already has
   const filteredSuggestions = SUGGESTED_SKILLS.filter(suggestion => 
     !userSkills.some(skill => 
       skill.name.toLowerCase() === suggestion.toLowerCase() ||
@@ -551,7 +487,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
     return <div className="text-center py-8">Loading skills...</div>;
   }
 
-  // If user is not premium and has no skills, show upgrade prompt
   if (!isPremium && userSkills.length === 0) {
     return (
       <div className="space-y-6">
@@ -583,7 +518,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
             type="button" 
             variant="outline" 
             onClick={() => {
-              // Call onSuccess to refresh data before calling onCancel
               if (onSuccess) {
                 onSuccess();
               }
@@ -628,26 +562,22 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
           </div>
           <Separator />
           
-          {/* User Skills Display */}
           <div className="space-y-4">
             <h4 className="font-medium">Your Skills</h4>
             
             {userSkills.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {userSkills.map(skill => {
-                  // Get icon for this skill
                   const iconUrl = getSkillIconUrl(skill);
                   const isPrivate = isPrivateSkill(skill);
                   const displayName = getDisplayName(skill);
                   
                   return (
                     <Badge 
-                      // Use string for key to avoid null issues - combine id and name for uniqueness
                       key={`skill-${skill.id || ''}-${skill.name}`} 
                       variant="secondary" 
                       className={`skill-badge px-3 py-1 flex items-center gap-1 ${deletingId === skill.id ? 'deleting' : ''} ${successId === skill.id ? 'success' : ''}`}
                     >
-                      {/* Add skill icon with white background */}
                       {iconUrl && (
                         <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center overflow-hidden">
                           <img 
@@ -660,7 +590,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
                           />
                         </div>
                       )}
-                      {/* Show lock icon for private skills */}
                       {isPrivate && (
                         <Lock className="h-3 w-3 text-muted-foreground" />
                       )}
@@ -688,7 +617,6 @@ export function SkillsForm({ userId, onSuccess, onCancel }: SkillsFormProps) {
             )}
           </div>
           
-          {/* Create Custom Skill Form */}
           {isCreatingSkill ? (
             <Card className="border-dashed border-primary/50 bg-primary/5">
               <CardHeader>

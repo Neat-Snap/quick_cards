@@ -29,7 +29,6 @@ const getContactIcon = (type: string) => {
   }
 };
 
-// const DURATION = 0.3;
 
 const handleContactAction = (type: string, value: string) => {
   if (type === 'email') {
@@ -44,16 +43,13 @@ const handleContactAction = (type: string, value: string) => {
 };
 
 export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
-  // Rendering for contact details
   const renderContactDetail = () => {
     const contact = data as Contact;
     
-    // Generate the appropriate button text and action based on contact type
     const getContactButton = () => {
       const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text)
           .then(() => {
-            // Show toast notification
             alert("Copied to clipboard!");
           })
           .catch(err => {
@@ -157,7 +153,6 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
     );
   };
 
-  // Rendering for project details
   const renderProjectDetail = () => {
     const project = data as Project;
     return (
@@ -229,11 +224,9 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
     );
   };
 
-  // Rendering for skill details
   const renderSkillDetail = () => {
     const skill = data as Skill;
     
-    // Get icon for this skill
     const iconUrl = getSkillIconUrl(skill);
     
     return (
@@ -261,7 +254,6 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
                   alt={skill.name} 
                   className="w-full h-full object-cover" 
                   onError={(e) => {
-                    // Fallback to name initials if image fails to load
                     (e.target as HTMLImageElement).style.display = 'none';
                     (e.target as HTMLImageElement).parentElement!.innerHTML = 
                       `<span class="text-xl font-medium">${skill.name.substring(0, 2).toUpperCase()}</span>`;
@@ -288,7 +280,6 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
     );
   };
 
-  // Main render with animations
   return (
     <AnimatePresence>
       <motion.div 
@@ -349,7 +340,6 @@ export function ItemDetailView({ type, data, onClose }: ItemDetailViewProps) {
               </div>
             </div>
             
-            {/* Render the appropriate content based on type */}
             {type === 'project' ? (
               <ProjectDetailFullscreen 
                 project={data as Project} 

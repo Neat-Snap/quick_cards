@@ -33,7 +33,7 @@ def handle_start(message):
     # Create a keyboard with a WebApp button
     keyboard = InlineKeyboardMarkup()
     webapp_btn = InlineKeyboardButton(
-        text="Open Business Card",
+        text="Open App",
         web_app=WebAppInfo(url=settings.APP_URL)
     )
     keyboard.add(webapp_btn)
@@ -55,7 +55,7 @@ def handle_help(message):
     # Create a keyboard with a WebApp button
     keyboard = InlineKeyboardMarkup()
     webapp_btn = InlineKeyboardButton(
-        text="Open Business Card",
+        text="Open App",
         web_app=WebAppInfo(url=settings.APP_URL)
     )
     keyboard.add(webapp_btn)

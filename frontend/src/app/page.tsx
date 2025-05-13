@@ -38,7 +38,6 @@ import { useLoading } from "@/context/LoadingContext";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { botUsername as bus} from "@/constants/constants";
 
-// Animation variants for content transitions
 const contentVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
@@ -67,34 +66,28 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("card");
   const [editSection, setEditSection] = useState<string | null>(null);
   
-  // User data states
   const [userData, setUserData] = useState<User | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
   
-  // Animation states
   const [pageTransition, setPageTransition] = useState(false);
 
   const { showOnboarding, completeOnboarding, isLoading: onboardingLoading } = useOnboarding();
 
   
-  // Loading states
   const [loading, setLoading] = useState(true);
 
   const loadingRef = useRef(false);
   
-  // Load user data on mount and when user changes
   useEffect(() => {
-    // Only proceed if we have a user and aren't already loading
     if (user && !loadingRef.current) {
       const loadData = async () => {
         loadingRef.current = true;
         startDataLoading();
 
         try {
-          // Only one request here
           console.log("Fetching user data...");
           const userResponse = await getCurrentUser();
 
@@ -105,7 +98,6 @@ export default function Home() {
           const userData = userResponse.user;
           setUserData(userData);
 
-          // Always set arrays, defaulting to [] if missing
           setProjects(Array.isArray(userData.projects) ? userData.projects as Project[] : []);
           setContacts(Array.isArray(userData.contacts) ? userData.contacts as Contact[] : []);
           setSkills(Array.isArray(userData.skills) ? userData.skills as Skill[] : []);
@@ -128,37 +120,30 @@ export default function Home() {
 
       loadData();
     }
-    // Only depend on user - not on the loading functions
   }, [user]);
 
   if (appLoading) {
     return <LoadingScreen />;
   }
 
-  // Handle tab changes with animation
   const handleTabChange = (tabId: string) => {
     if (tabId === activeTab) return;
     
-    // Start exit animation
     setPageTransition(true);
     
-    // Change tab after a short delay for animation
     setTimeout(() => {
       setActiveTab(tabId);
       
-      // Reset animation state
       setTimeout(() => {
         setPageTransition(false);
       }, 50);
     }, 200);
   };
 
-  // Function to load user data (contacts, projects, skills, links)
   const loadUserData = async () => {
     setLoading(true);
 
     try {
-      // Get current user with full data - force refresh from server
       console.log("Fetching fresh user data from server...");
       const userResponse = await getCurrentUser();
 
@@ -168,7 +153,6 @@ export default function Home() {
         throw new Error(userResponse.error || "Failed to load user data");
       }
 
-      // Access the user data correctly, handling both response formats
       const userData = userResponse.user;
 
       if (!userData) {
@@ -177,10 +161,8 @@ export default function Home() {
 
       console.log("User data:", userData);
 
-      // Update all state with the fresh data
       setUserData(userData);
 
-      // Set arrays, defaulting to [] if missing
       setContacts(Array.isArray(userData.contacts) ? userData.contacts as Contact[] : []);
       setProjects(Array.isArray(userData.projects) ? userData.projects as Project[] : []);
       setSkills(Array.isArray(userData.skills) ? userData.skills as Skill[] : []);
@@ -200,25 +182,21 @@ export default function Home() {
     }
   };
   
-  // Handle successful edit
   const handleEditSuccess = async () => {
     try {
       console.log("Edit success triggered, reloading user data...");
       
-      // First close the edit section to provide immediate feedback
       setEditSection(null);
       
-      // Then reload user data in the background
       await loadUserData();
       
       console.log("User data reloaded successfully");
     } catch (error) {
       console.error("Error refreshing data after edit:", error);
-      setEditSection(null); // Ensure we still close the edit section even if reload fails
+      setEditSection(null);
     }
   };
   
-  // Debug function to check contacts data
   const debugInfo = () => {
     console.log("Current contacts:", contacts);
     console.log("Current projects:", projects);
@@ -228,7 +206,6 @@ export default function Home() {
 
   console.log("Current projects:", projects);
   
-  // Get form title based on edit section
   const getFormTitle = () => {
     switch(editSection) {
       case "profile": return "Edit Profile";
@@ -266,37 +243,7 @@ export default function Home() {
           >
             {activeTab === "card" && (
               <div className="p-4 overflow-y-auto hide-scrollbar">
-                {/* <motion.div 
-                  className="flex items-center justify-between mb-6"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="flex items-center">
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.4, delay: 0.1 }}
-                      className="mr-3"
-                    >
-                      <img 
-                        src="/static/images/logo.svg" 
-                        alt="QuickCard Logo" 
-                        className="h-12 w-12" 
-                      />
-                    </motion.div>
-                    <div>
-                      <h1 className="text-2xl font-bold">QuickCard</h1>
-                      {userData && (
-                        <p className="text-sm text-muted-foreground">
-                          {userData.name} Card
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </motion.div> */}
                 
-                {/* Show card preview and edit buttons only when not editing */}
                 {!editSection && (
                   <motion.div
                     variants={contentVariants}
@@ -305,7 +252,6 @@ export default function Home() {
                     exit="exit"
                     className="space-y-6"
                   >
-                    {/* Preview section */}
                     <div className="mb-6 relative">
                       <motion.div
                         initial={{ scale: 0.95, opacity: 0 }}
@@ -332,7 +278,6 @@ export default function Home() {
                         </div>
                       )}
                       
-                      {/* Edit Buttons */}
                       <motion.div 
                         className="grid grid-cols-2 gap-3 mt-4"
                         initial={{ opacity: 0, y: 20 }}
@@ -427,7 +372,6 @@ export default function Home() {
                 )}
                 
                 
-                {/* Animated Form Section */}
                 <AnimatedForm 
                   isOpen={editSection === "profile"}
                   onClose={() => setEditSection(null)}
@@ -509,18 +453,6 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center">
-                    {/* <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.4, delay: 0.1 }}
-                      className="mr-3"
-                    >
-                      <img 
-                        src="/static/images/logo.svg" 
-                        alt="QuickCard Logo" 
-                        className="h-10 w-10" 
-                      />
-                    </motion.div> */}
                     <div>
                       <h1 className="text-2xl font-bold">Explore</h1>
                       <p className="text-sm text-muted-foreground">
@@ -542,18 +474,6 @@ export default function Home() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex items-center">
-                    {/* <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.4, delay: 0.1 }}
-                      className="mr-3"
-                    >
-                      <img 
-                        src="/static/images/logo.svg" 
-                        alt="QuickCard Logo" 
-                        className="h-8 w-8" 
-                      />
-                    </motion.div> */}
                     <div>
                       <h1 className="text-2xl font-bold">Premium</h1>
                       <p className="text-sm text-muted-foreground">
@@ -570,7 +490,6 @@ export default function Home() {
                   <PremiumFeatures 
                     user={userData} 
                     onSubscribed={() => {
-                      // Refresh user data after subscription
                       refreshUser();
                       loadUserData();
                     }}
@@ -581,7 +500,6 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Only show the bottom nav when onboarding is not visible */}
         {!showOnboarding && (
           <AnimatedBottomNav 
             activeTab={activeTab} 

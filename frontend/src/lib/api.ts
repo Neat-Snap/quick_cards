@@ -2,10 +2,8 @@
 
 import { getInitData } from './telegram';
 
-// API URL configuration
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
 
-// User interface
 export interface User {
   id: number | string;
   telegram_id?: string;
@@ -27,7 +25,6 @@ export interface User {
   custom_links?: CustomLink[];
 }
 
-// Contact interface
 export interface Contact {
   id: number;
   user_id: number | string;
@@ -36,7 +33,6 @@ export interface Contact {
   is_public: boolean;
 }
 
-// Project interface
 export interface Project {
   id: number;
   user_id: number | string;
@@ -48,16 +44,15 @@ export interface Project {
 }
 
 export interface Skill {
-  id: number | null;  // Allow null for predefined skills that aren't in DB yet
+  id: number | null;
   name: string;
   description?: string;
   image_url?: string;
   category?: string;
   is_predefined?: boolean;
-  score?: number;  // For search results sorting
+  score?: number;
 }
 
-// Custom Link interface
 export interface CustomLink {
   id: number;
   user_id: number | string;
@@ -65,7 +60,6 @@ export interface CustomLink {
   url: string;
 }
 
-// Premium tier interface
 export interface PremiumTier {
   tier: number;
   name: string;
@@ -74,7 +68,6 @@ export interface PremiumTier {
   features: string[];
 }
 
-// Premium status interface
 export interface PremiumStatus {
   premium_tier: number;
   tier_name: string;
@@ -82,42 +75,35 @@ export interface PremiumStatus {
   is_active: boolean;
 }
 
-// API Response interface
 export interface ApiResponse<T> {
   success: boolean;
   error?: string;
   user?: T;
-  skill?: Skill;  // Single skill response
-  skills?: Skill[];  // Array of skills response
+  skill?: Skill;
+  skills?: Skill[];
   token?: string;
   is_new_user?: boolean;
   valid?: boolean;
   payment_url?: string;
-  message?: string;  // Added message property for informational messages
-  image_url?: string; // Added for image upload responses
+  message?: string;
+  image_url?: string;
   is_new?: boolean;
 }
 
-// Helper function to make API requests with proper error handling
 async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   try {
-    // Ensure the endpoint starts with a slash if it doesn't already
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     
-    // Construct the full URL using the base API_URL
     const fullUrl = `${API_URL}${normalizedEndpoint}`;
     console.log(`Making API request to: ${fullUrl}`);
     
-    // Add auth token if available - special endpoints like /auth/init shouldn't use this
     const token = localStorage.getItem('authToken');
     
-    // Create a proper Record for headers to avoid TypeScript issues
     const headersRecord: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
     
-    // Copy any existing headers from options
     if (options.headers) {
       const existingHeaders = options.headers as Record<string, string>;
       Object.keys(existingHeaders).forEach(key => {
@@ -125,13 +111,11 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       });
     }
     
-    // Add token to headers if available and not already set in options
     if (token && !endpoint.includes('/auth/init')) {
       console.log("Adding JWT token to request headers");
       headersRecord['Authorization'] = `Bearer ${token}`;
     }
     
-    // Ensure headers are properly set
     const requestOptions: RequestInit = {
       ...options,
       credentials: 'include',
@@ -139,7 +123,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       headers: headersRecord
     };
     
-    // Log the headers being sent (but mask the token for security)
     const logHeaders = {...headersRecord};
     if (logHeaders['Authorization']) {
       logHeaders['Authorization'] = logHeaders['Authorization'].substring(0, 15) + '...';
@@ -149,7 +132,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
     const response = await fetch(fullUrl, requestOptions);
     console.log("Response status:", response.status, response.statusText);
     
-    // Check if the response is HTML (error page) instead of JSON
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('text/html')) {
       console.error("Received HTML instead of JSON. Server likely returned an error page.");
@@ -159,11 +141,9 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       };
     }
     
-    // Handle 401 Unauthorized errors specially
     if (response.status === 401) {
       console.error("401 Unauthorized: Authentication token may be invalid or expired");
       
-      // If we have a token but got 401, it might be expired - try to clear it
       if (token) {
         console.log("Clearing potentially expired token");
         localStorage.removeItem('authToken');
@@ -175,9 +155,7 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       };
     }
     
-    // For network errors or non-JSON responses
     if (!response.ok) {
-      // Try to parse the error response as JSON
       try {
         const errorData = await response.json();
         return {
@@ -185,7 +163,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
           error: errorData.error || `Request failed with status ${response.status}`
         };
       } catch (e) {
-        // If JSON parsing fails, return a generic error
         return {
           success: false,
           error: `Request failed with status ${response.status}`
@@ -198,7 +175,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   } catch (error) {
     console.error("API request error:", error);
     
-    // Special handling for JSON parsing error
     if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
       return {
         success: false,
@@ -206,7 +182,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
       };
     }
     
-    // Handle network errors
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       return {
         success: false,
@@ -221,7 +196,6 @@ async function apiRequest<T>(endpoint: string, options: RequestInit = {}): Promi
   }
 }
 
-// Auth functions
 export async function validateUser(): Promise<ApiResponse<User>> {
   console.log("validateUser called - API URL:", API_URL);
   const initData = getInitData();
@@ -238,7 +212,6 @@ export async function validateUser(): Promise<ApiResponse<User>> {
   console.log("Making authentication request to: /v1/auth/init");
   
   try {
-    // Make a direct fetch call to ensure no token is sent for this initial request
     const response = await fetch(`${API_URL}/v1/auth/init`, {
       method: 'POST',
       headers: {
@@ -249,11 +222,9 @@ export async function validateUser(): Promise<ApiResponse<User>> {
       body: JSON.stringify({ initData }),
     });
     
-    // Parse the response
     const data = await response.json();
     console.log("Auth response received:", data);
     
-    // Store token if available
     if (data.success && data.token) {
       console.log("JWT token received, storing in localStorage");
       localStorage.setItem('authToken', data.token);
@@ -272,14 +243,12 @@ export async function validateUser(): Promise<ApiResponse<User>> {
 }
 
 export async function uploadAvatar(file: File): Promise<ApiResponse<{ avatar_url: string }>> {
-  // Create a FormData object to send the file
   const formData = new FormData();
   formData.append('file', file);
   
   try {
     const token = localStorage.getItem('authToken');
     
-    // Use fetch directly for multipart/form-data
     const response = await fetch(`${API_URL}/v1/users/me/avatar`, {
       method: 'POST',
       body: formData,
@@ -333,7 +302,6 @@ export async function uploadStory(blob: Blob): Promise<string> {
       throw new Error(data.error || `Upload failed with status ${response.status}`);
     }
 
-    // Try to find the URL in common fields
     if (data.avatar_url && typeof data.avatar_url === 'string') {
       return data.avatar_url;
     }
@@ -354,33 +322,25 @@ export async function uploadStory(blob: Blob): Promise<string> {
   }
 }
 
-// User profile functions
 export async function getCurrentUser(): Promise<ApiResponse<User>> {
-  // Add a cache-busting query parameter to force a fresh request
   const cacheBuster = new Date().getTime();
   try {
     const response = await apiRequest<any>(`/v1/users/me?_=${cacheBuster}`);
     
     console.log("getCurrentUser response:", response);
     
-    // Check if the response contains user data directly (not wrapped in a 'user' property)
     if (response && !response.success && !response.user) {
-      // This means the API returned the user object directly at the root level
-      // Convert it to the expected ApiResponse format
       return {
         success: true,
-        user: response as unknown as User  // Use unknown as an intermediate step for type safety
+        user: response as unknown as User
       };
     }
     
-    // Make sure we have a proper response to return
     if (response.success === undefined) {
-      // If response doesn't have a success property, it's likely the user object itself
-      // We need to type cast carefully here
-      const userObj = response as unknown; // First cast to unknown
+      const userObj = response as unknown;
       return {
         success: true,
-        user: userObj as User  // Then cast to User
+        user: userObj as User
       };
     }
     
@@ -403,9 +363,6 @@ export async function updateUserProfile(profileData: Partial<User>): Promise<Api
     });
     console.log("Profile update response:", response);
 
-    // Поскольку сервер возвращает напрямую объект пользователя,
-    // а не обертку { success: true, user: {...} },
-    // мы должны обернуть ответ вручную в ApiResponse
     if (response && !('success' in response)) {
       return {
         success: true,
@@ -424,32 +381,24 @@ export async function updateUserProfile(profileData: Partial<User>): Promise<Api
 }
 
 
-// Contact functions
-// Update this function in api.ts
 export async function getUserContacts(): Promise<Contact[]> {
   try {
-    // Try to get contacts directly from the dedicated endpoint
     const response = await apiRequest<any>('/v1/users/me/contacts');
     
-    // Log what we received to help with debugging
     console.log("Contacts response:", response);
     
-    // Check if response is an array directly (the backend might return just the array)
     if (Array.isArray(response)) {
       return response;
     }
     
-    // Check if response has contacts property
     if (response && response.user && response.user.contacts && Array.isArray(response.user.contacts)) {
       return response.user.contacts;
     }
     
-    // Check if user property contains contacts
     if (response && response.user && response.user.contacts && Array.isArray(response.user.contacts)) {
       return response.user.contacts;
     }
     
-    // If data structure doesn't match any expected format, get from the user endpoint
     const userResponse = await apiRequest<any>('/v1/users/me');
     console.log("User response for contacts:", userResponse);
     
@@ -461,7 +410,6 @@ export async function getUserContacts(): Promise<Contact[]> {
       return userResponse.user.contacts;
     }
     
-    // If still nothing, return empty array
     return [];
   } catch (error) {
     console.error("Error fetching contacts:", error);
@@ -491,7 +439,6 @@ export async function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-// Helper to check if a string is a data URL
 export function isDataUrl(url: string): boolean {
   return !!url && url.startsWith('data:');
 }
@@ -503,22 +450,17 @@ export async function updateContact(contactId: number, contact: Partial<Contact>
   });
 }
 
-// Project functions
 export async function getUserProjects(): Promise<Project[]> {
   const response = await apiRequest<Project[]>('/v1/users/me/projects');
-  // If the response is an array directly
   if (Array.isArray(response)) {
     return response;
   }
-  // If the response is wrapped in ApiResponse and contains user.projects
   if (response && response.success && response.user && Array.isArray((response.user as any).projects)) {
     return (response.user as any).projects;
   }
-  // If the response is wrapped in ApiResponse and contains projects directly
   if (response && response.success && Array.isArray((response as any).projects)) {
     return (response as any).projects;
   }
-  // Fallback: return empty array
   return [];
 }
 
@@ -542,48 +484,38 @@ export async function deleteProject(projectId: number): Promise<ApiResponse<any>
   });
 }
 
-// Skills functions
 export async function getUserSkills(): Promise<Skill[]> {
   try {
     console.log("Getting user skills from API...");
-    // First try direct user skills endpoint
     const response = await apiRequest<any>('/v1/users/me/skills');
     
-    // If response is directly the skills array
     if (Array.isArray(response)) {
       console.log(`Found ${response.length} skills from direct endpoint`);
       return response;
     }
     
-    // If response is a standard API response with user property
     if (response && response.success && response.user) {
-      // If user contains skills array
       if (response.user.skills && Array.isArray(response.user.skills)) {
         console.log(`Found ${response.user.skills.length} skills in user object`);
         return response.user.skills;
       }
       
-      // If user is directly the skills array
       if (Array.isArray(response.user)) {
         console.log(`Found ${response.user.length} skills in user array`);
         return response.user;
       }
     }
     
-    // Fallback to getting user full profile
     console.log("No skills found in direct response, checking full user profile...");
     const userResponse = await apiRequest<any>('/v1/users/me');
     
     if (userResponse && userResponse.success && userResponse.user) {
-      // If user contains skills array
       if (userResponse.user.skills && Array.isArray(userResponse.user.skills)) {
         console.log(`Found ${userResponse.user.skills.length} skills in full user profile`);
         return userResponse.user.skills;
       }
     }
     
-    // If userResponse itself might be the user object
-    // First cast to any to access potential skills property
     const userResponseObj = userResponse as any;
     if (userResponseObj && 
         (!userResponseObj.success || userResponseObj.success === undefined) && 
@@ -594,7 +526,6 @@ export async function getUserSkills(): Promise<Skill[]> {
       return userResponseObj.skills;
     }
     
-    // Last resort - log the responses for debugging
     console.log("Could not find skills in any expected location. API responses:", { 
       response, 
       userResponse 
@@ -610,25 +541,19 @@ export async function getUserSkills(): Promise<Skill[]> {
 export async function searchSkills(query: string): Promise<Skill[]> {
   const response = await apiRequest<any>(`/v1/skills?q=${encodeURIComponent(query)}`);
   
-  // Direct array response
   if (Array.isArray(response)) {
     return response;
   }
   
-  // Response wrapped in 'user' property (our standard ApiResponse format)
   if (response && response.success && response.user) {
-    // Check if user property is the array itself
     if (Array.isArray(response.user)) {
       return response.user;
     }
   }
   
-  // Use type assertion for response to check for other possible properties
   const responseObj = response as any;
   
-  // Check for data in various possible locations
   if (responseObj && typeof responseObj === 'object') {
-    // Check common property names for API responses
     if (responseObj.data && Array.isArray(responseObj.data)) {
       return responseObj.data;
     }
@@ -640,7 +565,6 @@ export async function searchSkills(query: string): Promise<Skill[]> {
     }
   }
 
-  // Empty array as fallback
   return [];
 }
 
@@ -670,11 +594,9 @@ export async function createCustomSkill(skill: {
 }
 
 export async function uploadSkillImage(file: File, skillId?: number): Promise<ApiResponse<{ image_url: string }>> {
-  // Create a FormData object to send the file
   const formData = new FormData();
   formData.append('file', file);
   
-  // Add skill_id if provided
   if (skillId) {
     formData.append('skill_id', skillId.toString());
   }
@@ -682,7 +604,6 @@ export async function uploadSkillImage(file: File, skillId?: number): Promise<Ap
   try {
     const token = localStorage.getItem('authToken');
     
-    // Use fetch directly for multipart/form-data
     const response = await fetch(`${API_URL}/v1/skills/upload-image`, {
       method: 'POST',
       body: formData,
@@ -715,7 +636,6 @@ export async function uploadSkillImage(file: File, skillId?: number): Promise<Ap
   }
 }
 
-// Custom links functions
 export async function getUserLinks(): Promise<CustomLink[]> {
   const response = await apiRequest<any>('/v1/users/me');
   return response.success && response.user ? response.user.custom_links || [] : [];
@@ -734,25 +654,19 @@ export async function deleteCustomLink(linkId: number): Promise<ApiResponse<any>
   });
 }
 
-// Premium functions
 export async function getPremiumStatus(): Promise<PremiumStatus> {
   try {
     const response = await apiRequest<any>('/v1/premium/status');
     console.log("Premium status response:", response);
     
-    // If the response is successful and contains user data
     if (response.success && response.user) {
       return response.user as PremiumStatus;
     }
     
-    // Handle case where response might contain data directly
     if ('premium_tier' in response) {
-      // The response object itself appears to be the premium status
-      // Cast the entire response as Partial<PremiumStatus> to access its properties safely
       const premiumResponse = response as Partial<PremiumStatus>;
       const premiumTier = premiumResponse.premium_tier || 0;
       
-      // Construct a valid PremiumStatus object
       return {
         premium_tier: premiumTier,
         tier_name: premiumResponse.tier_name || 
@@ -765,7 +679,6 @@ export async function getPremiumStatus(): Promise<PremiumStatus> {
       };
     }
     
-    // Default value if the request fails or returns no data
     return { premium_tier: 0, tier_name: 'Free', expires_at: null, is_active: false };
   } catch (error) {
     console.error("Error fetching premium status:", error);
@@ -776,20 +689,16 @@ export async function getPremiumStatus(): Promise<PremiumStatus> {
 export async function getPremiumTiers(): Promise<PremiumTier[]> {
   const response = await apiRequest<any>('/v1/premium/tiers');
   if (response.success) {
-    // First, check if the response contains an array directly
     if (Array.isArray(response.user)) {
       return response.user as PremiumTier[];
     }
     
-    // Check for nested data in the response
     const data = response.user as any;
     if (data) {
-      // If there's a data property that's an array
       if (data.data && Array.isArray(data.data)) {
         return data.data as PremiumTier[];
       }
       
-      // If there's a tiers property that's an array
       if (data.tiers && Array.isArray(data.tiers)) {
         return data.tiers as PremiumTier[];
       }
@@ -805,7 +714,6 @@ export async function subscribeToPremium(tier: number, paymentMethod: string): P
   });
 }
 
-// User search functions
 export async function searchUsers(query: string, skillFilter?: string, limit: number = 10, offset: number = 0): Promise<User[]> {
   let endpoint = `/v1/users?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
   if (skillFilter) {
@@ -814,20 +722,16 @@ export async function searchUsers(query: string, skillFilter?: string, limit: nu
   
   const response = await apiRequest<any>(endpoint);
   if (response.success) {
-    // If the response itself is the users array
     if (Array.isArray(response.user)) {
       return response.user as User[];
     }
     
-    // Check for nested data in the response
     const data = response.user as any;
     if (data) {
-      // If there's a data property that's an array
       if (data.data && Array.isArray(data.data)) {
         return data.data as User[];
       }
       
-      // If there's a users property that's an array
       if (data.users && Array.isArray(data.users)) {
         return data.users as User[];
       }
@@ -841,9 +745,7 @@ export async function getUserById(userId: string): Promise<ApiResponse<User>> {
 }
 
 
-// In api.ts
 
-// Generate a payment link
 export async function generatePaymentLink(tier: number): Promise<ApiResponse<{ payment_url: string }>> {
   try {
     const token = localStorage.getItem('authToken');
@@ -865,7 +767,6 @@ export async function generatePaymentLink(tier: number): Promise<ApiResponse<{ p
   }
 }
 
-// Check payment status
 export async function checkPaymentStatus(
   userId: string | number,
   tier: number,
@@ -890,7 +791,6 @@ export async function checkPaymentStatus(
   }
 }
 
-// Onboarding API helpers
 export async function getIsNewUser(userId: string | number): Promise<{ is_new: boolean }> {
   const res = await apiRequest<{ is_new: boolean }>(`/v1/users/new/${userId}`);
   return { is_new: !!(res && res.is_new) };

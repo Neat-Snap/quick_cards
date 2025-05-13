@@ -26,23 +26,19 @@ interface BusinessCardPreviewProps {
 export const getAvatarUrl = (avatarPath: string | undefined): string => {
   if (!avatarPath) return '';
   
-  // If it's a Telegram avatar (contains t.me), use it directly
   if (avatarPath.includes('t.me')) {
     return avatarPath;
   }
   
-  // If it starts with /files/, it's already a full path
   if (avatarPath.startsWith('/files/')) {
     console.log("api url is", API_URL, "avatar path is", avatarPath, "final path is", `${API_URL}/v1${avatarPath}`)
     return `${API_URL}/v1${avatarPath}`;
   }
   
-  // If it's a relative path (e.g., profile/123.jpg)
   if (avatarPath.startsWith('profile/')) {
     return `${API_URL}/v1/files/${avatarPath}`;
   }
   
-  // Otherwise, assume it's a complete URL
   return avatarPath;
 };
 
@@ -53,13 +49,11 @@ export function BusinessCardPreview({
   skills = [],
   customLinks = []
 }: BusinessCardPreviewProps) {
-  // State for detail view modals
   const [activeDetail, setActiveDetail] = useState<{
     type: 'contact' | 'project' | 'skill';
     data: any;
   } | null>(null);
 
-  // Default values for rendering if user is null
   const fullName = user?.name || "Your Name";
   const firstName = user?.first_name || (user?.name ? user.name.split(' ')[0] : "Your");
   const lastName = user?.last_name || (user?.name && user.name.split(' ').length > 1 ? user.name.split(' ')[1] : "Name");
@@ -68,7 +62,6 @@ export function BusinessCardPreview({
 
   console.log("projects debug: ", projects)
   
-  // Set background based on user background_type and background_value
   const getBackgroundStyle = () => {
     if (!user) return { backgroundColor: "#1e293b" };
     
@@ -88,11 +81,9 @@ export function BusinessCardPreview({
       };
     }
     
-    // Default to a dark color
     return { backgroundColor: "#1e293b" };
   };
 
-  // Helper to render contact icon based on type
   const getContactIcon = (type: string) => {
     switch (type.toLowerCase()) {
       case 'email':
@@ -106,17 +97,14 @@ export function BusinessCardPreview({
     }
   };
 
-  // Handle opening detail view
   const openDetail = (type: 'contact' | 'project' | 'skill', data: any) => {
     setActiveDetail({ type, data });
   };
 
-  // Handle closing detail view
   const closeDetail = () => {
     setActiveDetail(null);
   };
 
-  // Render contact card item
   const renderContactCard = (contact: Contact) => (
     <div 
       key={contact.id} 
@@ -131,7 +119,6 @@ export function BusinessCardPreview({
     </div>
   );
 
-  // Render custom link card item
   const renderLinkCard = (link: CustomLink) => (
     <a
       key={link.id}
@@ -147,9 +134,7 @@ export function BusinessCardPreview({
     </a>
   );
 
-  // Render skill card item
   const renderSkillCard = (skill: Skill) => {
-    // Get the skill icon
     const iconUrl = getSkillIconUrl(skill);
     
     return (
@@ -166,7 +151,6 @@ export function BusinessCardPreview({
                 alt={skill.name} 
                 className="w-6 h-6"
                 onError={(e) => {
-                  // If image fails to load, show initials instead
                   (e.target as HTMLImageElement).style.display = 'none';
                   (e.target as HTMLImageElement).parentElement!.innerHTML = 
                     `<span class="text-xs font-medium">${skill.name.charAt(0).toUpperCase()}</span>`;
@@ -182,7 +166,6 @@ export function BusinessCardPreview({
     );
   };
 
-  // Render project card item
   const renderProjectCard = (project: Project) => (
     <div 
       key={project.id} 
@@ -198,7 +181,6 @@ export function BusinessCardPreview({
                 alt={project.name} 
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  // Hide the image container if loading fails
                   (e.target as HTMLImageElement).parentElement!.style.display = 'none';
                 }}
               />
@@ -225,11 +207,9 @@ export function BusinessCardPreview({
     <>
       <ScrollableStyles />
       <div className="space-y-6">
-        {/* Main Card */}
         <Card className="overflow-hidden" style={getBackgroundStyle()}>
           <CardContent className="p-6">
             <div className="flex flex-col items-center">
-              {/* User Info Section */}
               <Avatar className="h-24 w-24 mb-4 border-4 border-white">
                 <AvatarImage 
                   src={getAvatarUrl(user?.avatar_url)} 
@@ -281,7 +261,6 @@ export function BusinessCardPreview({
           </CardContent>
         </Card>
         
-        {/* Projects Section (Vertical Layout) */}
         {projects && projects.length > 0 && (
           <div className="w-full">
             <h3 className="text-sm font-medium mb-3">Projects</h3>
@@ -302,7 +281,6 @@ export function BusinessCardPreview({
                               alt={project.name} 
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Hide the image container if loading fails
                                 (e.target as HTMLImageElement).parentElement!.style.display = 'none';
                               }}
                             />
@@ -354,7 +332,6 @@ export function BusinessCardPreview({
         )} */}
       </div>
 
-      {/* Render detail view if active */}
       {activeDetail && (
         <ItemDetailView
           type={activeDetail.type}

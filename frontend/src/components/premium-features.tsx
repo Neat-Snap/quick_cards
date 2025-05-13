@@ -37,7 +37,6 @@ import {
   generatePaymentLink
 } from "@/lib/api";
 
-// Single Premium Tier
 const PREMIUM_TIER = {
   tier: 1,
   name: "Premium",
@@ -69,7 +68,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
 
-  // All premium features with their icons
   const premiumFeatures = [
     { name: "Custom Background Image", description: "Create gradient or custom background image for your card", icon: ImageIcon },
     { name: "Skills", description: "Add your professional skills to your profile", icon: Code },
@@ -78,11 +76,9 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
     { name: "Extended Links", description: "Add more than 3 custom links to your profile", icon: BadgeCheck },
   ];
 
-  // Load status from backend
   const loadPremiumData = async () => {
     setLoading(true);
     try {
-      // Get current premium status
       const status = await getPremiumStatus();
       setPremiumStatus(status);
     } catch (error) {
@@ -97,12 +93,10 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
     loadPremiumData();
   }, []);
 
-  // When user presses subscribe button, open confirmation dialog
   const handleSubscribeClick = () => {
     setDialogOpen(true);
   };
 
-  // Check payment status with backend API
   const checkPaymentStatus = async (user_id: string | number): Promise<boolean> => {
     try {
 
@@ -124,7 +118,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
     }
   };
 
-  // Confirm purchase: fetch link, open invoice, handle status
   const handleConfirmPurchase = async () => {
     setDialogOpen(false);
     if (!user) return;
@@ -134,15 +127,11 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
     setPaymentError(null);
     
     try {
-      // Generate payment link
       const response = await generatePaymentLink(PREMIUM_TIER.tier);
       
       const invoiceLink = response.payment_url as string;
       
-      // Use Telegram WebApp to open invoice
       if (window.Telegram?.WebApp) {
-        // We need to check if openInvoice exists at runtime
-        // since TypeScript definition might be missing
         if (typeof (window.Telegram.WebApp as any).openInvoice === 'function') {
           (window.Telegram.WebApp as any).openInvoice(
             invoiceLink, 
@@ -150,12 +139,10 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
               console.log("Payment status:", status);
               
               if (status === "paid") {
-                // Verify payment on backend
                 try {
                   const verified = await checkPaymentStatus(user.id);
                   
                   if (verified) {
-                    // Refresh premium status
                     await loadPremiumData();
                     toast({ 
                       title: "Payment Successful", 
@@ -163,12 +150,10 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                       variant: "default" 
                     });
                     
-                    // Notify parent component
                     if (onSubscribed) {
                       onSubscribed();
                     }
                   } else {
-                    // Payment verification failed
                     setPaymentError("Payment succeeded but verification failed. Please contact support.");
                     setErrorDialogOpen(true);
                   }
@@ -181,7 +166,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 setPaymentError("Payment failed. Please try again.");
                 setErrorDialogOpen(true);
               } else if (status === "cancelled") {
-                // User cancelled - no error needed
                 console.log("Payment cancelled by user");
               } else {
                 setPaymentError(`Payment error: ${status}`);
@@ -192,14 +176,12 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
             }
           );
         } else {
-          // Fallback for old versions of Telegram WebApp
           window.open(invoiceLink, '_blank');
           setPaymentError("Payment window opened in new tab. After payment, please refresh this page.");
           setErrorDialogOpen(true);
           setPaymentInProgress(false);
         }
       } else {
-        // Fallback for development or when Telegram WebApp is not available
         window.open(invoiceLink, '_blank');
         setPaymentError("Payment window opened in new tab. After payment, please refresh this page.");
         setErrorDialogOpen(true);
@@ -228,7 +210,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
 
   return (
     <>
-      {/* Current Premium Status */}
       <div className="space-y-6">
         <div className="text-center rounded-lg border p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
           {isPremium ? (
@@ -243,7 +224,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
                 Expires: {premiumStatus?.expires_at ? new Date(premiumStatus.expires_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : "Never"}
               </p>
               
-              {/* Current benefits */}
               <div className="mt-4 bg-background/50 rounded-md p-4 max-w-md mx-auto">
                 <h3 className="font-medium mb-2">Your Premium Benefits:</h3>
                 <div className="grid grid-cols-1 gap-2">
@@ -280,7 +260,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
           )}
         </div>
 
-        {/* Premium Features Section */}
         {!isPremium && (
           <div id="premium-features" className="pt-6">
             <h2 className="text-xl font-bold text-center mb-6">Premium Features</h2>
@@ -327,7 +306,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
           </div>
         )}
         
-        {/* Payment Process Indicator */}
         {paymentInProgress && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-background p-6 rounded-lg shadow-lg text-center">
@@ -408,7 +386,6 @@ export function PremiumFeatures({ user, onSubscribed }: PremiumFeaturesProps) {
         </div>
       )}
 
-      {/* Simple Modal for Errors */}
       {errorDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4">

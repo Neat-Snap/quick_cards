@@ -10,7 +10,6 @@ export function useOnboarding() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Only run if we have user data
     if (user && user.id) {
       setIsLoading(true);
       getIsNewUser(user.id)
@@ -28,7 +27,6 @@ export function useOnboarding() {
     }
   };
 
-  // This is mainly for development/testing
   const resetOnboarding = () => {
     setShowOnboarding(true);
   };
