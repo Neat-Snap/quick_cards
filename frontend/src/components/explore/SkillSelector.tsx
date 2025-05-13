@@ -1,4 +1,3 @@
-// components/explore/SkillSelector.tsx - Component for selecting skills to filter by
 
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -18,14 +17,12 @@ export function SkillSelector({ selectedSkills, onSelect }: SkillSelectorProps) 
   const [searchResults, setSearchResults] = useState<Skill[]>([]);
   const [searching, setSearching] = useState(false);
   
-  // Filter out already selected skills from suggestions
   const filteredSuggestions = SUGGESTED_SKILLS.filter(suggestion => 
     !selectedSkills.some(skill => 
       skill.name.toLowerCase() === suggestion.toLowerCase()
     )
   );
   
-  // Debounced search function
   const debouncedSearch = debounce(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -36,7 +33,6 @@ export function SkillSelector({ selectedSkills, onSelect }: SkillSelectorProps) 
     try {
       const results = await searchSkills(searchQuery);
       
-      // Filter out already selected skills
       const filteredResults = results.filter(skill => 
         !selectedSkills.some(s => s.id === skill.id)
       );
@@ -49,7 +45,6 @@ export function SkillSelector({ selectedSkills, onSelect }: SkillSelectorProps) 
     }
   }, 300);
   
-  // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
@@ -62,15 +57,12 @@ export function SkillSelector({ selectedSkills, onSelect }: SkillSelectorProps) 
     }
   };
   
-  // Handle suggestion selection
   const handleSuggestionSelect = async (skillName: string) => {
     setSearching(true);
     
     try {
-      // Search for the exact skill
       const results = await searchSkills(skillName);
       
-      // Find the exact match
       const exactMatch = results.find(s => 
         s.name.toLowerCase() === skillName.toLowerCase()
       );
@@ -78,7 +70,6 @@ export function SkillSelector({ selectedSkills, onSelect }: SkillSelectorProps) 
       if (exactMatch) {
         onSelect(exactMatch);
       } else if (results.length > 0) {
-        // Fall back to first result if no exact match
         onSelect(results[0]);
       }
     } catch (error) {
@@ -102,7 +93,6 @@ export function SkillSelector({ selectedSkills, onSelect }: SkillSelectorProps) 
         />
       </div>
       
-      {/* Suggestions */}
       {!query && filteredSuggestions.length > 0 && (
         <div>
           <p className="text-xs text-muted-foreground mb-1">Suggested skills:</p>
@@ -121,7 +111,6 @@ export function SkillSelector({ selectedSkills, onSelect }: SkillSelectorProps) 
         </div>
       )}
       
-      {/* Search results */}
       {query && (
         <div className="border rounded-md overflow-hidden max-h-60">
           {searching ? (

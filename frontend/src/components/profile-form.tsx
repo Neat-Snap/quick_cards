@@ -13,7 +13,6 @@ import { User, updateUserProfile, getPremiumStatus, uploadAvatar } from "@/lib/a
 import { getAvatarUrl } from "@/components/business-card-preview";
 import { AlertCircle, Info } from "lucide-react";
 
-// Validation constants from backend
 const MAX_NAME_LENGTH = 100;
 const MIN_NAME_LENGTH = 2;
 const MAX_BADGE_LENGTH = 20;
@@ -21,7 +20,6 @@ const MIN_BADGE_LENGTH = 2;
 const MAX_DESCRIPTION_LENGTH = 1000;
 const DISALLOWED_CHARS = ['"', '/', '\\', ';', '|', '`', '$', '!', '=', '+', '-'];
 
-// Helper function to check for disallowed characters
 const containsDisallowedChars = (value: string): boolean => {
   return DISALLOWED_CHARS.some(char => value.includes(char));
 };
@@ -44,9 +42,7 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   
-  // Validate inputs on change
   useEffect(() => {
-    // Validate name
     if (name.length > 0 && name.length < MIN_NAME_LENGTH) {
       setNameError(`Name must be longer than ${MIN_NAME_LENGTH} characters`);
     } else if (name.length > MAX_NAME_LENGTH) {
@@ -57,7 +53,6 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
       setNameError(null);
     }
     
-    // Validate description
     if (description.length > MAX_DESCRIPTION_LENGTH) {
       setDescriptionError(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or less`);
     } else if (containsDisallowedChars(description)) {
@@ -66,7 +61,6 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
       setDescriptionError(null);
     }
     
-    // Validate badge
     if (badge.length > 0 && badge.length < MIN_BADGE_LENGTH && badge.length > 0) {
       setBadgeError(`Badge must be longer than ${MIN_BADGE_LENGTH} characters`);
     } else if (badge.length > MAX_BADGE_LENGTH) {
@@ -78,7 +72,6 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
     }
   }, [name, description, badge]);
   
-  // Check premium status on mount
   useEffect(() => {
     const checkPremiumStatus = async () => {
       try {
@@ -93,22 +86,18 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
     checkPremiumStatus();
   }, []);
   
-  // Handle avatar file selection
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setAvatar(file);
-      // Create preview URL
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
     }
   };
   
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for validation errors before submitting
     if (nameError || descriptionError || badgeError) {
       toast({
         title: "Validation Error",
@@ -123,7 +112,6 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
     setIsSubmitting(true);
     
     try {
-      // First handle avatar upload if a new file was selected
       let newAvatarUrl = undefined;
       
       if (avatar) {
@@ -134,25 +122,21 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
           throw new Error(avatarResponse.error || "Failed to upload avatar");
         }
         
-        // Get the new avatar URL from the response
         if (avatarResponse.user && avatarResponse.user.avatar_url) {
           newAvatarUrl = avatarResponse.user.avatar_url;
           console.log("Avatar uploaded successfully:", newAvatarUrl);
         }
       }
       
-      // Then update the user profile with all changes
       const updateData: Partial<User> = {
         name,
         description
       };
       
-      // Only include avatar if we uploaded a new one
       if (newAvatarUrl) {
         updateData.avatar_url = newAvatarUrl;
       }
       
-      // Only include badge if premium or badge was already set
       if (isPremium || user.badge) {
         updateData.badge = badge;
       }
@@ -170,7 +154,6 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         variant: "default",
       });
       
-      // Call onSuccess to close the edit form and refresh data
       if (onSuccess) {
         onSuccess();
       }
@@ -188,7 +171,6 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Avatar Section */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Profile Avatar</h3>
@@ -224,7 +206,6 @@ export function ProfileForm({ user, onSuccess, onCancel }: ProfileFormProps) {
         </div>
       </div>
       
-      {/* Personal Information */}
       <div className="space-y-4">
         <div>
           <h3 className="text-lg font-medium">Personal Information</h3>

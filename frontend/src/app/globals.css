@@ -58,16 +58,14 @@
   }
 }
 
-/* Scrollbar Styling */
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* Internet Explorer and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .hide-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
 }
 
-/* Animation Keyframes */
 @keyframes ripple {
   0% {
     transform: translate(-50%, -50%) scale(0);
@@ -162,7 +160,6 @@
   }
 }
 
-/* Animation Utility Classes */
 .animate-ripple {
   animation: ripple 0.6s linear forwards;
 }
@@ -199,7 +196,6 @@
   animation: pulse 0.5s ease-in-out;
 }
 
-/* Card Hover Effects */
 .card-hover {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -209,7 +205,6 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
-/* Glass Effect Utilities */
 .glass {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
@@ -235,7 +230,6 @@
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
 }
 
-/* Page Transitions */
 .page-enter {
   opacity: 0;
   transform: scale(0.98);
@@ -259,7 +253,6 @@
 
 .show-scrollbar {
   overflow-y: auto;
-  /* Custom scrollbar styling */
   scrollbar-width: thin;
   scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
 }

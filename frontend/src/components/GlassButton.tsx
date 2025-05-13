@@ -31,7 +31,6 @@ export function GlassButton({
     display: "none"
   });
   
-  // Define background opacity based on intensity
   const getBackgroundOpacity = () => {
     switch (intensity) {
       case "light": return darkMode ? "rgba(17, 25, 40, 0.5)" : "rgba(255, 255, 255, 0.05)";
@@ -41,7 +40,6 @@ export function GlassButton({
     }
   };
   
-  // Define blur intensity based on intensity level
   const getBlurIntensity = () => {
     switch (intensity) {
       case "light": return "5px";
@@ -51,7 +49,6 @@ export function GlassButton({
     }
   };
   
-  // Define border opacity based on intensity
   const getBorderOpacity = () => {
     switch (intensity) {
       case "light": return darkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.1)";
@@ -61,11 +58,9 @@ export function GlassButton({
     }
   };
   
-  // Handle ripple effect
   const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (disabled) return;
     
-    // Scale press effect
     setIsPressed(true);
     setTimeout(() => setIsPressed(false), 300);
     
@@ -73,7 +68,6 @@ export function GlassButton({
       const button = event.currentTarget;
       const rect = button.getBoundingClientRect();
       
-      // Calculate ripple position relative to button
       const left = ((event.clientX - rect.left) / rect.width) * 100;
       const top = ((event.clientY - rect.top) / rect.height) * 100;
       
@@ -83,13 +77,11 @@ export function GlassButton({
         display: "block"
       });
       
-      // Remove ripple after animation completes
       setTimeout(() => {
         setRippleStyle(prev => ({ ...prev, display: "none" }));
       }, 600);
     }
     
-    // Call original click handler
     onClick?.(event);
   };
   
@@ -121,7 +113,6 @@ export function GlassButton({
         {children}
       </div>
       
-      {/* Ripple effect */}
       {ripple && (
         <span
           className="absolute rounded-full bg-white/20 animate-ripple pointer-events-none"

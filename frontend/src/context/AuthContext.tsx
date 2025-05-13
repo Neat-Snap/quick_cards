@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  token: string | null; // Add token to context
+  token: string | null;
   logout: () => void;
   refreshUser: () => Promise<void>;
   sharedUserId: string | null;
@@ -17,21 +17,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Check if we're in development environment
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null); // State for token
+  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isWebAppReady, setIsWebAppReady] = useState(false);
   const [initAttempts, setInitAttempts] = useState(0);
   const [sharedUserId, setSharedUserId] = useState<string | null>(null);
 
-  // Load token from localStorage on mount
   useEffect(() => {
-    // Try to load token from localStorage
     const storedToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
     if (storedToken) {
       console.log("Found stored token on initialization");
@@ -39,21 +36,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // Initialize Telegram WebApp when the component mounts
   useEffect(() => {
     const initTelegramWebApp = () => {
-      // Safety check to ensure we're in a browser environment
       if (typeof window === 'undefined') return;
 
       try {
         console.log("Window Telegram object:", typeof window.Telegram);
         console.log("Window Telegram WebApp:", typeof window.Telegram?.WebApp);
         
-        // Check if Telegram WebApp is available
         if (isTelegramWebApp()) {
-          // Expand the WebApp to take the whole screen
           expandApp();
-          // Mark the WebApp as ready
           setAppReady();
           console.log("Telegram WebApp initialized successfully");
           console.log("Init data available:", Boolean(getInitData()));
@@ -68,12 +60,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error initializing Telegram WebApp:", err);
         setError("Failed to initialize Telegram WebApp. Please try again.");
       } finally {
-        // Mark initialization as complete, whether it succeeded or not
         setIsWebAppReady(true);
       }
     };
 
-    // Short delay to ensure Telegram script is fully loaded
     const timer = setTimeout(() => {
       initTelegramWebApp();
     }, 500);
@@ -83,33 +73,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const checkForSharedCard = () => {
-      // Only if WebApp is available
       if (isTelegramWebApp() && window.Telegram?.WebApp?.initDataUnsafe) {
         const startParam = window.Telegram.WebApp.initDataUnsafe.start_param;
         console.log("Start param detected:", startParam);
         
         if (startParam && startParam.startsWith('id')) {
-          // Extract user ID from the start_param
-          const userId = startParam.substring(2); // Remove 'id' prefix
+          const userId = startParam.substring(2);
           console.log("Shared user ID detected:", userId);
           setSharedUserId(userId);
         }
       }
     };
     
-    // Check after a small delay to ensure WebApp is fully initialized
     setTimeout(checkForSharedCard, 500);
   }, []);
 
-  // Improved refreshUser function with token handling
   const refreshUser = async () => {
     setLoading(true);
   
     try {
-      // For development purposes, if not in Telegram WebApp and in development mode, use a mock user
       if (!isTelegramWebApp() && isDevelopment) {
         console.log('Using mock data for development');
-        // Simulate a delay
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const mockUser: User = {
@@ -125,7 +109,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           is_premium: false
         };
         
-        // For development, simulate a token
         localStorage.setItem('authToken', 'mock-auth-token-for-development');
         
         setUser(mockUser);
@@ -133,10 +116,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
   
-      // Try to validate with backend in all other cases
       console.log("Attempting to validate user with backend...");
       
-      // Check again that we have init data
       const initData = getInitData();
       console.log("InitData retrieved, length:", initData?.length || 0);
       
@@ -157,7 +138,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(response.user);
         setError(null);
         
-        // Token should already be stored in localStorage by the validateUser function
         const token = localStorage.getItem('authToken');
         if (token) {
           console.log("JWT token is available for authenticated requests");
@@ -169,7 +149,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setError(response.error || 'Failed to authenticate with Telegram');
         setUser(null);
         
-        // Increment validation attempts if there was an error
         setInitAttempts(prev => prev + 1);
       }
     } catch (err) {
@@ -188,7 +167,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('authToken');
   };
 
-  // Only fetch user data after the WebApp is ready
   useEffect(() => {
     if (isWebAppReady) {
       console.log("WebApp is ready, attempting to fetch user data...");
@@ -196,7 +174,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isWebAppReady]);
 
-  // Add retry logic for failed initializations
   useEffect(() => {
     if (initAttempts > 0 && initAttempts < 3 && error) {
       console.log(`Retrying authentication (attempt ${initAttempts + 1})...`);
@@ -211,9 +188,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
-        token, // Provide token in context
-        loading: loading && initAttempts < 3, // Only show loading if we're still within retry attempts
-        error: initAttempts >= 3 ? error : null, // Only show error after all retry attempts
+        token,
+        loading: loading && initAttempts < 3,
+        error: initAttempts >= 3 ? error : null,
         logout,
         refreshUser,
         sharedUserId,

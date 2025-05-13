@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Define the onboarding pages content
 const onboardingPages = [
   {
     title: "Create Your Digital Business Card",
@@ -86,7 +85,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       onComplete();
     };
     
-    // Don't block scrolling globally - we'll have scrollable content inside
     useEffect(() => {
       return () => {
         document.body.style.overflow = '';
@@ -108,7 +106,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       })
     };
     
-    // Render the current page content
     const renderPage = (page: typeof onboardingPages[0], index: number) => {
       return (
         <motion.div
@@ -125,7 +122,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           className="w-full h-full flex flex-col"
         >
           <div className="flex-1 flex flex-col items-center justify-start text-center px-6 overflow-y-auto">
-            {/* Icon with glow effect */}
             <motion.div 
               className="mb-8 relative pt-6"
               initial={{ scale: 0.8, opacity: 0 }}
@@ -138,7 +134,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               </div>
             </motion.div>
             
-            {/* Title */}
             <motion.h2 
               className="text-2xl font-bold mb-4"
               initial={{ y: 20, opacity: 0 }}
@@ -148,7 +143,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               {page.title}
             </motion.h2>
             
-            {/* Description */}
             <motion.p 
               className="text-muted-foreground mb-8 max-w-md"
               initial={{ y: 20, opacity: 0 }}
@@ -158,16 +152,14 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               {page.description}
             </motion.p>
             
-            {/* Features */}
             <motion.div 
-              className="w-full mb-8" // Added margin to ensure space at the bottom
+              className="w-full mb-8"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.4 }}
             >
               {Array.isArray(page.features) && page.features.length > 0 && (
                 typeof page.features[0] === 'string' ? (
-                  // Updated styling for simple string features
                   <div className="space-y-4 pb-4">
                     {page.features.map((feature, i) => (
                       <motion.div 
@@ -187,7 +179,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     ))}
                   </div>
                 ) : (
-                  // Complex features with icons and descriptions
                   <div className="grid grid-cols-1 gap-4">
                     {page.features.map((feature: any, i) => (
                       <motion.div 
@@ -220,7 +211,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   
     return (
         <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-md flex flex-col items-center">
-          {/* Skip button */}
           <div className="absolute top-4 right-4">
             <Button 
               variant="ghost" 
@@ -233,7 +223,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </div>
           
           <div className="w-full max-w-md flex-1 flex flex-col h-full"> 
-            {/* Content area (scrollable) */}
             <div className="flex-1 overflow-y-auto px-4 pt-12 hide-scrollbar pb-4">
               <div className="relative rounded-xl h-full">
                 <AnimatePresence custom={direction} initial={false}>
@@ -242,9 +231,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               </div>
             </div>
             
-            {/* Bottom navigation (fixed) */}
             <div className="p-4 border-t bg-background/80 backdrop-blur-sm">
-              {/* Page indicators */}
               <div className="flex justify-center gap-2 mb-6">
                 {onboardingPages.map((_, index) => (
                   <button
@@ -258,7 +245,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 ))}
               </div>
               
-              {/* Navigation buttons */}
               <div className="flex justify-between gap-2">
                 {currentPage > 0 ? (
                   <Button 
@@ -270,7 +256,6 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                     Back
                   </Button>
                 ) : (
-                  // Empty div for layout
                   <div className="min-w-[80px]">{}</div>
                 )}
                 

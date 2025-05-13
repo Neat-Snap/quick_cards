@@ -1,4 +1,3 @@
-// LoadingContext.tsx
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -17,9 +16,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   const [dataLoading, setDataLoading] = useState(false);
   const [appLoading, setAppLoading] = useState(true);
   
-  // Track both auth loading and data loading
   useEffect(() => {
-    // App is loading if either auth is loading or data is loading
     setAppLoading(authLoading || dataLoading);
   }, [authLoading, dataLoading]);
   

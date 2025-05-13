@@ -33,7 +33,6 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
   const [generatingStory, setGeneratingStory] = useState(false);
   const fetchedRef = useRef(false);
   
-  // Reset state when dialog closes
   useEffect(() => {
     if (!isOpen) {
       setActiveTab("link");
@@ -44,29 +43,19 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
     }
   }, [isOpen, userData]);
   
-  // Fetch user data if not provided and dialog is open
   useEffect(() => {
     const fetchUserData = async () => {
-      // Only fetch if:
-      // 1. No userData was provided as a prop
-      // 2. Dialog is open
-      // 3. We don't already have user data
-      // 4. We're not already loading
-      // 5. We haven't already fetched in this dialog session
       if (!userData && isOpen && !user && !loading && !fetchedRef.current) {
-        fetchedRef.current = true; // Mark that we've attempted to fetch
+        fetchedRef.current = true;
         setLoading(true);
         try {
           console.log("Fetching user data for story...");
           const response = await getUserById(userId.toString());
           console.log("User data response:", response);
           
-          // Check if response is the user object directly or has expected structure
           if (isUser(response)) {
-            // API returned user object directly
             setUser(response);
           } else if (response && response.success && response.user) {
-            // API returned {success: true, user: {...}}
             setUser(response.user);
           } else {
             console.error("Failed to get valid user data");
@@ -80,14 +69,12 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
     };
     
     fetchUserData();
-  }, [userId, userData, isOpen]); // Removed user and loading from dependency array
+  }, [userId, userData, isOpen]);
 
-  // Generate the shareable link
   const getShareLink = () => {
     return bus(`id${userId?.toString()}`);
   };
 
-  // Handle copy link
   const handleCopyLink = () => {
     const link = getShareLink();
     navigator.clipboard.writeText(link)
@@ -106,21 +93,17 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
       });
   };
 
-  // Handle Telegram share
   const handleTelegramShare = () => {
     const link = getShareLink();
     
-    // Create the share URL with encoded parameters
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Check out my business card!")}`;
     
     if (window.Telegram?.WebApp) {
-      // Using Telegram's WebApp API to open the link
       try {
         window.Telegram.WebApp.openLink(shareUrl);
         setIsOpen(false);
       } catch (error) {
         console.error("Error sharing through Telegram:", error);
-        // Fallback to copying link
         handleCopyLink();
         toast({
           title: "Sharing hint",
@@ -128,64 +111,33 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
         });
       }
     } else {
-      // Fallback for when Telegram WebApp API is not available
       window.open(shareUrl, '_blank');
       setIsOpen(false);
     }
   };
 
-  // Function to upload story image to server
-  // const uploadStoryImage = async (blob: Blob): Promise<string> => {
-  //   const formData = new FormData();
-  //   formData.append('file', blob, 'story-image.jpg');
     
-  //   try {
-  //     const response = await fetch('/api/v1/users/me/story', {
-  //       method: 'POST',
-  //       body: formData,
-  //       credentials: 'include',
-  //     });
       
-  //     if (!response.ok) {
-  //       throw new Error(`Failed to upload story image: ${response.status}`);
-  //     }
       
-  //     const data = await response.json();
       
-  //     // The server should return the URL to the uploaded image
-  //     if (data && data.url) {
-  //       return data.url;
-  //     } else if (data && data.file_url) {
-  //       return data.file_url;
-  //     } else {
-  //       throw new Error('Invalid response from server');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error uploading story image:', error);
-  //     throw error;
-  //   }
-  // };
 
-  // Handle story share
   const handleStoryShare = async () => {
     if (!storyPreviewRef.current || !window.Telegram?.WebApp) {
-      handleCopyLink(); // Fallback
+      handleCopyLink();
       return;
     }
     
     setGeneratingStory(true);
     
     try {
-      // Convert the story preview component to an image
       const canvas = await html2canvas(storyPreviewRef.current, {
         logging: false,
-        scale: 2, // Better quality for retina displays
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null
       });
       
-      // Convert canvas to blob
       const blob = await new Promise<Blob>((resolve) => {
         canvas.toBlob((blob) => {
           if (blob) resolve(blob);
@@ -193,22 +145,17 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
         }, 'image/jpeg', 0.9);
       });
       
-      // Upload image to server and get URL
       const imageUrl = await uploadStory(blob);
       console.log('Story image uploaded, URL:', imageUrl);
       
-      // Create complete image URL if it's a relative path
       const fullImageUrl = imageUrl.startsWith('http') 
         ? imageUrl 
         : `${window.location.origin}/api/v1${imageUrl}`;
       
-      // Share to story using Telegram's native API
       if (typeof window.Telegram?.WebApp?.shareToStory === 'function') {
-        // Use the shareStory method if available with the URL
         window.Telegram.WebApp.shareToStory(fullImageUrl);
         setIsOpen(false);
       } else if (typeof window.Telegram?.WebApp?.sendData === 'function') {
-        // Alternative using sendData (for older WebApp versions)
         window.Telegram.WebApp.sendData(JSON.stringify({
           type: 'share_story',
           image: fullImageUrl,
@@ -216,7 +163,6 @@ export function ShareCardButton({ userId, botUsername = bus(), userData = null }
         }));
         setIsOpen(false);
       } else {
-        // Fallback to opening the image in a new tab
         window.open(fullImageUrl, '_blank');
         
         toast({

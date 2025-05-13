@@ -158,7 +158,7 @@ async def validate_token(request: Request):
             
             logger.debug(f"Decoded token: {decoded}")
             
-            user_id = decoded['sub']  # 'sub' is the JWT subject (user id)
+            user_id = decoded['sub']
             
             user_data = get_user(user_id)
             if not user_data:

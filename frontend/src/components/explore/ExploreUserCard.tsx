@@ -16,7 +16,6 @@ interface ExploreUserCardProps {
 export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Safely get initials from name or first_name/last_name
   const getInitials = () => {
     if (user.first_name || user.last_name) {
       return `${(user.first_name || '').charAt(0)}${(user.last_name || '').charAt(0)}`;
@@ -31,23 +30,18 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
     return user.username?.charAt(0) || '?';
   };
 
-  // Calculate background style based on background_type
   const getBackgroundStyle = () => {
     if (user.background_type === "color" && user.background_value) {
-      // Use background_value as color for solid backgrounds
       return { backgroundColor: user.background_value };
     } else if (user.background_type === "gradient" && user.background_value) {
-      // Use background_value as gradient for gradient backgrounds
       return { backgroundImage: user.background_value };
     } else if (user.background_type === "image" && user.background_value) {
-      // Use background_value as image URL for image backgrounds
       return { 
         backgroundImage: `url(${user.background_value})`,
         backgroundSize: "cover",
         backgroundPosition: "center"
       };
     }
-    // Default background
     return { backgroundColor: "#f0f0f0" };
   };
 
@@ -68,7 +62,6 @@ export function ExploreUserCard({ user, onClick }: ExploreUserCardProps) {
           transform: isHovered ? 'scale(1.05)' : 'scale(1)'
         }}
       >
-        {/* Glass overlay on hover */}
         {isHovered && (
           <div 
             className="absolute inset-0 bg-black/10 backdrop-blur-sm transition-opacity duration-300"

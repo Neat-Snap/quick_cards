@@ -9,12 +9,10 @@ import { Toaster } from "@/components/ui/use-toast";
 import { LoadingProvider } from "@/context/LoadingContext";
 import Script from "next/script";
 
-// Extend the Window interface to include telegramAnalytics
 declare global {
   interface Window {
     telegramAnalytics?: {
       init: (options: { token: string; appName: string }) => void;
-      // Add other methods if needed
     };
   }
 }
@@ -34,20 +32,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Preload the Telegram WebApp script */}
         <link 
           rel="preload" 
           href="https://telegram.org/js/telegram-web-app.js" 
           as="script"
         />
-        {/* Load the script in head without event handlers */}
         <Script
           src="https://telegram.org/js/telegram-web-app.js"
           strategy="beforeInteractive"
         />
       </head>
       <body className={inter.className}>
-        {/* Yandex.Metrika counter */}
         <Script id="yandex-metrika" strategy="afterInteractive">
           {`
             (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
@@ -69,7 +64,6 @@ export default function RootLayout({
             <img src="https://mc.yandex.ru/watch/101680351" style={{position: "absolute", left: "-9999px"}} alt="" />
           </div>
         </noscript>
-        {/* End Yandex.Metrika counter */}
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

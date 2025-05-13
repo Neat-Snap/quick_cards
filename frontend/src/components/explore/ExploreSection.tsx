@@ -1,4 +1,3 @@
-// components/explore/ExploreSection.tsx
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,6 @@ import { toast } from "@/components/ui/use-toast";
 
 
 export function ExploreSection() {
-    // State management
     const [searchQuery, setSearchQuery] = useState("");
     const [projectQuery, setProjectQuery] = useState("");
     const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -37,15 +35,12 @@ export function ExploreSection() {
     const [recommendationOffset, setRecommendationOffset] = useState(0);
     const [hasMoreRecommendations, setHasMoreRecommendations] = useState(true);
     
-    // Ref for container - keep this for possible future use
     const containerRef = useRef<HTMLDivElement>(null);
     
-    // Load recommended users on mount
     useEffect(() => {
       loadRecommendedUsers();
     }, []);
     
-    // Function to load recommended/random users
     const loadRecommendedUsers = async (reset = true) => {
       if (reset) {
         setLoadingRecommendations(true);
@@ -77,7 +72,6 @@ export function ExploreSection() {
         const data = await response.json();
         console.log("Recommended users response:", data);
         
-        // Set recommended users
         const usersArray = Array.isArray(data) ? data : [];
         
         if (reset) {
@@ -86,9 +80,8 @@ export function ExploreSection() {
           setRecommendedUsers(prev => [...prev, ...usersArray]);
         }
         
-        // Update status for pagination
         setRecommendationOffset(offset + usersArray.length);
-        setHasMoreRecommendations(usersArray.length === limit); // If we got less than 10, we're at the end
+        setHasMoreRecommendations(usersArray.length === limit);
       } catch (error) {
         console.error("Error loading recommended users:", error);
         if (reset) {
@@ -108,13 +101,11 @@ export function ExploreSection() {
       }
     };
     
-    // Function to load more recommendations
     const loadMoreRecommendations = () => {
       if (loadingMoreRecommendations || !hasMoreRecommendations) return;
       loadRecommendedUsers(false);
     };
   
-  // Handle search with direct API call
   const handleSearch = async () => {
     if (!searchQuery.trim() && !projectQuery.trim() && selectedSkills.length === 0) return;
     
@@ -122,29 +113,23 @@ export function ExploreSection() {
     setHasSearched(true);
     
     try {
-      // Create skill filter if skills are selected
       const skillFilter = selectedSkills.length > 0 
         ? selectedSkills.map(s => s.name).join(",") 
         : undefined;
       
-      // Make direct API request to ensure we get the raw response
       const token = localStorage.getItem('authToken');
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://face-cards.ru/api';
       
-      // Build the query endpoint with all filters
       let endpoint = `/v1/users?limit=10&offset=0`;
       
-      // Add name/username search
       if (searchQuery.trim()) {
         endpoint += `&q=${encodeURIComponent(searchQuery.trim())}`;
       }
       
-      // Add skill filter
       if (projectQuery.trim()) {
         endpoint += `&project=${encodeURIComponent(projectQuery.trim())}`;
       }
       
-      // Add project filter
       if (projectQuery.trim()) {
         endpoint += `&project=${encodeURIComponent(projectQuery.trim())}`;
       }
@@ -163,11 +148,9 @@ export function ExploreSection() {
         throw new Error(`Search failed with status ${response.status}`);
       }
       
-      // Get the raw JSON response
       const data = await response.json();
       console.log("Raw API response:", data);
       
-      // Process the response - it should be an array directly
       const resultsArray = Array.isArray(data) ? data : [];
       
       console.log("Processed search results:", resultsArray);
@@ -185,40 +168,32 @@ export function ExploreSection() {
     }
   };
   
-  // Handle filter toggle
   const toggleFilter = () => {
     setIsFilterOpen(!isFilterOpen);
   };
   
-  // Handle skill selection
   const handleSkillSelect = (skill: Skill) => {
     setSelectedSkills(prev => {
-      // Check if already selected
       if (prev.some(s => s.id === skill.id)) {
         return prev.filter(s => s.id !== skill.id);
       }
-      // Add to selected skills
       return [...prev, skill];
     });
   };
   
-  // Clear filters
   const clearFilters = () => {
     setSelectedSkills([]);
     setProjectQuery("");
   };
   
-  // View user card
   const viewUserCard = async (user: User) => {
     setSelectedUser(user);
   };
   
-  // Back to results/recommendations
   const backToResults = () => {
     setSelectedUser(null);
   };
   
-  // Clear search and show recommendations again
   const clearSearch = () => {
     setSearchQuery("");
     setProjectQuery("");
@@ -230,7 +205,6 @@ export function ExploreSection() {
   return (
     <>
       {selectedUser ? (
-        // User Detail View - Full screen mode
         <UserProfileView 
           userId={selectedUser.id} 
           initialData={selectedUser} 
@@ -240,11 +214,8 @@ export function ExploreSection() {
           sourceContext="explore"
         />
       ) : (
-        // Main Explore View
         <div className="space-y-4" ref={containerRef}>
-          {/* <h1 className="text-2xl font-bold">Explore</h1> */}
           
-          {/* Search Bar */}
           <div className="sticky top-0 z-10 bg-background pt-2 pb-4">
             <div className="relative">
               <div className="flex items-center gap-2">
@@ -276,7 +247,6 @@ export function ExploreSection() {
                 </Button>
               </div>
               
-              {/* Filters Section */}
               {isFilterOpen && (
                 <div className="mt-2 rounded-md border bg-card p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
@@ -287,7 +257,6 @@ export function ExploreSection() {
                   </div>
                   
                   <div className="space-y-4">
-                    {/* Project filter */}
                     <div>
                       <label className="text-xs font-medium text-muted-foreground">Filter by project</label>
                       <div className="flex items-center mt-1 gap-2">
@@ -303,7 +272,6 @@ export function ExploreSection() {
                       </div>
                     </div>
                     
-                    {/* Skills filter */}
                     <div>
                       <label className="text-xs font-medium text-muted-foreground">Filter by skills</label>
                       <SkillSelector 
@@ -340,9 +308,7 @@ export function ExploreSection() {
           
           <Separator className="my-4" />
           
-          {/* Main Content Area - Shows either search results or recommendations */}
           <div className="space-y-6">
-            {/* Search Results */}
             {hasSearched && (
               <>
                 <div className="flex items-center justify-between">
@@ -379,7 +345,6 @@ export function ExploreSection() {
               </>
             )}
             
-            {/* Recommendations (shown when not searched) */}
             {!hasSearched && (
             <>
               <div className="flex items-center gap-2">
@@ -406,7 +371,6 @@ export function ExploreSection() {
                     ))}
                   </div>
                   
-                  {/* Show More button */}
                   {hasMoreRecommendations ? (
                     <div className="flex justify-center py-4">
                       <Button 

@@ -1,4 +1,3 @@
-// components/explore/FeaturedUsers.tsx - Component for displaying featured/random users
 
 import { useState, useEffect } from "react";
 import { User, searchUsers } from "@/lib/api";
@@ -15,14 +14,10 @@ export function FeaturedUsers({ onSelectUser }: FeaturedUsersProps) {
   const [featuredUsers, setFeaturedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Load random users
   const loadRandomUsers = async () => {
     setLoading(true);
     
     try {
-      // For now, we'll just use the search API with an empty query
-      // This simulates getting random users
-      // In a real implementation, you would add a dedicated API endpoint
       const users = await searchUsers("", undefined, 6, 0);
       setFeaturedUsers(users);
     } catch (error) {
@@ -32,7 +27,6 @@ export function FeaturedUsers({ onSelectUser }: FeaturedUsersProps) {
     }
   };
   
-  // Load users on mount
   useEffect(() => {
     loadRandomUsers();
   }, []);

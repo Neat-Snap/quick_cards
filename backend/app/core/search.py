@@ -1,8 +1,3 @@
-"""
-Skills search and matching functionality.
-This module provides functions for matching user queries to predefined skills.
-"""
-
 from typing import Dict, List, Set, Optional, Tuple
 import re
 from difflib import SequenceMatcher
@@ -10,13 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Dictionary structure:
-# - Main key is the canonical ID of the skill (lowercase, no spaces)
-# - Each skill has: name (display name), description, image, and categories
-# - The aliases field contains alternative ways to refer to the skill
-
 SKILLS: Dict[str, Dict] = {
-    # Programming Languages
     "python": {
         "name": "Python",
         "description": "A high-level, interpreted programming language known for its readability and versatility.",
@@ -88,7 +77,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["swift lang", "apple swift"]
     },
     
-    # Databases
     "postgresql": {
         "name": "PostgreSQL",
         "description": "A powerful, open-source object-relational database system.",
@@ -118,7 +106,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["redis database", "redis cache"]
     },
     
-    # Web Frameworks
     "react": {
         "name": "React",
         "description": "A JavaScript library for building user interfaces, maintained by Facebook.",
@@ -162,7 +149,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["laravel framework", "laravel php"]
     },
     
-    # Design & Creative Tools
     "photoshop": {
         "name": "Adobe Photoshop",
         "description": "A raster graphics editor for photo editing and digital art, developed by Adobe.",
@@ -199,7 +185,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["id", "adobe id", "indesign cc"]
     },
     
-    # 3D & CAD Tools
     "blender": {
         "name": "Blender",
         "description": "A free and open-source 3D computer graphics software for creating animated films, visual effects, 3D models, and more.",
@@ -236,7 +221,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["archi cad", "graphisoft archicad"]
     },
     
-    # Project Management & Collaboration
     "jira": {
         "name": "Jira",
         "description": "A project management tool developed by Atlassian for issue tracking and agile project management.",
@@ -266,7 +250,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["slack app", "slack chat", "slack communication"]
     },
     
-    # Cloud & DevOps
     "aws": {
         "name": "Amazon Web Services",
         "description": "A cloud computing platform provided by Amazon, offering various services like compute power, storage, and databases.",
@@ -296,7 +279,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["k8s", "kube", "kubernetes platform"]
     },
     
-    # Soft Skills
     "communication": {
         "name": "Communication",
         "description": "The ability to convey information effectively and efficiently, both verbally and in writing.",
@@ -326,7 +308,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["problem-solving", "critical thinking", "analytical skills"]
     },
     
-    # Analytics & Data Science
     "excel": {
         "name": "Microsoft Excel",
         "description": "A spreadsheet program developed by Microsoft for calculations, data analysis, and visualization.",
@@ -363,7 +344,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["torch", "pytorch framework", "facebook pytorch"]
     },
     
-    # Marketing & SEO
     "seo": {
         "name": "SEO",
         "description": "Search Engine Optimization: techniques to improve a website's visibility in search engine results.",
@@ -379,7 +359,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["ga", "analytics", "google ga"]
     },
     
-    # Mobile Development
     "androiddev": {
         "name": "Android Development",
         "description": "The process of creating applications for devices running the Android operating system.",
@@ -402,7 +381,6 @@ SKILLS: Dict[str, Dict] = {
         "aliases": ["flutter framework", "flutter mobile", "flutter development"]
     },
     
-    # Writing & Content
     "contentwriting": {
         "name": "Content Writing",
         "description": "The process of planning, writing and editing web content for digital marketing purposes.",
@@ -424,7 +402,6 @@ import os
 from typing import List, Dict, Any, Optional
 from difflib import SequenceMatcher
 
-# Path to the skills data file
 SKILLS_DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'skills.json')
 SKILLS_ICONS_PATH = os.path.join(os.path.dirname(__file__), '..', '..', 'files', 'skills')
 
@@ -443,9 +420,7 @@ class SkillSearch:
             else:
                 logger.info(f"Skills data file not found at {SKILLS_DATA_PATH}, initializing empty")
                 self.skills_data = {}
-                # Create directory if it doesn't exist
                 os.makedirs(os.path.dirname(SKILLS_DATA_PATH), exist_ok=True)
-                # Create empty file
                 self.save_skills_data()
         except Exception as e:
             logger.error(f"Error loading skills data: {e}")
@@ -466,23 +441,20 @@ class SkillSearch:
         """Add a new skill to the dataset"""
         name_lower = name.lower()
         if name_lower in self.skills_data:
-            return False  # Skill already exists
+            return False
         
-        # Generate variations if none provided
         if variations is None:
             variations = self._generate_variations(name)
         
-        # Add the skill
         self.skills_data[name_lower] = {
             'name': name,
             'variations': variations,
             'category': category,
             'description': description,
             'icon_name': icon_name,
-            'is_predefined': True  # Mark as predefined since we're adding it manually
+            'is_predefined': True
         }
         
-        # Save changes
         self.save_skills_data()
         return True
     
@@ -490,21 +462,17 @@ class SkillSearch:
         """Generate common variations of a skill name"""
         variations = [name.lower()]
         
-        # Add without spaces
         if ' ' in name:
             variations.append(name.replace(' ', '').lower())
         
-        # Add with dot in place of spaces
         if ' ' in name:
             variations.append(name.replace(' ', '.').lower())
         
-        # Add without non-alphanumeric characters
         import re
         cleaned = re.sub(r'[^a-zA-Z0-9]', '', name)
         if cleaned.lower() not in variations:
             variations.append(cleaned.lower())
         
-        # For technologies, add common prefixes/suffixes
         if name.lower() in ['javascript', 'js']:
             variations.extend(['js', 'javascript'])
         elif name.lower() in ['typescript', 'ts']:
@@ -512,17 +480,15 @@ class SkillSearch:
         elif name.lower() in ['python', 'py']:
             variations.extend(['py', 'python'])
         
-        # For databases
         if name.lower() in ['postgresql', 'postgres']:
             variations.extend(['postgresql', 'postgres', 'psql'])
         
-        # For design tools
         if name.lower() == 'adobe photoshop':
             variations.extend(['photoshop', 'ps'])
         elif name.lower() == 'adobe illustrator':
             variations.extend(['illustrator', 'ai'])
         
-        return list(set(variations))  # Remove duplicates
+        return list(set(variations))
     
     def search_skills(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """
@@ -535,22 +501,19 @@ class SkillSearch:
         query_lower = query.lower()
         results = []
         
-        # First check for exact matches in skill names and variations
         for skill_key, skill_data in self.skills_data.items():
-            # Check main name
             if query_lower == skill_key:
                 results.append({
-                    'id': None,  # Will be filled by DB
+                    'id': None,
                     'name': skill_data['name'],
                     'description': skill_data.get('description', ''),
                     'category': skill_data.get('category', ''),
                     'image_url': self._get_icon_url(skill_data.get('icon_name')),
                     'is_predefined': True,
-                    'score': 1.0  # Perfect match
+                    'score': 1.0
                 })
                 continue
             
-            # Check variations
             if any(query_lower == var.lower() for var in skill_data.get('variations', [])):
                 results.append({
                     'id': None,
@@ -559,13 +522,11 @@ class SkillSearch:
                     'category': skill_data.get('category', ''),
                     'image_url': self._get_icon_url(skill_data.get('icon_name')),
                     'is_predefined': True,
-                    'score': 0.9  # Very close match
+                    'score': 0.9
                 })
                 continue
             
-            # Check if query is contained in name or variations
             if query_lower in skill_key:
-                # Calculate how significant the match is (e.g., "js" in "javascript" is significant)
                 significance = len(query_lower) / len(skill_key)
                 if significance > 0.5:
                     results.append({
@@ -579,10 +540,8 @@ class SkillSearch:
                     })
                     continue
             
-            # Check partial matches in variations
             for variation in skill_data.get('variations', []):
                 if query_lower in variation.lower():
-                    # Calculate significance
                     significance = len(query_lower) / len(variation)
                     if significance > 0.4:
                         results.append({
@@ -596,21 +555,18 @@ class SkillSearch:
                         })
                         break
         
-        # If we have few results, add fuzzy matches
         if len(results) < limit:
             for skill_key, skill_data in self.skills_data.items():
-                # Skip skills already in results
                 if any(r['name'].lower() == skill_data['name'].lower() for r in results):
                     continue
                 
-                # Use fuzzy matching
                 main_ratio = self._fuzzy_match(query_lower, skill_key)
                 variation_ratio = max(
                     [self._fuzzy_match(query_lower, var.lower()) for var in skill_data.get('variations', [''])]
                 )
                 
                 best_ratio = max(main_ratio, variation_ratio)
-                if best_ratio > 0.6:  # Threshold for fuzzy matches
+                if best_ratio > 0.6:
                     results.append({
                         'id': None,
                         'name': skill_data['name'],
@@ -618,10 +574,9 @@ class SkillSearch:
                         'category': skill_data.get('category', ''),
                         'image_url': self._get_icon_url(skill_data.get('icon_name')),
                         'is_predefined': True,
-                        'score': best_ratio * 0.6  # Scale down fuzzy matches
+                        'score': best_ratio * 0.6
                     })
         
-        # Sort by score and limit results
         results.sort(key=lambda x: x['score'], reverse=True)
         return results[:limit]
     
@@ -634,19 +589,16 @@ class SkillSearch:
         if not icon_name:
             return None
         
-        # First check if it's a local file
         local_path = os.path.join(SKILLS_ICONS_PATH, f"{icon_name}.png")
         if os.path.exists(local_path):
             return f"/files/skills/{icon_name}.png"
         
-        # If no local icon, return null (frontend will use simple-icons if available)
         return None
     
     def get_predefined_skill(self, name: str) -> Optional[Dict[str, Any]]:
         """Get a predefined skill by name"""
         name_lower = name.lower()
         
-        # Try direct match
         if name_lower in self.skills_data:
             skill_data = self.skills_data[name_lower]
             return {
@@ -658,7 +610,6 @@ class SkillSearch:
                 'is_predefined': True
             }
         
-        # Try variations
         for skill_key, skill_data in self.skills_data.items():
             variations = skill_data.get('variations', [])
             if any(name_lower == var.lower() for var in variations):
@@ -674,7 +625,6 @@ class SkillSearch:
         return None
 
 
-# Create a singleton instance
 _skill_search = None
 
 def get_skill_search() -> SkillSearch:
@@ -685,12 +635,10 @@ def get_skill_search() -> SkillSearch:
     return _skill_search
 
 
-# Initial data population function - call this once to populate the database
 def populate_initial_skills():
     """Populate initial skills data"""
     skill_search = get_skill_search()
     
-    # Programming Languages
     skill_search.add_skill("JavaScript", description="High-level programming language essential for web development", category="Programming", icon_name="javascript")
     skill_search.add_skill("Python", description="Versatile programming language with simple, readable syntax", category="Programming", icon_name="python")
     skill_search.add_skill("Java", description="Object-oriented programming language for cross-platform applications", category="Programming", icon_name="java")
@@ -701,7 +649,6 @@ def populate_initial_skills():
     skill_search.add_skill("Kotlin", description="Modern programming language for Android development", category="Programming", icon_name="kotlin")
     skill_search.add_skill("Ruby", description="Dynamic programming language focused on simplicity", category="Programming", icon_name="ruby")
     
-    # Frameworks & Libraries
     skill_search.add_skill("React", description="JavaScript library for building user interfaces", category="Frontend", icon_name="react")
     skill_search.add_skill("Angular", description="Platform for building web applications", category="Frontend", icon_name="angular")
     skill_search.add_skill("Vue.js", description="Progressive JavaScript framework for UIs", category="Frontend", icon_name="vuedotjs")
@@ -712,14 +659,12 @@ def populate_initial_skills():
     skill_search.add_skill("TensorFlow", description="End-to-end open source platform for machine learning", category="Data Science", icon_name="tensorflow")
     skill_search.add_skill("PyTorch", description="Open source machine learning framework", category="Data Science", icon_name="pytorch")
     
-    # Databases
     skill_search.add_skill("PostgreSQL", description="Advanced open-source relational database", category="Database", icon_name="postgresql")
     skill_search.add_skill("MySQL", description="Popular open-source relational database system", category="Database", icon_name="mysql")
     skill_search.add_skill("MongoDB", description="NoSQL document database for modern applications", category="Database", icon_name="mongodb")
     skill_search.add_skill("Redis", description="In-memory data structure store", category="Database", icon_name="redis")
     skill_search.add_skill("SQLite", description="Self-contained, serverless SQL database engine", category="Database", icon_name="sqlite")
     
-    # Design Tools
     skill_search.add_skill("Figma", description="Collaborative interface design tool", category="Design", icon_name="figma")
     skill_search.add_skill("Adobe Photoshop", description="Raster graphics editor for image editing and creation", category="Design", icon_name="adobephotoshop")
     skill_search.add_skill("Adobe Illustrator", description="Vector graphics editor for logos and illustrations", category="Design", icon_name="adobeillustrator")
@@ -727,7 +672,6 @@ def populate_initial_skills():
     skill_search.add_skill("InVision", description="Digital product design platform", category="Design", icon_name="invision")
     skill_search.add_skill("Adobe XD", description="Vector-based user experience design tool", category="Design", icon_name="adobexd")
     
-    # 3D and CAD Software
     skill_search.add_skill("Blender", description="Free and open-source 3D creation suite", category="3D Design", icon_name="blender")
     skill_search.add_skill("AutoCAD", description="Computer-aided design software", category="CAD", icon_name="autodesk")
     skill_search.add_skill("Fusion 360", description="3D CAD, CAM, and CAE tool", category="CAD", icon_name="autodesk")
@@ -736,7 +680,6 @@ def populate_initial_skills():
     skill_search.add_skill("Rhino 3D", description="3D computer graphics and CAD software", category="CAD", icon_name="rhino")
     skill_search.add_skill("Revit", description="BIM software for architecture and engineering", category="CAD", icon_name="autodesk")
     
-    # Dev Tools
     skill_search.add_skill("Git", description="Distributed version control system", category="Development Tools", icon_name="git")
     skill_search.add_skill("Docker", description="Platform for developing, shipping, and running applications", category="DevOps", icon_name="docker")
     skill_search.add_skill("Kubernetes", description="Open-source system for automating deployment and management", category="DevOps", icon_name="kubernetes")
@@ -746,7 +689,6 @@ def populate_initial_skills():
     skill_search.add_skill("Google Cloud", description="Cloud computing services by Google", category="Cloud", icon_name="googlecloud")
     skill_search.add_skill("Azure", description="Cloud computing service by Microsoft", category="Cloud", icon_name="microsoftazure")
     
-    # General Skills
     skill_search.add_skill("Project Management", description="Planning, organizing, and overseeing projects", category="Management")
     skill_search.add_skill("UI Design", description="Design of user interfaces for machines and software", category="Design")
     skill_search.add_skill("UX Design", description="Enhancing user satisfaction by improving usability", category="Design")
@@ -760,7 +702,6 @@ def populate_initial_skills():
 
 
 if __name__ == "__main__":
-    # Test the skill search
     populate_initial_skills()
     searcher = get_skill_search()
     

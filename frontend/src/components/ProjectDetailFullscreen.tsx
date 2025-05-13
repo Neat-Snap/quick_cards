@@ -1,4 +1,3 @@
-// components/AnimatedProjectDetailFullscreen.tsx
 
 import React from "react";
 import { Project } from "@/lib/api";

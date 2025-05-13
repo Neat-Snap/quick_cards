@@ -81,10 +81,8 @@ declare global {
   }
 }
 
-// Simplified Telegram WebApp detection as suggested
 export const isTelegramWebApp = () => {
   if (typeof window === 'undefined') return false;
-  // Check if we're running inside Telegram's WebApp environment
   return Boolean(window.Telegram && window.Telegram.WebApp);
 };
 
@@ -124,7 +122,6 @@ export const setAppReady = (): void => {
 
 export const getColorScheme = (): 'light' | 'dark' => {
   if (!isTelegramWebApp()) {
-    // Default to light mode if not in Telegram WebApp
     return 'light';
   }
   

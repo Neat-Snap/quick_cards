@@ -23,7 +23,6 @@ export function GlassCard({
 }: GlassCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Define background opacity based on intensity
   const getBackgroundOpacity = () => {
     switch (intensity) {
       case "light": return darkMode ? "rgba(17, 25, 40, 0.5)" : "rgba(255, 255, 255, 0.05)";
@@ -33,7 +32,6 @@ export function GlassCard({
     }
   };
   
-  // Define blur intensity based on intensity level
   const getBlurIntensity = () => {
     switch (intensity) {
       case "light": return "5px";
@@ -43,7 +41,6 @@ export function GlassCard({
     }
   };
   
-  // Define border opacity based on intensity
   const getBorderOpacity = () => {
     switch (intensity) {
       case "light": return darkMode ? "rgba(255, 255, 255, 0.08)" : "rgba(255, 255, 255, 0.1)";

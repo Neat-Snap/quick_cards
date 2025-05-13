@@ -13,7 +13,6 @@ import { Trash2, Edit, X, Save, Plus, Check, Image, Link, User, ExternalLink, In
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 
-// Validation constants from backend
 const MAX_NAME_LENGTH = 100;
 const MIN_NAME_LENGTH = 1;
 const MAX_DESCRIPTION_LENGTH = 1000;
@@ -22,7 +21,6 @@ const MAX_URL_LENGTH = 255;
 const DISALLOWED_CHARS = ['"', '/', '\\', ';', '|', '`', '$', '!', '=', '+', '-'];
 const URL_REGEX = /^https?:\/\/[^\s\/$.?#].[^\s]*$/;
 
-// Helper function to check for disallowed characters
 const containsDisallowedChars = (value: string): boolean => {
   return DISALLOWED_CHARS.some(char => value.includes(char));
 };
@@ -39,21 +37,17 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   const [isPremium, setIsPremium] = useState(false);
   const [premiumTier, setPremiumTier] = useState(0);
   
-  // Animation states
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [successId, setSuccessId] = useState<number | null>(null);
   
-  // Detail view state
   const [detailView, setDetailView] = useState<{
     project: Project;
     isOpen: boolean;
   } | null>(null);
   
-  // Form mode state (add or edit)
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<number | null>(null);
   
-  // Project form state
   const [projectName, setProjectName] = useState("");
   const [projectNameError, setProjectNameError] = useState<string | null>(null);
   const [projectDescription, setProjectDescription] = useState("");
@@ -67,15 +61,12 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
   const [projectAvatarUrl, setProjectAvatarUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Refs for form animation
   const formRef = useRef<HTMLFormElement>(null);
   
-  // Load projects and premium status on mount
   useEffect(() => {
     loadProjects();
   }, [userId]);
 
-  // Handle display URL changes
   useEffect(() => {
     if (displayUrl) {
       setProjectUrl(`https://${displayUrl}`);
@@ -84,9 +75,7 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   }, [displayUrl]);
 
-  // Validate inputs on change
   useEffect(() => {
-    // Validate project name
     if (projectName.length > 0 && projectName.length < MIN_NAME_LENGTH) {
       setProjectNameError(`Project name must be at least ${MIN_NAME_LENGTH} character`);
     } else if (projectName.length > MAX_NAME_LENGTH) {
@@ -97,7 +86,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       setProjectNameError(null);
     }
 
-    // Validate project description
     if (projectDescription) {
       if (projectDescription.length > MAX_DESCRIPTION_LENGTH) {
         setProjectDescriptionError(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or less`);
@@ -110,7 +98,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       setProjectDescriptionError(null);
     }
 
-    // Validate project role
     if (projectRole) {
       if (projectRole.length > MAX_ROLE_LENGTH) {
         setProjectRoleError(`Role must be ${MAX_ROLE_LENGTH} characters or less`);
@@ -123,7 +110,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       setProjectRoleError(null);
     }
 
-    // Validate project URL (only if user has entered something beyond https://)
     if (projectUrl && projectUrl !== "https://") {
       if (projectUrl.length > MAX_URL_LENGTH) {
         setProjectUrlError(`URL must be ${MAX_URL_LENGTH} characters or less`);
@@ -137,15 +123,12 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   }, [projectName, projectDescription, projectRole, projectUrl]);
 
-  // Function to load projects - reused throughout the component
   const loadProjects = async () => {
     try {
       console.log("Loading projects for user:", userId);
       
-      // Try to load projects directly first
       let userProjects = await getUserProjects();
       
-      // If that returns empty, try getting them from the user object
       if (!userProjects || userProjects.length === 0) {
         console.log("No projects found via direct API, trying from user object", userProjects);
         const userResponse = await getCurrentUser();
@@ -158,7 +141,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       console.log("Projects loaded in ProjectsForm:", userProjects, "Count:", userProjects?.length || 0);
       setProjects(userProjects || []);
       
-      // Check premium status if we haven't already
       if (!isPremium) {
         const premiumStatus = await getPremiumStatus();
         setIsPremium(premiumStatus.is_active);
@@ -176,22 +158,16 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
   
-  // Get max allowed projects based on premium tier
   const getMaxProjects = () => {
-    // Free tier: 3 projects
     if (premiumTier === 0) return 3;
     
-    // Basic tier (1): 3 projects still
     if (premiumTier === 1) return 25;
     
-    // Premium tier (2): 5 projects
     if (premiumTier === 2) return 5;
     
-    // Ultimate tier (3): Unlimited projects
     return Infinity;
   };
   
-  // Success animation handler
   useEffect(() => {
     if (successId !== null) {
       const timer = setTimeout(() => {
@@ -201,7 +177,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   }, [successId]);
   
-  // Reset form state
   const resetForm = () => {
     setProjectName("");
     setProjectDescription("");
@@ -217,7 +192,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setProjectRoleError(null);
     setProjectUrlError(null);
     
-    // Add animation class to form
     if (formRef.current) {
       formRef.current.classList.add('form-reset');
       setTimeout(() => {
@@ -228,7 +202,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
   
-  // Open detail view for a project
   const openDetailView = (project: Project) => {
     setDetailView({
       project,
@@ -236,12 +209,10 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     });
   };
   
-  // Close detail view
   const closeDetailView = () => {
     setDetailView(null);
   };
   
-  // Start editing a project
   const startEditing = (project: Project) => {
     setProjectName(project.name);
     setProjectDescription(project.description || "");
@@ -250,14 +221,13 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     setIsEditMode(true);
     setEditingProjectId(project.id);
     
-    // Handle URL with https:// prefix
     if (project.url) {
       if (project.url.startsWith("https://")) {
         setProjectUrl(project.url);
-        setDisplayUrl(project.url.substring(8)); // Remove https:// for display
+        setDisplayUrl(project.url.substring(8));
       } else if (project.url.startsWith("http://")) {
-        setProjectUrl("https://" + project.url.substring(7)); // Convert http:// to https://
-        setDisplayUrl(project.url.substring(7)); // Remove http:// for display
+        setProjectUrl("https://" + project.url.substring(7));
+        setDisplayUrl(project.url.substring(7));
       } else {
         setProjectUrl("https://" + project.url);
         setDisplayUrl(project.url);
@@ -267,18 +237,15 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       setDisplayUrl("");
     }
     
-    // Clear validation errors
     setProjectNameError(null);
     setProjectDescriptionError(null);
     setProjectRoleError(null);
     setProjectUrlError(null);
     
-    // Close detail view if open
     if (detailView) {
       closeDetailView();
     }
     
-    // Add focus animation
     if (formRef.current) {
       formRef.current.classList.add('form-focus');
       setTimeout(() => {
@@ -289,38 +256,31 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
   
-  // Cancel editing
   const cancelEditing = () => {
     resetForm();
   };
   
-  // Handle avatar file selection
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setProjectAvatar(file);
       
       try {
-        // Convert to Base64 data URL for persistence across page reloads
         const dataUrl = await fileToDataUrl(file);
         setProjectAvatarUrl(dataUrl);
         
-        // Log success
         console.log("Project image converted to persistent data URL");
       } catch (error) {
         console.error("Error converting project image to data URL:", error);
-        // Fallback to blob URL if conversion fails
         const blobUrl = URL.createObjectURL(file);
         setProjectAvatarUrl(blobUrl);
       }
     }
   };
   
-  // Handle form submission (create or update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for validation errors
     if (projectNameError || projectDescriptionError || projectRoleError || projectUrlError) {
       toast({
         title: "Validation Error",
@@ -330,7 +290,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       return;
     }
     
-    // Validate input
     if (!projectName.trim()) {
       toast({
         title: "Validation Error",
@@ -340,7 +299,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       return;
     }
     
-    // Check if non-premium user is adding more than allowed
     const maxProjects = getMaxProjects();
     if (!isEditMode && projects.length >= maxProjects) {
       toast({
@@ -357,7 +315,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       if (isEditMode && editingProjectId) {
         console.log(`Updating project with ID ${editingProjectId}`);
         
-        // Update existing project
         const response = await updateProject(editingProjectId, {
           name: projectName.trim(),
           description: projectDescription.trim(),
@@ -368,10 +325,8 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
         
         console.log("Update project response:", response);
         
-        // Reload projects to get the updated list
         await loadProjects();
         
-        // Find the updated project to highlight
         const updatedProjects = await getUserProjects();
         const updatedProject = updatedProjects.find(p => p.id === editingProjectId);
         
@@ -385,7 +340,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
           variant: "default",
         });
       } else {
-        // Create new project
         console.log("Creating new project");
         const response = await createProject({
           name: projectName.trim(),
@@ -397,10 +351,8 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
         
         console.log("Create project response:", response);
         
-        // Reload projects to get the updated list
         await loadProjects();
         
-        // Find the newly created project to highlight
         const updatedProjects = await getUserProjects();
         const newProject = updatedProjects.find(p => 
           p.name === projectName.trim() && 
@@ -418,7 +370,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
         });
       }
       
-      // Reset form
       resetForm();
       
     } catch (error) {
@@ -433,34 +384,26 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
   
-  // Handle deleting a project
   const handleDeleteProject = async (projectId: number) => {
-    // Mark as deleting for animation
     setDeletingId(projectId);
     
     try {
       console.log(`Deleting project with ID ${projectId}`);
       await deleteProject(projectId);
       
-      // Wait for animation, then remove from state
       setTimeout(async () => {
-        // Remove from local state first for immediate feedback
         setProjects(prevProjects => prevProjects.filter(project => project.id !== projectId));
         
-        // If we were editing this project, reset the form
         if (editingProjectId === projectId) {
           resetForm();
         }
         
-        // Close detail view if this project was being viewed
         if (detailView && detailView.project.id === projectId) {
           closeDetailView();
         }
         
-        // Clear deleting state
         setDeletingId(null);
         
-        // Reload projects to ensure everything is in sync
         await loadProjects();
         
         toast({
@@ -472,7 +415,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
       
     } catch (error) {
       console.error("Error deleting project:", error);
-      // Reset deleting animation state
       setDeletingId(null);
       
       toast({
@@ -483,7 +425,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
   
-  // Handle form success - call onSuccess with updated projects
   const handleSuccess = () => {
     if (onSuccess) {
       console.log("Project form calling onSuccess with updated projects");
@@ -491,7 +432,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
     }
   };
 
-  // Function to get initials from project name
   const getProjectInitials = (name: string) => {
     return name
       .split(' ')
@@ -507,7 +447,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
 
   const maxProjectsAllowed = getMaxProjects();
 
-  // Render project details view
   const renderDetailView = () => {
     if (!detailView || !detailView.isOpen) return null;
     
@@ -640,7 +579,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
           </div>
           <Separator />
           
-          {/* Existing Projects */}
           {projects.length > 0 ? (
             <div className="space-y-4">
               <h4 className="font-medium">Your Projects ({projects.length})</h4>
@@ -719,7 +657,6 @@ export function ProjectsForm({ userId, onSuccess, onCancel }: ProjectsFormProps)
             </div>
           )}
           
-          {/* Project Form - Add/Edit */}
           {(!isEditMode && projects.length >= maxProjectsAllowed) ? (
             <div className="text-center py-4 border rounded-md bg-muted/20">
               <p className="text-sm text-muted-foreground mb-2">

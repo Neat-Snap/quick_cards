@@ -12,7 +12,6 @@ import { toast } from "@/components/ui/use-toast";
 import { Contact, getUserContacts, createContact, deleteContact, getPremiumStatus } from "@/lib/api";
 import { Trash2, Edit, X, Save, Plus, Check, AlertCircle, Info } from "lucide-react";
 
-// Validation constants from backend
 const ALLOWED_CONTACT_TYPES = ["email", "phone", "telegram", "website"];
 const MAX_VALUE_LENGTH = 255;
 const PHONE_REGEX = /^\+?\d{7,16}$/;
@@ -31,33 +30,26 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   
-  // Animation states
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [successId, setSuccessId] = useState<number | null>(null);
   
-  // Form mode state (add or edit)
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingContactId, setEditingContactId] = useState<number | null>(null);
   
-  // Contact form state
   const [contactType, setContactType] = useState("email");
   const [contactValue, setContactValue] = useState("");
-  const [displayValue, setDisplayValue] = useState(""); // For displaying without prefix
+  const [displayValue, setDisplayValue] = useState("");
   const [contactValueError, setContactValueError] = useState<string | null>(null);
   const [contactPublic, setContactPublic] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Refs for form animation
   const formRef = useRef<HTMLFormElement>(null);
   
-  // Load contacts and premium status on mount
   useEffect(() => {
     loadContacts();
   }, [userId]);
 
-  // Handle contact type change
   useEffect(() => {
-    // When contact type changes, reset values and apply prefixes
     setDisplayValue("");
     
     if (contactType === "website") {
@@ -69,29 +61,24 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   }, [contactType]);
   
-  // Handle display value change
   useEffect(() => {
     if (contactType === "website") {
-      // For website, preserve https:// prefix
       if (displayValue) {
         setContactValue(`https://${displayValue}`);
       } else {
         setContactValue("https://");
       }
     } else if (contactType === "telegram") {
-      // For telegram, preserve @ prefix
       if (displayValue) {
         setContactValue(`@${displayValue}`);
       } else {
         setContactValue("@");
       }
     } else {
-      // For other types, display value and contact value are the same
       setContactValue(displayValue);
     }
   }, [displayValue, contactType]);
 
-  // Set initial display value when editing
   useEffect(() => {
     if (isEditMode && contactValue) {
       if (contactType === "website" && contactValue.startsWith("https://")) {
@@ -104,12 +91,10 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   }, [isEditMode, contactValue, contactType]);
 
-  // Validate contact value on change
   useEffect(() => {
     validateContactValue();
   }, [contactType, contactValue]);
 
-  // Function to validate contact value based on type
   const validateContactValue = () => {
     if (contactType === "website") {
       if (!displayValue.trim()) {
@@ -117,7 +102,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         return;
       }
       
-      // For website, check the full value with https://
       if (!WEBSITE_REGEX.test(contactValue) || contactValue.length > MAX_VALUE_LENGTH) {
         setContactValueError("Invalid website URL format");
       } else {
@@ -132,7 +116,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         return;
       }
       
-      // For telegram, check without @ prefix since we add it automatically
       if (!TELEGRAM_REGEX.test(contactValue)) {
         setContactValueError("Invalid Telegram username. Must be 5-32 characters (letters, numbers, underscore)");
       } else {
@@ -141,7 +124,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       return;
     }
     
-    // For other types
     if (!contactValue.trim()) {
       setContactValueError(null);
       return;
@@ -171,17 +153,14 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   };
 
-  // Function to load contacts - reused throughout the component
   const loadContacts = async () => {
     try {
       console.log("Loading contacts for user:", userId);
       
-      // Load contacts
       const userContacts = await getUserContacts();
       console.log("Contacts loaded in ContactForm:", userContacts, "Count:", userContacts.length);
       setContacts(userContacts);
       
-      // Check premium status if we haven't already
       if (!isPremium) {
         const premiumStatus = await getPremiumStatus();
         setIsPremium(premiumStatus.is_active);
@@ -198,7 +177,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   };
   
-  // Success animation handler
   useEffect(() => {
     if (successId !== null) {
       const timer = setTimeout(() => {
@@ -208,7 +186,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   }, [successId]);
   
-  // Reset form state
   const resetForm = () => {
     setContactType("email");
     setContactValue("");
@@ -217,7 +194,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setEditingContactId(null);
     setContactValueError(null);
     
-    // Add animation class to form
     if (formRef.current) {
       formRef.current.classList.add('form-reset');
       setTimeout(() => {
@@ -228,7 +204,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   };
   
-  // Start editing a contact
   const startEditing = (contact: Contact) => {
     setContactType(contact.type);
     setContactPublic(contact.is_public);
@@ -236,19 +211,17 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     setEditingContactId(contact.id);
     setContactValueError(null);
     
-    // Set the contact value and handle prefixed types
     if (contact.type === "website" && contact.value.startsWith("https://")) {
       setContactValue(contact.value);
-      setDisplayValue(contact.value.substring(8)); // Remove https:// for display
+      setDisplayValue(contact.value.substring(8));
     } else if (contact.type === "telegram" && contact.value.startsWith("@")) {
       setContactValue(contact.value);
-      setDisplayValue(contact.value.substring(1)); // Remove @ for display
+      setDisplayValue(contact.value.substring(1)); 
     } else {
       setContactValue(contact.value);
       setDisplayValue(contact.value);
     }
     
-    // Add focus animation
     if (formRef.current) {
       formRef.current.classList.add('form-focus');
       setTimeout(() => {
@@ -259,16 +232,13 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   };
   
-  // Cancel editing
   const cancelEditing = () => {
     resetForm();
   };
   
-  // Handle form submission (create or update)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate input
     if (!contactType || !contactValue.trim()) {
       toast({
         title: "Validation Error",
@@ -278,7 +248,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       return;
     }
 
-    // Check for validation errors
     if (contactValueError) {
       toast({
         title: "Validation Error",
@@ -288,7 +257,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       return;
     }
     
-    // Check if non-premium user is adding more than allowed
     if (!isPremium && !isEditMode && contacts.length >= 3) {
       toast({
         title: "Premium Required",
@@ -302,25 +270,20 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     
     try {
       if (isEditMode && editingContactId) {
-        // Store the old ID and type for reference
         const oldContactId = editingContactId;
         
         console.log(`Deleting contact with ID ${oldContactId}`);
-        // Delete the existing contact - no need to check response for 204 No Content
         await deleteContact(oldContactId);
         
         console.log("Creating new contact to replace deleted one");
-        // Create a new one with updated values
         const response = await createContact({
           type: contactType,
           value: contactValue.trim(),
           is_public: contactPublic
         });
         
-        // After operations, reload contacts list
         await loadContacts();
         
-        // Find the newly created contact to highlight
         const updatedContacts = await getUserContacts();
         const newContact = updatedContacts.find(contact => 
           contact.type === contactType && 
@@ -337,7 +300,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           variant: "default",
         });
       } else {
-        // Create new contact
         console.log("Creating new contact");
         const response = await createContact({
           type: contactType,
@@ -347,10 +309,8 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         
         console.log("Create contact response:", response);
         
-        // After operations, reload contacts list
         await loadContacts();
         
-        // Find the newly created contact to highlight
         const updatedContacts = await getUserContacts();
         const newContact = updatedContacts.find(contact => 
           contact.type === contactType && 
@@ -368,7 +328,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
         });
       }
       
-      // Reset form
       resetForm();
     } catch (error) {
       console.error("Error handling contact:", error);
@@ -382,29 +341,22 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   };
   
-  // Handle deleting a contact
   const handleDeleteContact = async (contactId: number) => {
-    // Mark as deleting for animation
     setDeletingId(contactId);
     
     try {
       console.log(`Deleting contact with ID ${contactId}`);
       await deleteContact(contactId);
       
-      // Wait for animation, then remove from state
       setTimeout(async () => {
-        // Remove from local state first for immediate feedback
         setContacts(prevContacts => prevContacts.filter(contact => contact.id !== contactId));
         
-        // If we were editing this contact, reset the form
         if (editingContactId === contactId) {
           resetForm();
         }
         
-        // Clear deleting state
         setDeletingId(null);
         
-        // Reload contacts to ensure everything is in sync
         await loadContacts();
         
         toast({
@@ -416,7 +368,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       
     } catch (error) {
       console.error("Error deleting contact:", error);
-      // Reset deleting animation state
       setDeletingId(null);
       
       toast({
@@ -427,7 +378,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   };
   
-  // Get placeholder based on contact type
   const getPlaceholder = (type: string) => {
     switch (type) {
       case "email":
@@ -435,15 +385,14 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
       case "phone":
         return "+1 (123) 456-7890";
       case "telegram":
-        return "username"; // Without @ as it's in the prefix
+        return "username";
       case "website":
-        return "example.com"; // Without https:// as it's in the prefix
+        return "example.com";
       default:
         return "Enter contact value";
     }
   };
 
-  // Get format hint based on contact type
   const getFormatHint = (type: string) => {
     switch (type) {
       case "email":
@@ -459,7 +408,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
     }
   };
 
-  // Handle form success - call onSuccess with updated contacts
   const handleSuccess = () => {
     if (onSuccess) {
       console.log("Contact form calling onSuccess with updated contacts");
@@ -513,7 +461,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
           </div>
           <Separator />
           
-          {/* Existing Contacts */}
           {contacts.length > 0 ? (
             <div className="space-y-4">
               <h4 className="font-medium">Your Contacts ({contacts.length})</h4>
@@ -571,7 +518,6 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
             </div>
           )}
           
-          {/* Contact Form - Add/Edit */}
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 pt-4 rounded-md">
             <div className="flex items-center justify-between">
               <h4 className="font-medium">
@@ -619,7 +565,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
               {contactType === "website" ? (
                 <div className="flex rounded-md overflow-hidden">
                   <div className="bg-muted px-3 py-2 text-sm flex items-center border-y border-l rounded-l-md">
-                    https://
+                    https:
                   </div>
                   <Input
                     id="contactValue"
@@ -627,7 +573,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
                     onChange={(e) => setDisplayValue(e.target.value)}
                     placeholder="example.com"
                     className={`rounded-l-none ${contactValueError ? "border-destructive" : ""}`}
-                    maxLength={MAX_VALUE_LENGTH - 8} // Account for "https://" prefix
+                    maxLength={MAX_VALUE_LENGTH - 8}
                   />
                 </div>
               ) : contactType === "telegram" ? (
@@ -641,7 +587,7 @@ export function ContactForm({ userId, onSuccess, onCancel }: ContactFormProps) {
                     onChange={(e) => setDisplayValue(e.target.value)}
                     placeholder="username"
                     className={`rounded-l-none ${contactValueError ? "border-destructive" : ""}`}
-                    maxLength={MAX_VALUE_LENGTH - 1} // Account for "@" prefix
+                    maxLength={MAX_VALUE_LENGTH - 1}
                   />
                 </div>
               ) : (

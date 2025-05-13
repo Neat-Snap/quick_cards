@@ -29,7 +29,6 @@ export function AnimatedButton({
   });
   const [isAnimating, setIsAnimating] = useState(false);
   
-  // Handle ripple effect
   const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     if (disabled) return;
     
@@ -37,7 +36,6 @@ export function AnimatedButton({
       const button = event.currentTarget;
       const rect = button.getBoundingClientRect();
       
-      // Calculate ripple position relative to button
       const left = ((event.clientX - rect.left) / rect.width) * 100;
       const top = ((event.clientY - rect.top) / rect.height) * 100;
       
@@ -47,7 +45,6 @@ export function AnimatedButton({
         display: "block"
       });
       
-      // Remove ripple after animation completes
       setTimeout(() => {
         setRippleStyle(prev => ({ ...prev, display: "none" }));
       }, 600);
@@ -58,7 +55,6 @@ export function AnimatedButton({
       setTimeout(() => setIsAnimating(false), 300);
     }
     
-    // Call original click handler
     onClick?.(event);
   };
   
@@ -76,7 +72,6 @@ export function AnimatedButton({
     >
       {children}
       
-      {/* Ripple effect */}
       {ripple && (
         <span
           className="absolute rounded-full bg-white/20 animate-ripple pointer-events-none"
@@ -84,7 +79,7 @@ export function AnimatedButton({
             left: rippleStyle.left,
             top: rippleStyle.top,
             display: rippleStyle.display,
-            width: "500%", // Large enough to cover the button
+            width: "500%",
             height: "500%",
             transform: "translate(-50%, -50%)",
           }}
