@@ -40,7 +40,7 @@ import {
 const PREMIUM_TIER = {
   tier: 1,
   name: "Premium",
-  price: 1,
+  price: 99,
   description: "All premium features",
   features: [
     "Custom Background Image",
