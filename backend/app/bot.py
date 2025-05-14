@@ -85,7 +85,7 @@ def process_successful_payment(message):
     """Handle successful payments"""
     try:
         user_id = message.chat.id
-        bot.refund_star_payment(user_id, message.successful_payment.telegram_payment_charge_id)
+        # bot.refund_star_payment(user_id, message.successful_payment.telegram_payment_charge_id)
 
         total_amount = message.successful_payment.total_amount
 
