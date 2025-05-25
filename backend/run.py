@@ -19,5 +19,5 @@ if __name__ == "__main__":
 
     logger.info("Started the bot")
     
-    # Note: We do not import app directly to avoid circular imports
+    # Do not import app directly to avoid circular imports
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=False)
