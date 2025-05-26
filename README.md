@@ -1,112 +1,37 @@
-# Telegram Business Card Creator
+# Quick Cards
 
-This project allows users to create personalized business cards for Telegram.
+<p>
+  <a href="https://reactjs.org/"><img src="https://img.shields.io/badge/React-18-blue?logo=react&logoColor=white" alt="React"></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-blue?logo=typescript&logoColor=white" alt="TypeScript"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.100+-green?logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-blue?logo=postgresql&logoColor=white" alt="PostgreSQL"></a>
+</p>
 
-## Project Structure
+A simple, human-friendly way to build and share your business card right inside Telegram.  
 
-```
-telegram-business-card/
-├── frontend/            # Next.js frontend application
-│   ├── src/
-│   │   ├── app/         # Next.js App Router components
-│   │   ├── components/  # React components
-│   │   ├── lib/         # Utility functions and libraries
-│   │   ├── styles/      # CSS styles
-│   │   └── public/      # Static files
-│   ├── next.config.js   # Next.js configuration
-│   ├── package.json     # Frontend dependencies
-│   ├── postcss.config.js # PostCSS configuration
-│   ├── tailwind.config.js # Tailwind CSS configuration
-│   └── tsconfig.json    # TypeScript configuration
-├── backend/             # Backend server code
-└── package.json         # Root package.json for project scripts
-```
+👉 [Try it here](https://t.me/quick_business_bot)
 
-## Getting Started
-
-1. Install dependencies:
-   ```
-   npm run install
-   ```
-
-2. Start development server:
-   ```
-   npm run dev
-   ```
-
-3. Build for production:
-   ```
-   npm run build
-   ```
-
-4. Start production server:
-   ```
-   npm run start
-   ```
-
-## Frontend (React with Shadcn UI)
-
-This project uses:
-- Next.js with React
-- TypeScript
-- Tailwind CSS for styling
-- Shadcn UI components
-- Dark theme by default
-
-## Project Setup
-
-This project is currently set up as a placeholder with mock components. The actual backend integration with FastAPI will be implemented separately.
-
-### Running the frontend
-
-1. Install dependencies (use one of the following methods):
-
-   **Using the setup script (recommended):**
-   - Windows: Run `setup.bat`
-   - Unix/Linux/Mac: Run `chmod +x setup.sh && ./setup.sh`
-
-   **Manually:**
-   ```bash
-   npm install --legacy-peer-deps
-   ```
-
-2. Run the development server:
-```bash
-npm run dev
-```
-
-3. Open [http://localhost:3000](http://localhost:3000) to view the application.
+This mini-app lets you design a digital business card, customize it with colors, images and text, and display it in your profile with a single tap.
 
 ## Features
 
-### Free Features
-- Basic business card creation
-- Personal and contact information
-- Social media links
-- Dark mode theme
+- **Build your card**  
+  Choose backgrounds (solid, gradient, photo), upload an avatar, write a short bio  
+- **Add contacts & skills**  
+  Add phone, email, social links, project summaries and skill badges  
+- **Pin your projects**  
+  Showcase your experience by adding your projects you contributed to  
+- **Share!**  
+  Embed in your Telegram profile or share via personal link  
 
-### Premium Features (using Telegram Stars)
-- Custom themes
-- Animated elements
-- HD background images
-- Custom QR codes
-- Verified badges
-- Multiple links
-- Video introduction
+## Built with
 
-## Troubleshooting
+- **Frontend:**  
+  React · TypeScript · Tailwind CSS · Shadcn UI · Framer Motion  
+- **Backend:**  
+  FastAPI · SQLAlchemy · PostgreSQL
 
-If you encounter dependency issues during installation, make sure to use the `--legacy-peer-deps` flag with npm, or use the provided setup scripts.
+---
 
-## Backend (planned with Python FastAPI)
-
-The backend will be implemented separately using Python FastAPI.
-
-## Note
-
-This is a placeholder implementation with static data. The actual implementation will include:
-- Actual API integration with the backend
-- User authentication via Telegram
-- Proper state management
-- Payment processing with Telegram Stars
-- Data persistence 
+*That’s it. Just a great tool to make Telegram profiles a bit more personal.*  
+👉 [linkkk](https://t.me/quick_business_bot)
