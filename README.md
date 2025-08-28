@@ -34,4 +34,3 @@ This mini-app lets you design a digital business card, customize it with colors,
 ---
 
 *That’s it. Just a great tool to make Telegram profiles a bit more personal.*  
-👉 [linkkk](https://t.me/quick_business_bot)
